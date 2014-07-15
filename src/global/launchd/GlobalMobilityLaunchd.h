@@ -28,15 +28,14 @@ public:
     virtual ~GlobalMobilityLaunchd();
 
 public:
-    std::list<std::string> commandGetLaneIds(std::string laneId);
+    std::list<std::string> commandGetLaneLinksIds(std::string laneId);
 protected:
-    std::list<std::string> linkLinksGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId);
+    std::list<std::string> laneLinksGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId);
 };
 class GlobalMobilityLaunchdAccess {
 public:
-    GlobalMobilityLaunchdAccess* get() {
-        return FindModule<GlobalMobilityLaunchdAccess*>::findGlobalModule();
+    GlobalMobilityLaunchd* get() {
+        return FindModule<GlobalMobilityLaunchd*>::findGlobalModule();
     }
-    ;
 };
 #endif

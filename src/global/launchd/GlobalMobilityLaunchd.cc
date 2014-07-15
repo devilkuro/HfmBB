@@ -20,13 +20,12 @@ Define_Module(GlobalMobilityLaunchd);
 GlobalMobilityLaunchd::~GlobalMobilityLaunchd() {
 }
 
-std::list<std::string> GlobalMobilityLaunchd::commandGetLaneIds(
-        std::string laneId) {
-    return linkLinksGetStringList(CMD_GET_LANE_VARIABLE, laneId, LANE_LINKS,
+std::list<std::string> GlobalMobilityLaunchd::commandGetLaneLinksIds(std::string laneId) {
+    return laneLinksGetStringList(CMD_GET_LANE_VARIABLE, laneId, LANE_LINKS,
             RESPONSE_GET_LANE_VARIABLE);
 }
 
-std::list<std::string> GlobalMobilityLaunchd::linkLinksGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId) {
+std::list<std::string> GlobalMobilityLaunchd::laneLinksGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId) {
     uint8_t resultTypeId = TYPE_COMPOUND;
     std::list<std::string> res;
 

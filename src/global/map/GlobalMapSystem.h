@@ -33,12 +33,11 @@ using std::string;
 using std::map;
 using std::list;
 using std::set;
+using std::vector;
 
 class GlobalMapSystem: public BaseModule {
 public:
-    GlobalMapSystem() :
-            manager(NULL), laneMap(), edgeMap(), startMsg(NULL) {
-    }
+    GlobalMapSystem();
     virtual ~GlobalMapSystem();
 protected:
     virtual void initialize(int stage);
@@ -48,10 +47,21 @@ protected:
     }
 
 public:
+    virtual void generateMap();
+    virtual GlobalMobilityLaunchd* getManager() const {
+        if (!manager){
+            manager = GlobalMobilityLaunchdAccess().get();
+        }
+        ASSERT(manager);
+        return manager;
+    }
+    public:
+    class Lane;
+    class Edge;
     class Lane {
     public:
         string name;
-        string edgeID;
+        Edge* edge;
         int linkNumber;
         set<Lane*> links;
     };
@@ -63,18 +73,18 @@ public:
         int edgeNumber;
         set<Edge*> edges;
     };
-public:
-    virtual void generateMap();
-    virtual GlobalMobilityLaunchd* getManager() const {
-        if (!manager)
-            manager = GlobalMobilityLaunchdAccess().get();
-        return manager;
-    }
+    class Node {
+        string name;
+        string type;
+        Coord pos;
+    };
 protected:
     list<string> getLanes(Lane* lane);
 
 protected:
-    mutable TraCIScenarioManager* manager;
+    mutable GlobalMobilityLaunchd* manager;
+    AnnotationManager* annotations;
+    AnnotationManager::Group* annotationGroup;
     map<string, Lane*> laneMap;
     map<string, Edge*> edgeMap;
 

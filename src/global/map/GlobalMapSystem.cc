@@ -15,45 +15,124 @@
 
 #include "GlobalMapSystem.h"
 
-Define_Module(GlobalMapSystem);
+Define_Module(GlobalMapSystem)
+;
 
-void GlobalMapSystem::initialize(int stage)
-{
+void GlobalMapSystem::initialize(int stage) {
     // TODO - Generated method body
     BaseModule::initialize(stage);
-    if(stage == 2){
+    if (stage == 1) {
+        annotations = AnnotationManagerAccess().getIfExists();
+        if (annotations)
+            annotationGroup = annotations->createGroup("maps");
         startMsg = new cMessage("startMapSystem");
-        scheduleAt(0.2,startMsg);
+        scheduleAt(0.2, startMsg);
     }
 }
 
 GlobalMapSystem::~GlobalMapSystem() {
     // TODO - Generated method body
+    for (map<string, Lane*>::iterator it = laneMap.begin(); it != laneMap.end();
+            it++) {
+        delete (it->second);
+    }
+    for (map<string, Edge*>::iterator it = edgeMap.begin(); it != edgeMap.end();
+            it++) {
+        delete (it->second);
+    }
 }
 
-void GlobalMapSystem::handleMessage(cMessage *msg)
-{
+void GlobalMapSystem::handleMessage(cMessage *msg) {
     // TODO - Generated method body
     if (msg == startMsg) {
-        list<string> lanelist = getManager()->commandGetLaneIds();
-        Lane* lane = new Lane();
-        list<string>::iterator it_ll = lanelist.begin();
-        it_ll++;
-        it_ll++;
-        lane->name = *it_ll;
-        debugEV << lane->name << endl;
-        list<string> lanelist_l0 = getLanes(lane);
-        for (list<string>::iterator it = lanelist_l0.begin();
-                it != lanelist_l0.end(); it++) {
-            debugEV << (*it) << endl;
+        if (getManager()->isConnected()) {
+            /*
+             list<string> lanelist = getManager()->commandGetLaneIds();
+             Lane* lane = new Lane();
+             list<string>::iterator it_ll = lanelist.begin();
+             it_ll++;
+             it_ll++;
+             lane->name = *it_ll;
+             debugEV << lane->name << endl;
+             list<string> lanelist_l0 = getLanes(lane);
+             for (list<string>::iterator it = lanelist_l0.begin();
+             it != lanelist_l0.end(); it++) {
+             debugEV << (*it) << endl;
+             }
+             */
+            generateMap();
+        } else {
+            scheduleAt(simTime() + 0.1, startMsg);
         }
     }
 }
 
 void GlobalMapSystem::generateMap() {
     // TODO - Generated method body
+    // 1st. get all lanes and the edges containing them.
+    {
+        list<string> laneList = getManager()->commandGetLaneIds();
+        for (list<string>::iterator it = laneList.begin(); it != laneList.end();
+                it++) {
+            Lane* lane = new Lane();
+            lane->name = (*it);
+            lane->linkNumber = 0;
+            laneMap[lane->name] = lane;
+            Edge* edge;
+            list<Coord> coords = getManager()->commandGetPolygonShape(
+                    lane->name);
+            vector<Coord> shape;
+            std::copy(coords.begin(), coords.end(), std::back_inserter(shape));
+            if (annotations) {
+                annotations->drawPolygon(shape, "black", annotationGroup);
+            }
+            string edgeName = getManager()->commandGetLaneEdgeId(lane->name);
+            // get the edge of this lane
+            if (edgeMap.find(edgeName) == edgeMap.end()) {
+                // if the edge is not exist
+                edge = new Edge();
+                edge->name = edgeName;
+                edge->edgeNumber = 0;
+                edge->linkNumber = 0;
+                edgeMap[edgeName] = edge;
+            } else {
+                // if the edge is exist
+                edge = edgeMap[edgeName];
+            }
+            // set the lane's edge
+            lane->edge = edge;
+            // modify the edge.
+            edge->links.insert(lane);
+            edge->linkNumber++;
+        }
+    }
+    // 2nd. connect lanes and edges
+    {
+        for (map<string, Lane*>::iterator it_lane = laneMap.begin();
+                it_lane != laneMap.end(); it_lane++) {
+            // get the name list of this lane's links
+            list<string> linkList = getLanes(it_lane->second);
+            // connect lanes and edges
+            for (list<string>::iterator it_link = linkList.begin();
+                    it_link != linkList.end(); it_link++) {
+                // connect links to the lane
+                if (it_lane->second->links.insert(laneMap[*it_link]).second) {
+                    it_lane->second->linkNumber++;
+                    // connect links' edge to the lane's edge
+                    if (it_lane->second->edge->edges.insert(
+                            laneMap[*it_link]->edge).second) {
+                        it_lane->second->edge->edgeNumber++;
+                    }
+                }
+            }
+        }
+    }
+}
+
+GlobalMapSystem::GlobalMapSystem() :
+        manager(0), annotations(0), annotationGroup(0), laneMap(), edgeMap(), startMsg() {
 }
 
 list<string> GlobalMapSystem::getLanes(Lane* lane) {
-    return getManager()->commandGetLaneIds(lane->name);
+    return getManager()->commandGetLaneLinksIds(lane->name);
 }
