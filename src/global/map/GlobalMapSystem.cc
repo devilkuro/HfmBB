@@ -79,7 +79,7 @@ void GlobalMapSystem::generateMap() {
             lane->linkNumber = 0;
             laneMap[lane->name] = lane;
             Edge* edge;
-            list<Coord> coords = getManager()->commandGetPolygonShape(
+            list<Coord> coords = getManager()->commandGetLaneShape(
                     lane->name);
             vector<Coord> shape;
             std::copy(coords.begin(), coords.end(), std::back_inserter(shape));
