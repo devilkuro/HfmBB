@@ -31,7 +31,6 @@ void GlobalMapSystem::initialize(int stage) {
         }
         if (annotations)
             annotationGroup = annotations->createGroup("maps");
-        stepMsg = new cMessage("step message");
         startMsg = new cMessage("startMapSystem");
         scheduleAt(0.2, startMsg);
     }
@@ -52,29 +51,9 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
     if (msg == startMsg) {
         if (getManager()->isConnected()) {
             generateMap();
-            scheduleAt(simTime() + 0.1, stepMsg);
         }
         else {
             scheduleAt(simTime() + 0.1, startMsg);
-        }
-    }
-    if (msg == stepMsg) {
-        static map<string, Lane*>::iterator step_it_lane_list = laneMap.begin();
-        // 3rd. draw the map
-        {
-            list<Coord> coords = getManager()->commandGetLaneShape(step_it_lane_list->first);
-            if (annotations) {
-                list<Coord>::iterator it = coords.begin();
-                Coord lastCoord = *it;
-                for (it++; it != coords.end(); it++) {
-                    annotations->drawLine(lastCoord, *it, "black", annotationGroup);
-                    lastCoord = *it;
-                }
-            }
-        }
-        if (step_it_lane_list != laneMap.end()) {
-            step_it_lane_list++;
-            scheduleAt(simTime() + 0.1, stepMsg);
         }
     }
     else {
@@ -115,32 +94,41 @@ void GlobalMapSystem::generateMap() {
         }
     }
     // 2nd. connect lanes and edges
-    /*
-     {
-     for (map<string, Lane*>::iterator it_lane = laneMap.begin();
-     it_lane != laneMap.end(); it_lane++) {
-     // get the name list of this lane's links
-     list<string> linkList = getLanes(it_lane->second);
-     // connect lanes and edges
-     for (list<string>::iterator it_link = linkList.begin();
-     it_link != linkList.end(); it_link++) {
-     // connect links to the lane
-     if (it_lane->second->links.insert(laneMap[*it_link]).second) {
-     it_lane->second->linkNumber++;
-     // connect links' edge to the lane's edge
-     if (it_lane->second->edge->edges.insert(
-     laneMap[*it_link]->edge).second) {
-     it_lane->second->edge->edgeNumber++;
-     }
-     }
-     }
-     }
-     }
-     */
+    {
+        for (map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++) {
+            // get the name list of this lane's links
+            list<string> linkList = getLanes(it_lane->second);
+            // connect lanes and edges
+            for (list<string>::iterator it_link = linkList.begin(); it_link != linkList.end(); it_link++) {
+                // connect links to the lane
+                if (it_lane->second->links.insert(laneMap[*it_link]).second) {
+                    it_lane->second->linkNumber++;
+                    // connect links' edge to the lane's edge
+                    if (it_lane->second->edge->edges.insert(laneMap[*it_link]->edge).second) {
+                        it_lane->second->edge->edgeNumber++;
+                    }
+                }
+            }
+        }
+    }
+    // 3rd. draw the map
+    {
+        for (map<string, Lane*>::iterator it = laneMap.begin();it!=laneMap.end();it++) {
+            list<Coord> coords = getManager()->commandGetLaneShape(it->first);
+            if (annotations) {
+                list<Coord>::iterator it = coords.begin();
+                Coord lastCoord = *it;
+                for (it++; it != coords.end(); it++) {
+                    annotations->drawLine(lastCoord, *it, "black", annotationGroup);
+                    lastCoord = *it;
+                }
+            }
+        }
+    }
 }
 
 GlobalMapSystem::GlobalMapSystem() :
-        manager(0), annotations(0), annotationGroup(0), laneMap(), edgeMap(), stepMsg(NULL), startMsg(NULL) {
+        manager(0), annotations(0), annotationGroup(0), laneMap(), edgeMap(), startMsg(NULL) {
 }
 
 list<string> GlobalMapSystem::getLanes(Lane* lane) {
