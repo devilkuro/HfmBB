@@ -13,12 +13,21 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package smartcity.flowreserved.global.map;
+#ifndef __SMARTCITYFLOWRESERVED_TRACIMOBILITY_FIXED_H_
+#define __SMARTCITYFLOWRESERVED_TRACIMOBILITY_FIXED_H_
 
-//
-// TODO auto-generated module
-//
-simple GlobalMapSystem
+#include <omnetpp.h>
+#include "TraCIMobility.h"
+
+/**
+ * TODO - Generated class
+ */
+class TraCIMobility_Fixed : public TraCIMobility
 {
-    bool draw = default(false);
-}
+public:
+    virtual void preInitialize(std::string external_id, const Coord& position, std::string road_id = "", double speed = -1, double angle = -1);
+    virtual void nextPosition(const Coord& position, std::string road_id = "", double speed = -1, double angle = -1, TraCIScenarioManager::VehicleSignal signals = TraCIScenarioManager::VEH_SIGNAL_UNDEF);
+    virtual void changePosition();
+};
+
+#endif

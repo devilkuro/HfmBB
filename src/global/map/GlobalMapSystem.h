@@ -87,7 +87,7 @@ protected:
     AnnotationManager::Group* annotationGroup;
     map<string, Lane*> laneMap;
     map<string, Edge*> edgeMap;
-
+    cMessage* stepMsg;
     cMessage* startMsg;
 };
 

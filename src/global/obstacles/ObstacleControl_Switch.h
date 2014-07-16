@@ -13,12 +13,19 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package smartcity.flowreserved.global.map;
+#ifndef __SMARTCITYFLOWRESERVED_OBSTACLECONTROL_SWITCH_H_
+#define __SMARTCITYFLOWRESERVED_OBSTACLECONTROL_SWITCH_H_
 
-//
-// TODO auto-generated module
-//
-simple GlobalMapSystem
+#include <omnetpp.h>
+#include "ObstacleControl.h"
+
+/**
+ * TODO - Generated class
+ */
+class ObstacleControl_Switch : public ObstacleControl
 {
-    bool draw = default(false);
-}
+  protected:
+    virtual void initialize(int stage);
+};
+
+#endif

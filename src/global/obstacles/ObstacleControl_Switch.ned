@@ -13,12 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package smartcity.flowreserved.global.map;
+package smartcity.flowreserved.global.obstacles;
 
 //
 // TODO auto-generated module
 //
-simple GlobalMapSystem
+simple ObstacleControl_Switch
 {
-    bool draw = default(false);
+    parameters:
+        bool debug = default(false);  // emit debug messages?
+        bool draw = default(false);
+        xml obstacles = default(xml("<obstacles/>")); // obstacles to add at startup
+        @display("i=misc/town");
+        @labels(node);
 }

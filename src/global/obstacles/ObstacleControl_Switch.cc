@@ -13,12 +13,31 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package smartcity.flowreserved.global.map;
+#include "ObstacleControl_Switch.h"
 
-//
-// TODO auto-generated module
-//
-simple GlobalMapSystem
+Define_Module(ObstacleControl_Switch);
+
+void ObstacleControl_Switch::initialize(int stage)
 {
-    bool draw = default(false);
+    // TODO - Generated method body
+    if (stage == 1) {
+        debug = par("debug");
+
+
+        obstacles.clear();
+        cacheEntries.clear();
+
+        bool draw = hasPar("draw")?par("draw"):true;
+        if(draw){
+            annotations = AnnotationManagerAccess().getIfExists();
+        }else{
+            annotations = NULL;
+        }
+        if (annotations) annotationGroup = annotations->createGroup("obstacles");
+
+        obstaclesXml = par("obstacles");
+
+        addFromXml(obstaclesXml);
+    }
 }
+

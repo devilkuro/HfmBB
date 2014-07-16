@@ -22,7 +22,7 @@ package smartcity.flowreserved.simulations;
 
 import org.mixim.base.connectionManager.ConnectionManager;
 import org.mixim.base.modules.BaseWorldUtility;
-import org.mixim.modules.obstacle.ObstacleControl;
+import smartcity.flowreserved.global.obstacles.ObstacleControl_Switch;
 import org.mixim.modules.world.annotations.AnnotationManager;
 import smartcity.flowreserved.global.map.GlobalMapSystem;
 import smartcity.flowreserved.global.launchd.GlobalMobilityLaunchd;
@@ -35,7 +35,7 @@ module Highway
         double playgroundSizeZ @unit(m); // z size of the area the nodes are in (in meters)
         @display("bgb=$playgroundSizeX,$playgroundSizeY");
     submodules:
-        obstacles: ObstacleControl {
+        obstacles: ObstacleControl_Switch {
             @display("p=240,50");
         }
         annotations: AnnotationManager {
