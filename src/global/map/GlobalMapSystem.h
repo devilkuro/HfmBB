@@ -17,7 +17,7 @@
 #define __SMARTCITYFLOWRESERVED_GLOBALMAPSYSTEM_H_
 
 #include <string>
-#include <fstream>
+#include <sstream>
 #include <list>
 #include <map>
 #include <stdexcept>
@@ -25,6 +25,7 @@
 #include "FindModule.h"
 #include "BaseModule.h"
 #include "global/launchd/GlobalMobilityLaunchd.h"
+#include "AnnotationManager_Colorful.h"
 
 /**
  * TODO - Generated class
@@ -35,7 +36,7 @@ using std::list;
 using std::set;
 using std::vector;
 
-class GlobalMapSystem: public BaseModule {
+class GlobalMapSystem : public BaseModule {
 public:
     GlobalMapSystem();
     virtual ~GlobalMapSystem();
@@ -49,13 +50,13 @@ protected:
 public:
     virtual void generateMap();
     virtual GlobalMobilityLaunchd* getManager() const {
-        if (!manager){
+        if (!manager) {
             manager = GlobalMobilityLaunchdAccess().get();
         }
         ASSERT(manager);
         return manager;
     }
-    public:
+public:
     class Lane;
     class Edge;
     class Lane {
@@ -64,6 +65,8 @@ public:
         Edge* edge;
         int linkNumber;
         set<Lane*> links;
+        list<AnnotationManager_Colorful::Line_Colorful*> visualRepresentations;
+        void setColor(AnnotationManager_Colorful*annotations, string color);
     };
     class Edge {
     public:
@@ -72,23 +75,28 @@ public:
         set<Lane*> links;
         int edgeNumber;
         set<Edge*> edges;
+        void setColor(AnnotationManager_Colorful* annotations, string color);
     };
     class Node {
         string name;
         string type;
         Coord pos;
+        double r;
+        void setColor(string color);
     };
 protected:
     list<string> getLanes(Lane* lane);
 
 protected:
     mutable GlobalMobilityLaunchd* manager;
-    AnnotationManager* annotations;
-    AnnotationManager::Group* annotationGroup;
+    AnnotationManager_Colorful* annotations;
+    AnnotationManager_Colorful::Group* annotationGroup;
     map<string, Lane*> laneMap;
     map<string, Edge*> edgeMap;
 
     cMessage* startMsg;
+private:
+    string double2color(double d);
 };
 
 #endif

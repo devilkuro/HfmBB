@@ -18,15 +18,14 @@
 #include <fstream>
 #include <iostream>
 
-Define_Module(GlobalStatistics);
+Define_Module(GlobalStatistics)
+
 GlobalStatistics::gs_eofType GlobalStatistics::endl = NULL;
-void GlobalStatistics::initialize()
-{
+void GlobalStatistics::initialize() {
     // do nothing
 }
 
-void GlobalStatistics::handleMessage(cMessage *msg)
-{
+void GlobalStatistics::handleMessage(cMessage *msg) {
     // do nothing
 }
 
@@ -35,10 +34,8 @@ GlobalStatistics::GlobalStatistics() {
 }
 
 GlobalStatistics::~GlobalStatistics() {
-    for (GlobalStatisticsMap::iterator it = globalStatisticsMap.begin();
-            it != globalStatisticsMap.end(); it++) {
-        for (GlobalStatisticsList::iterator lit = it->second->begin();
-                lit != it->second->end(); lit++) {
+    for (GlobalStatisticsMap::iterator it = globalStatisticsMap.begin(); it != globalStatisticsMap.end(); it++) {
+        for (GlobalStatisticsList::iterator lit = it->second->begin(); lit != it->second->end(); lit++) {
             delete (*lit);
         }
         delete (it->second);
@@ -51,14 +48,14 @@ void GlobalStatistics::record(string name, int size, ...) {
     GlobalStatisticsUnit *unit = new GlobalStatisticsUnit(size);
     double val;
     va_list vl;
-    va_start(vl,size);
-    for(int i = 0; i<size; i++){
+    va_start(vl, size);
+    for (int i = 0; i < size; i++) {
         val = va_arg(vl,double);
-        unit->setData(val,i);
+        unit->setData(val, i);
     }
     va_end(vl);
     it = globalStatisticsMap.find(name);
-    if(it==globalStatisticsMap.end()){
+    if (it == globalStatisticsMap.end()) {
         GlobalStatisticsList* list = new GlobalStatisticsList();
         globalStatisticsMap[name] = list;
     }
@@ -72,22 +69,17 @@ void GlobalStatistics::finish() {
     time(&rawtime);
     timeinfo = localtime(&rawtime);
     name.width(2);
-    name<<"result_"
-            <<timeinfo->tm_year<<"_"
-            <<timeinfo->tm_mon<<"_"
-            <<timeinfo->tm_mday<<"_"
-            <<timeinfo->tm_hour<<"_"
-            <<timeinfo->tm_min<<"_"
-            <<timeinfo->tm_sec<<".log";
+    name << "result_" << timeinfo->tm_year << "_" << timeinfo->tm_mon << "_" << timeinfo->tm_mday << "_"
+            << timeinfo->tm_hour << "_" << timeinfo->tm_min << "_" << timeinfo->tm_sec << ".log";
     output(name.str());
 }
 
 GlobalStatistics& GlobalStatistics::operator <<(gs_eofType& e) {
-    if (unitData.size()>0) {
+    if (unitData.size() > 0) {
         GlobalStatisticsUnit* unit = new GlobalStatisticsUnit(unitData.size());
         int i = 0;
-        for(std::list<double>::iterator it = unitData.begin();it!=unitData.end();it++){
-            unit->setData(*it,i);
+        for (std::list<double>::iterator it = unitData.begin(); it != unitData.end(); it++) {
+            unit->setData(*it, i);
             i++;
         }
         GlobalStatisticsMap::iterator it;
@@ -121,11 +113,11 @@ GlobalStatistics& GlobalStatistics::changeName(string name) {
 
 void GlobalStatistics::output(string name) {
     std::fstream fs;
-    fs.open (name.c_str(),std::fstream::out);
-    for(GlobalStatisticsMap::iterator it = globalStatisticsMap.begin();it!=globalStatisticsMap.end();it++){
-        fs<<it->first<<std::endl;
-        for(GlobalStatisticsList::iterator lit = it->second->begin();lit!=it->second->end();lit++){
-            fs<<(*lit)->toString()<<std::endl;
+    fs.open(name.c_str(), std::fstream::out);
+    for (GlobalStatisticsMap::iterator it = globalStatisticsMap.begin(); it != globalStatisticsMap.end(); it++) {
+        fs << it->first << std::endl;
+        for (GlobalStatisticsList::iterator lit = it->second->begin(); lit != it->second->end(); lit++) {
+            fs << (*lit)->toString() << std::endl;
         }
     }
     fs.close();

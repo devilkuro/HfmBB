@@ -23,7 +23,7 @@ package smartcity.flowreserved.simulations;
 import org.mixim.base.connectionManager.ConnectionManager;
 import org.mixim.base.modules.BaseWorldUtility;
 import smartcity.flowreserved.global.obstacles.ObstacleControl_Switch;
-import org.mixim.modules.world.annotations.AnnotationManager;
+import smartcity.flowreserved.global.annotations.AnnotationManager_Colorful;
 import smartcity.flowreserved.global.map.GlobalMapSystem;
 import smartcity.flowreserved.global.launchd.GlobalMobilityLaunchd;
 
@@ -38,7 +38,7 @@ module Highway
         obstacles: ObstacleControl_Switch {
             @display("p=240,50");
         }
-        annotations: AnnotationManager {
+        annotations: AnnotationManager_Colorful {
             @display("p=260,50");
         }
         connectionManager: ConnectionManager {

@@ -16,7 +16,6 @@
 #include "GlobalMapSystem.h"
 
 Define_Module(GlobalMapSystem)
-;
 
 void GlobalMapSystem::initialize(int stage) {
     // TODO - Generated method body
@@ -24,7 +23,7 @@ void GlobalMapSystem::initialize(int stage) {
     if (stage == 1) {
         bool draw = hasPar("draw") ? par("draw") : true;
         if (draw) {
-            annotations = AnnotationManagerAccess().getIfExists();
+            annotations = AnnotationManager_ColorfulAccess().getIfExists();
         }
         else {
             annotations = NULL;
@@ -51,6 +50,7 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
     if (msg == startMsg) {
         if (getManager()->isConnected()) {
             generateMap();
+            scheduleAt(simTime() + 0.1, startMsg);
         }
         else {
             scheduleAt(simTime() + 0.1, startMsg);
@@ -62,7 +62,14 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
 }
 
 void GlobalMapSystem::generateMap() {
-    // TODO - Generated method body
+    // 0th. this function can only run once.
+    if (laneMap.size() != 0 || edgeMap.size() != 0) {
+        static map<string, Edge*>::iterator it_gms_map_string_edge = edgeMap.begin();
+        static int i_gms_map_string_edge = 0;
+        it_gms_map_string_edge->second->setColor(annotations, double2color(i_gms_map_string_edge));
+        it_gms_map_string_edge++;
+        return;
+    }
     // 1st. get all lanes and the edges containing them.
     {
         list<string> laneList = getManager()->commandGetLaneIds();
@@ -113,14 +120,15 @@ void GlobalMapSystem::generateMap() {
     }
     // 3rd. draw the map
     {
-        for (map<string, Lane*>::iterator it = laneMap.begin();it!=laneMap.end();it++) {
-            list<Coord> coords = getManager()->commandGetLaneShape(it->first);
+        for (map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++) {
+            list<Coord> coords = getManager()->commandGetLaneShape(it_lane->first);
             if (annotations) {
-                list<Coord>::iterator it = coords.begin();
-                Coord lastCoord = *it;
-                for (it++; it != coords.end(); it++) {
-                    annotations->drawLine(lastCoord, *it, "black", annotationGroup);
-                    lastCoord = *it;
+                list<Coord>::iterator it_coord = coords.begin();
+                Coord lastCoord = *it_coord;
+                for (it_coord++; it_coord != coords.end(); it_coord++) {
+                    it_lane->second->visualRepresentations.push_back(
+                            annotations->drawLine_Colorful(lastCoord, *it_coord, "black", annotationGroup));
+                    lastCoord = *it_coord;
                 }
             }
         }
@@ -133,4 +141,36 @@ GlobalMapSystem::GlobalMapSystem() :
 
 list<string> GlobalMapSystem::getLanes(Lane* lane) {
     return getManager()->commandGetLaneLinksIds(lane->name);
+}
+
+void GlobalMapSystem::Lane::setColor(AnnotationManager_Colorful* annotations, string color) {
+    for (list<AnnotationManager_Colorful::Line_Colorful*>::iterator it = visualRepresentations.begin();
+            it != visualRepresentations.end(); it++) {
+        annotations->setColor(*it, color);
+    }
+}
+
+void GlobalMapSystem::Edge::setColor(AnnotationManager_Colorful* annotations, string color) {
+    for (set<Lane*>::iterator it = links.begin(); it != links.end(); it++) {
+        (*it)->setColor(annotations, color);
+    }
+}
+
+void GlobalMapSystem::Node::setColor(string color) {
+    // do nothing for now
+}
+
+string GlobalMapSystem::double2color(double d) {
+    std::stringstream ss;
+    d = d > 255 ? 255 : d;
+    d = d < 0 ? 0 : d;
+    int r = d;
+    int g = 255 - d;
+    int b = 0;
+    ss << "#";
+    ss.setf(std::ios::hex, std::ios::basefield);
+    ss << r << g << b;
+    string str = ss.str();
+    ss.clear();
+    return str;
 }

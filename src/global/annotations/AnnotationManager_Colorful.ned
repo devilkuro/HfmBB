@@ -13,31 +13,13 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "ObstacleControl_Switch.h"
-
-Define_Module(ObstacleControl_Switch)
-
-void ObstacleControl_Switch::initialize(int stage) {
-    // TODO - Generated method body
-    if (stage == 1) {
-        debug = par("debug");
-
-        obstacles.clear();
-        cacheEntries.clear();
-
-        bool draw = hasPar("draw") ? par("draw") : true;
-        if (draw) {
-            annotations = AnnotationManagerAccess().getIfExists();
-        }
-        else {
-            annotations = NULL;
-        }
-        if (annotations)
-            annotationGroup = annotations->createGroup("obstacles");
-
-        obstaclesXml = par("obstacles");
-
-        addFromXml(obstaclesXml);
-    }
+package smartcity.flowreserved.global.annotations;
+import org.mixim.modules.world.annotations.AnnotationManager;
+//
+// TODO auto-generated module
+//
+simple AnnotationManager_Colorful extends AnnotationManager
+{
+    parameters:
+        @class(AnnotationManager_Colorful);
 }
-

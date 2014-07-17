@@ -16,7 +16,6 @@
 #include "TraCIMobility_Fixed.h"
 
 Define_Module(TraCIMobility_Fixed)
-;
 
 void TraCIMobility_Fixed::preInitialize(std::string external_id,
         const Coord& position, std::string road_id, double speed,
