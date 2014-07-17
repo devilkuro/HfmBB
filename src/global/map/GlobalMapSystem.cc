@@ -50,7 +50,6 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
     if (msg == startMsg) {
         if (getManager()->isConnected()) {
             generateMap();
-            scheduleAt(simTime() + 0.1, startMsg);
         }
         else {
             scheduleAt(simTime() + 0.1, startMsg);
@@ -64,11 +63,6 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
 void GlobalMapSystem::generateMap() {
     // 0th. this function can only run once.
     if (laneMap.size() != 0 || edgeMap.size() != 0) {
-        static map<string, Edge*>::iterator it_gms_map_string_edge = edgeMap.begin();
-        static int i_gms_map_string_edge = 0;
-        it_gms_map_string_edge->second->setColor(double2color(i_gms_map_string_edge));
-        it_gms_map_string_edge++;
-        i_gms_map_string_edge++;
         return;
     }
     // 1st. get all lanes and the edges containing them.
@@ -102,7 +96,7 @@ void GlobalMapSystem::generateMap() {
         }
     }
     // 2nd. connect lanes and edges
-    if (false) {
+    {
         for (map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++) {
             // get the name list of this lane's links
             list<string> linkList = getLanes(it_lane->second);
