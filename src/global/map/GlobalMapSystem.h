@@ -43,6 +43,7 @@ public:
 protected:
     virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
+    virtual void finish();
     virtual int numInitStages() const {
         return std::max(cSimpleModule::numInitStages(), 3);
     }
@@ -66,7 +67,7 @@ public:
         int linkNumber;
         set<Lane*> links;
         list<AnnotationManager_Colorful::Line_Colorful*> visualRepresentations;
-        void setColor(AnnotationManager_Colorful*annotations, string color);
+        void setColor(string color);
     };
     class Edge {
     public:
@@ -75,7 +76,7 @@ public:
         set<Lane*> links;
         int edgeNumber;
         set<Edge*> edges;
-        void setColor(AnnotationManager_Colorful* annotations, string color);
+        void setColor(string color);
     };
     class Node {
         string name;

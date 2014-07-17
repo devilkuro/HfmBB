@@ -17,7 +17,8 @@
 
 Define_Module(AnnotationManager_Colorful)
 
-AnnotationManager_Colorful::Line_Colorful* AnnotationManager_Colorful::drawLine_Colorful(Coord p1, Coord p2, std::string color, Group* group) {
+AnnotationManager_Colorful::Line_Colorful* AnnotationManager_Colorful::drawLine_Colorful(Coord p1, Coord p2,
+        std::string color, Group* group) {
     Line_Colorful* l = new Line_Colorful(p1, p2, color);
     l->group = group;
 
@@ -29,11 +30,8 @@ AnnotationManager_Colorful::Line_Colorful* AnnotationManager_Colorful::drawLine_
     return l;
 }
 
-void AnnotationManager_Colorful::setColor(AnnotationManager_Colorful::Annotation* annotation, std::string color) {
-    // FIXME - just implement setting lines' color for now
-    if (const Line_Colorful* l = dynamic_cast<const Line_Colorful*>(annotation)) {
-        for (std::list<cModule*>::iterator it = l->dummyObjects.begin(); it != l->dummyObjects.end(); it++) {
-            (*it)->getDisplayString().setTagArg("b", 4, color.c_str());
-        }
+void AnnotationManager_Colorful::Line_Colorful::setColor(std::string color) {
+    for (std::list<cModule*>::iterator it = dummyObjects.begin(); it != dummyObjects.end(); it++) {
+        (*it)->getDisplayString().setTagArg("b", 4, color.c_str());
     }
 }

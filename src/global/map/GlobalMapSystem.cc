@@ -66,8 +66,9 @@ void GlobalMapSystem::generateMap() {
     if (laneMap.size() != 0 || edgeMap.size() != 0) {
         static map<string, Edge*>::iterator it_gms_map_string_edge = edgeMap.begin();
         static int i_gms_map_string_edge = 0;
-        it_gms_map_string_edge->second->setColor(annotations, double2color(i_gms_map_string_edge));
+        it_gms_map_string_edge->second->setColor(double2color(i_gms_map_string_edge));
         it_gms_map_string_edge++;
+        i_gms_map_string_edge++;
         return;
     }
     // 1st. get all lanes and the edges containing them.
@@ -101,7 +102,7 @@ void GlobalMapSystem::generateMap() {
         }
     }
     // 2nd. connect lanes and edges
-    {
+    if (false) {
         for (map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++) {
             // get the name list of this lane's links
             list<string> linkList = getLanes(it_lane->second);
@@ -143,21 +144,25 @@ list<string> GlobalMapSystem::getLanes(Lane* lane) {
     return getManager()->commandGetLaneLinksIds(lane->name);
 }
 
-void GlobalMapSystem::Lane::setColor(AnnotationManager_Colorful* annotations, string color) {
+void GlobalMapSystem::Lane::setColor(string color) {
     for (list<AnnotationManager_Colorful::Line_Colorful*>::iterator it = visualRepresentations.begin();
             it != visualRepresentations.end(); it++) {
-        annotations->setColor(*it, color);
+        (*it)->setColor(color);
     }
 }
 
-void GlobalMapSystem::Edge::setColor(AnnotationManager_Colorful* annotations, string color) {
+void GlobalMapSystem::Edge::setColor(string color) {
     for (set<Lane*>::iterator it = links.begin(); it != links.end(); it++) {
-        (*it)->setColor(annotations, color);
+        (*it)->setColor(color);
     }
 }
 
 void GlobalMapSystem::Node::setColor(string color) {
     // do nothing for now
+}
+
+void GlobalMapSystem::finish() {
+    cancelAndDelete(startMsg);
 }
 
 string GlobalMapSystem::double2color(double d) {
@@ -169,8 +174,16 @@ string GlobalMapSystem::double2color(double d) {
     int b = 0;
     ss << "#";
     ss.setf(std::ios::hex, std::ios::basefield);
-    ss << r << g << b;
-    string str = ss.str();
+    ss.width(2);
+    ss.fill('0');
+    ss << r;
+    ss.width(2);
+    ss.fill('0');
+    ss << g;
+    ss.width(2);
+    ss.fill('0');
+    ss << b;
+    std::string str = ss.str();
     ss.clear();
     return str;
 }

@@ -30,15 +30,15 @@ public:
         }
         virtual ~Line_Colorful() {
         }
-
+        virtual void setColor(std::string color);
     protected:
         friend class AnnotationManager;
         friend class AnnotationManager_Colorful;
+
     };
 
     AnnotationManager_Colorful::Line_Colorful* drawLine_Colorful(Coord p1, Coord p2, std::string color,
             Group* group = 0);
-    virtual void setColor(AnnotationManager_Colorful::Annotation * annotation, std::string color);
 };
 class AnnotationManager_ColorfulAccess {
 public:
