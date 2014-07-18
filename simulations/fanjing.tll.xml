@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 07/17/14 21:39:21 by SUMO netgenerate Version 0.19.0
+<!-- generated on 07/18/14 11:01:15 by SUMO netgenerate Version 0.19.0
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netgenerateConfiguration.xsd">
 
     <grid_network>
         <grid value="true"/>
-        <grid.number value="7"/>
+        <grid.number value="4"/>
         <grid.length value="400"/>
     </grid_network>
 

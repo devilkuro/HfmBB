@@ -4,7 +4,7 @@
 
     <grid_network>
         <grid value="true"/>
-        <grid.number value="7"/>
+        <grid.number value="4"/>
         <grid.length value="400"/>
     </grid_network>
 
