@@ -50,6 +50,8 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
     if (msg == startMsg) {
         if (getManager()->isConnected()) {
             generateMap();
+            debugEV << "Map Generating finished. lane number: " << laneMap.size() << ". edge number: " << edgeMap.size()
+                    << endl;
         }
         else {
             scheduleAt(simTime() + 0.1, startMsg);
@@ -72,6 +74,7 @@ void GlobalMapSystem::generateMap() {
             Lane* lane = new Lane();
             lane->name = (*it);
             lane->linkNumber = 0;
+            lane->length = getManager()->commandGetLaneLength(lane->name);
             laneMap[lane->name] = lane;
             Edge* edge;
             string edgeName = getManager()->commandGetLaneEdgeId(lane->name);
@@ -96,7 +99,7 @@ void GlobalMapSystem::generateMap() {
         }
     }
     // 2nd. connect lanes and edges
-    {
+    if (!par("noconnect").boolValue()) {
         for (map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++) {
             // get the name list of this lane's links
             list<string> linkList = getLanes(it_lane->second);
@@ -116,6 +119,9 @@ void GlobalMapSystem::generateMap() {
     // 3rd. draw the map
     {
         for (map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++) {
+            debugEV << "Lane { name :\"" << it_lane->second->name << "\", length : " << it_lane->second->length
+                    << ", edge : \"" << it_lane->second->edge->name << "\", linknumber : "
+                    << it_lane->second->linkNumber << " };" << endl;
             list<Coord> coords = getManager()->commandGetLaneShape(it_lane->first);
             if (annotations) {
                 list<Coord>::iterator it_coord = coords.begin();

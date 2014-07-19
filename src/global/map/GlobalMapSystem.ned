@@ -21,4 +21,5 @@ package smartcity.flowreserved.global.map;
 simple GlobalMapSystem
 {
     bool draw = default(false);
+    bool noconnect = default(false);
 }

@@ -66,6 +66,7 @@ public:
         Edge* edge;
         int linkNumber;
         set<Lane*> links;
+        double length;
         list<AnnotationManager_Colorful::Line_Colorful*> visualRepresentations;
         void setColor(string color);
     };
