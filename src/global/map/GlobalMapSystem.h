@@ -96,6 +96,7 @@ protected:
     map<string, Lane*> laneMap;
     map<string, Edge*> edgeMap;
 
+    cMessage* stateSwitchMsg;
     cMessage* startMsg;
 private:
     string double2color(double d);

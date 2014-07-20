@@ -17,6 +17,11 @@
 
 Define_Module(GlobalMapSystem)
 
+GlobalMapSystem::GlobalMapSystem() :
+        manager(NULL), annotations(NULL), annotationGroup(NULL), laneMap(), edgeMap(), stateSwitchMsg(NULL), startMsg(
+                NULL) {
+}
+
 void GlobalMapSystem::initialize(int stage) {
     // TODO - Generated method body
     BaseModule::initialize(stage);
@@ -24,12 +29,10 @@ void GlobalMapSystem::initialize(int stage) {
         bool draw = hasPar("draw") ? par("draw") : true;
         if (draw) {
             annotations = AnnotationManager_ColorfulAccess().getIfExists();
+            if (annotations) {
+                annotationGroup = annotations->createGroup("maps");
+            }
         }
-        else {
-            annotations = NULL;
-        }
-        if (annotations)
-            annotationGroup = annotations->createGroup("maps");
         startMsg = new cMessage("startMapSystem");
         scheduleAt(0.2, startMsg);
     }
@@ -52,12 +55,10 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
             generateMap();
             debugEV << "Map Generating finished. lane number: " << laneMap.size() << ". edge number: " << edgeMap.size()
                     << endl;
-        }
-        else {
+        } else {
             scheduleAt(simTime() + 0.1, startMsg);
         }
-    }
-    else {
+    } else {
         delete msg;
     }
 }
@@ -86,8 +87,7 @@ void GlobalMapSystem::generateMap() {
                 edge->edgeNumber = 0;
                 edge->linkNumber = 0;
                 edgeMap[edgeName] = edge;
-            }
-            else {
+            } else {
                 // if the edge is exist
                 edge = edgeMap[edgeName];
             }
@@ -134,10 +134,6 @@ void GlobalMapSystem::generateMap() {
             }
         }
     }
-}
-
-GlobalMapSystem::GlobalMapSystem() :
-        manager(0), annotations(0), annotationGroup(0), laneMap(), edgeMap(), startMsg(NULL) {
 }
 
 list<string> GlobalMapSystem::getLanes(Lane* lane) {
