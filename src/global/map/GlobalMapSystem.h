@@ -40,23 +40,6 @@ class GlobalMapSystem : public BaseModule {
 public:
     GlobalMapSystem();
     virtual ~GlobalMapSystem();
-protected:
-    virtual void initialize(int stage);
-    virtual void handleMessage(cMessage *msg);
-    virtual void finish();
-    virtual int numInitStages() const {
-        return std::max(cSimpleModule::numInitStages(), 3);
-    }
-
-public:
-    virtual void generateMap();
-    virtual GlobalMobilityLaunchd* getManager() const {
-        if (!manager) {
-            manager = GlobalMobilityLaunchdAccess().get();
-        }
-        ASSERT(manager);
-        return manager;
-    }
 public:
     class Lane;
     class Edge;
@@ -87,6 +70,25 @@ public:
         void setColor(string color);
     };
 protected:
+    virtual void initialize(int stage);
+    virtual void handleMessage(cMessage *msg);
+    virtual void finish();
+    virtual int numInitStages() const {
+        return std::max(cSimpleModule::numInitStages(), 3);
+    }
+
+public:
+    virtual int generateMap(int stage);
+    virtual double getTravelTime(string edge, double time, double speed);
+    virtual list<string> getFastestRoute(string fromEdge, string toEdge);
+    virtual GlobalMobilityLaunchd* getManager() const {
+        if (!manager) {
+            manager = GlobalMobilityLaunchdAccess().get();
+        }
+        ASSERT(manager);
+        return manager;
+    }
+protected:
     list<string> getLanes(Lane* lane);
 
 protected:
@@ -98,8 +100,30 @@ protected:
 
     cMessage* stateSwitchMsg;
     cMessage* startMsg;
+
+    int mapstage;
+    bool noconnect;
+    bool initialized;
+private:
+    class MapEdge;
+    class MapRoute;
+    class MapEdge {
+    public:
+        string name;
+        int edgeNumber;
+        set<MapRoute*> edges;
+    };
+    class MapRoute{
+        list<string> edges;
+    };
 private:
     string double2color(double d);
+    string rgb2color(int r, int g, int b);
+private:
+    // use for searching routes
+    map<string, MapEdge*> cacheBackupEdges;
+    mutable list<MapEdge*> cacheUntappedEdges;
+    mutable list<MapEdge*> cacheTappedEdges;
 };
 
 #endif

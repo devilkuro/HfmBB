@@ -19,7 +19,7 @@ Define_Module(GlobalMapSystem)
 
 GlobalMapSystem::GlobalMapSystem() :
         manager(NULL), annotations(NULL), annotationGroup(NULL), laneMap(), edgeMap(), stateSwitchMsg(NULL), startMsg(
-                NULL) {
+                NULL), mapstage(0), noconnect(false), initialized(false) {
 }
 
 void GlobalMapSystem::initialize(int stage) {
@@ -27,6 +27,8 @@ void GlobalMapSystem::initialize(int stage) {
     BaseModule::initialize(stage);
     if (stage == 1) {
         bool draw = hasPar("draw") ? par("draw") : true;
+        mapstage = 0;
+        noconnect = hasPar("noconnect") ? par("noconnect") : false;
         if (draw) {
             annotations = AnnotationManager_ColorfulAccess().getIfExists();
             if (annotations) {
@@ -34,12 +36,12 @@ void GlobalMapSystem::initialize(int stage) {
             }
         }
         startMsg = new cMessage("startMapSystem");
+        stateSwitchMsg = new cMessage("switchMapSystemState");
         scheduleAt(0.2, startMsg);
     }
 }
 
 GlobalMapSystem::~GlobalMapSystem() {
-    // TODO - Generated method body
     for (map<string, Lane*>::iterator it = laneMap.begin(); it != laneMap.end(); it++) {
         delete (it->second);
     }
@@ -52,9 +54,13 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
     // TODO - Generated method body
     if (msg == startMsg) {
         if (getManager()->isConnected()) {
-            generateMap();
-            debugEV << "Map Generating finished. lane number: " << laneMap.size() << ". edge number: " << edgeMap.size()
-                    << endl;
+            int maxStage = generateMap(mapstage);
+            if (mapstage != maxStage) {
+                scheduleAt(simTime() + 0.1, startMsg);
+                mapstage++;
+            }
+            debugEV << "Map Generating stage " << mapstage << " finished. lane number: " << laneMap.size()
+                    << ". edge number: " << edgeMap.size() << endl;
         } else {
             scheduleAt(simTime() + 0.1, startMsg);
         }
@@ -63,13 +69,15 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
     }
 }
 
-void GlobalMapSystem::generateMap() {
-    // 0th. this function can only run once.
-    if (laneMap.size() != 0 || edgeMap.size() != 0) {
-        return;
-    }
+int GlobalMapSystem::generateMap(int stage) {
+    int maxStage = -1;
     // 1st. get all lanes and the edges containing them.
-    {
+    maxStage++;
+    if (stage == maxStage) {
+        // 0th. this function can only run at stage0 once.
+        if ((laneMap.size() != 0 || edgeMap.size() != 0)) {
+            return -1;
+        }
         list<string> laneList = getManager()->commandGetLaneIds();
         for (list<string>::iterator it = laneList.begin(); it != laneList.end(); it++) {
             Lane* lane = new Lane();
@@ -99,31 +107,35 @@ void GlobalMapSystem::generateMap() {
         }
     }
     // 2nd. connect lanes and edges
-    if (!par("noconnect").boolValue()) {
-        for (map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++) {
-            // get the name list of this lane's links
-            list<string> linkList = getLanes(it_lane->second);
-            // connect lanes and edges
-            for (list<string>::iterator it_link = linkList.begin(); it_link != linkList.end(); it_link++) {
-                // connect links to the lane
-                if (it_lane->second->links.insert(laneMap[*it_link]).second) {
-                    it_lane->second->linkNumber++;
-                    // connect links' edge to the lane's edge
-                    if (it_lane->second->edge->edges.insert(laneMap[*it_link]->edge).second) {
-                        it_lane->second->edge->edgeNumber++;
+    maxStage++;
+    if (stage == maxStage) {
+        if (!noconnect) {
+            for (map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++) {
+                // get the name list of this lane's links
+                list<string> linkList = getLanes(it_lane->second);
+                // connect lanes and edges
+                for (list<string>::iterator it_link = linkList.begin(); it_link != linkList.end(); it_link++) {
+                    // connect links to the lane
+                    if (it_lane->second->links.insert(laneMap[*it_link]).second) {
+                        it_lane->second->linkNumber++;
+                        // connect links' edge to the lane's edge
+                        if (it_lane->second->edge->edges.insert(laneMap[*it_link]->edge).second) {
+                            it_lane->second->edge->edgeNumber++;
+                        }
                     }
                 }
             }
         }
     }
     // 3rd. draw the map
-    {
-        for (map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++) {
-            debugEV << "Lane { name :\"" << it_lane->second->name << "\", length : " << it_lane->second->length
-                    << ", edge : \"" << it_lane->second->edge->name << "\", linknumber : "
-                    << it_lane->second->linkNumber << " };" << endl;
-            list<Coord> coords = getManager()->commandGetLaneShape(it_lane->first);
-            if (annotations) {
+    maxStage++;
+    if (stage == maxStage) {
+        if (annotations) {
+            for (map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++) {
+                debugEV << "Lane { name :\"" << it_lane->second->name << "\", length : " << it_lane->second->length
+                        << ", edge : \"" << it_lane->second->edge->name << "\", linknumber : "
+                        << it_lane->second->linkNumber << " };" << endl;
+                list<Coord> coords = getManager()->commandGetLaneShape(it_lane->first);
                 list<Coord>::iterator it_coord = coords.begin();
                 Coord lastCoord = *it_coord;
                 for (it_coord++; it_coord != coords.end(); it_coord++) {
@@ -134,6 +146,15 @@ void GlobalMapSystem::generateMap() {
             }
         }
     }
+    // 4th. reduce the map
+    maxStage++;
+    if (stage == maxStage) {
+
+    }
+    if (stage == maxStage) {
+        initialized = true;
+    }
+    return maxStage;
 }
 
 list<string> GlobalMapSystem::getLanes(Lane* lane) {
@@ -159,15 +180,34 @@ void GlobalMapSystem::Node::setColor(string color) {
 
 void GlobalMapSystem::finish() {
     cancelAndDelete(startMsg);
+    cancelAndDelete(stateSwitchMsg);
+}
+
+double GlobalMapSystem::getTravelTime(string edge, double time, double speed) {
+    // TODO - Generated method body
+    double travelTime = (*(edgeMap[edge]->links.begin()))->length / speed;
+    return travelTime;
+}
+
+list<string> GlobalMapSystem::getFastestRoute(string fromEdge, string toEdge) {
+    // TODO - Generated method body
+    list<string> route;
+    route.push_back(fromEdge);
+    route.push_back(toEdge);
+    return route;
 }
 
 string GlobalMapSystem::double2color(double d) {
-    std::stringstream ss;
     d = d > 255 ? 255 : d;
     d = d < 0 ? 0 : d;
     int r = d;
     int g = 255 - d;
     int b = 0;
+    return rgb2color(r, g, b);
+}
+
+string GlobalMapSystem::rgb2color(int r, int g, int b) {
+    std::stringstream ss;
     ss << "#";
     ss.setf(std::ios::hex, std::ios::basefield);
     ss.width(2);

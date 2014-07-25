@@ -20,4 +20,6 @@ package smartcity.flowreserved.global.statistics;
 //
 simple GlobalStatistics
 {
+    parameters:
+        string runid = default("gsoutput-${configname}-${runnumber}.cvs");
 }
