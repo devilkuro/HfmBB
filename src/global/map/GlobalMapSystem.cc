@@ -262,21 +262,16 @@ list<string> GlobalMapSystem::getFastestRoute(string fromEdge, string toEdge) {
 }
 
 list<string> GlobalMapSystem::getRandomRoute(string from, string to) {
-// TODO - Generated method body
+    // TODO - Generated method body
     debugEV<<"random route from edge: "<< from <<endl;
     list<string> route;
     route.push_back(from);
-    Edge* curEdge = edgeMap[from];
     double len = 0;
     if(cacheBackupEdges.find(from)==cacheBackupEdges.end()){
         debugEV<<"cache failed: "<< from <<endl;
-        while(curEdge->linkNumber == 1){
-            len+=curEdge->length;
-            route.push_back(curEdge->name);
-            curEdge = *curEdge->links.begin();
-        }
+        return route;
     }
-    MapEdge* edge = cacheBackupEdges[curEdge->name];
+    MapEdge* edge = cacheBackupEdges[from];
     while(len < 3600){
         int r = rand() % edge->routes.size();
         set<MapRoute*>::iterator it = edge->routes.begin();
