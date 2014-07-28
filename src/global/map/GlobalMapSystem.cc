@@ -181,7 +181,9 @@ int GlobalMapSystem::generateMap(int stage) {
                             << mapRoute->edges.size() << ", length :" << mapRoute->length << " };" << endl;
                 }
                 list<string> route;
-                route.push_back(it_edge->first);
+                route.push_back(mapEdge->edge->name);
+                //route.assign((*mapEdge->routes.begin())->edges.begin(), (*mapEdge->routes.begin())->edges.end());
+                //debugEV << "route { name :\"" << mapEdge->edge->name << "\", size: " << route.size() << endl;
                 getManager()->commandAddRoute(it_edge->first, route);
                 cacheBackupEdges[it_edge->first] = mapEdge;
                 debugEV << "MapEdge { name :\"" << mapEdge->edge->name << "\", linkNumber : "
@@ -190,13 +192,21 @@ int GlobalMapSystem::generateMap(int stage) {
         }
     }
     // 5th. generate cars
-    for(int i = 0; i < hostnum; i++){
+    for(int i = 0; i < 3 * hostnum; i++){
         maxStage++;
-        if(stage == maxStage){
-            string vid = int2str(curHostnum++);
+        if(stage == maxStage && i % 3 == 0){
+            string vid = "node" + int2str(curHostnum);
             string start = getRandomEdgeFromCache();
             getManager()->commandAddVehicle(vid, "vtype0", start, simTime(), 0, 0, 0);
-            getManager()->commandChangeRouteByRouteList(vid, getRandomRoute(start, ""));
+        }else if(stage == maxStage && i % 3 == 2){
+            string vid = "node" + int2str(curHostnum++);
+            string start = getManager()->commandGetEdgeId(vid);
+            debugEV << start << endl;
+            list<string> route = getRandomRoute(start, "");
+            for(list<string>::iterator it = route.begin();it!=route.end();it++){
+                EV<<(*it)<<endl;
+            }
+            //getManager()->commandChangeRouteByRouteList(vid, route);
         }
     }
     if(stage == maxStage){
@@ -223,7 +233,7 @@ void GlobalMapSystem::Edge::setColor(string color) {
 }
 
 void GlobalMapSystem::Node::setColor(string color) {
-    // do nothing for now
+// do nothing for now
 }
 
 void GlobalMapSystem::finish() {
@@ -232,13 +242,13 @@ void GlobalMapSystem::finish() {
 }
 
 double GlobalMapSystem::getTravelTime(string edge, double time, double speed) {
-    // TODO - Generated method body
+// TODO - Generated method body
     double travelTime = (*(edgeMap[edge]->lanes.begin()))->length / speed;
     return travelTime;
 }
 
 list<string> GlobalMapSystem::getFastestRoute(string fromEdge, string toEdge) {
-    // TODO - Generated method body
+// TODO - Generated method body
     list<string> route;
     route.push_back(fromEdge);
     route.push_back(toEdge);
@@ -246,12 +256,12 @@ list<string> GlobalMapSystem::getFastestRoute(string fromEdge, string toEdge) {
 }
 
 list<string> GlobalMapSystem::getRandomRoute(string from, string to) {
-    // TODO - Generated method body
+// TODO - Generated method body
     list<string> route;
     double len = 0;
     MapEdge* edge = cacheBackupEdges.at(from);
     route.push_back(from);
-    while(len < 3600 * 20){
+    while(len < 3600){
         int r = rand() % edge->routes.size();
         set<MapRoute*>::iterator it = edge->routes.begin();
         for(; r > 0; r--){
