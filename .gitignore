@@ -1,4 +1,12 @@
 #################
+## Fanjing
+#################
+fanjing.con.xml
+fanjing.edg.xml
+fanjing.net.xml
+fanjing.nod.xml
+
+#################
 ## OMNetpp
 #################
 ./settings

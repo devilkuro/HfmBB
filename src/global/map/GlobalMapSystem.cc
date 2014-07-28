@@ -151,7 +151,7 @@ int GlobalMapSystem::generateMap(int stage) {
     if (stage == maxStage) {
         for (map<string, Edge*>::iterator it_edge = edgeMap.begin(); it_edge != edgeMap.end(); it_edge++) {
             if (it_edge->second->edgeNumber != 1) {
-                mapEdge = new MapEdge();
+                MapEdge* mapEdge = new MapEdge();
                 // for()
 
                 cacheBackupEdges[it_edge->first] = mapEdge;
