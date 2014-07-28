@@ -56,10 +56,11 @@ public:
     class Edge {
     public:
         string name;
+        int laneNumber;
+        set<Lane*> lanes;
         int linkNumber;
-        set<Lane*> links;
-        int edgeNumber;
-        set<Edge*> edges;
+        set<Edge*> links;
+        double length;
         void setColor(string color);
     };
     class Node {
@@ -81,6 +82,7 @@ public:
     virtual int generateMap(int stage);
     virtual double getTravelTime(string edge, double time, double speed);
     virtual list<string> getFastestRoute(string fromEdge, string toEdge);
+    virtual list<string> getRandomRoute(string from, string to);
     virtual GlobalMobilityLaunchd* getManager() const {
         if (!manager) {
             manager = GlobalMobilityLaunchdAccess().get();
@@ -89,7 +91,7 @@ public:
         return manager;
     }
 protected:
-    list<string> getLanes(Lane* lane);
+    list<string> commandGetLanes(Lane* lane);
 
 protected:
     mutable GlobalMobilityLaunchd* manager;
@@ -104,22 +106,26 @@ protected:
     int mapstage;
     bool noconnect;
     bool initialized;
+    int hostnum;
+    int curHostnum;
 private:
     class MapEdge;
     class MapRoute;
     class MapEdge {
     public:
-        string name;
-        int edgeNumber;
+        Edge* edge;
         set<MapRoute*> routes;
-        double length;
     };
     class MapRoute{
+    public:
         string target;
         double length;
         list<string> edges;
     };
 private:
+    string getRandomEdgeFromCache();
+
+    string int2str(int i);
     string double2color(double d);
     string rgb2color(int r, int g, int b);
 private:

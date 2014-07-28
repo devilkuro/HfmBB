@@ -19,19 +19,19 @@ Define_Module(GlobalMapSystem)
 
 GlobalMapSystem::GlobalMapSystem() :
         manager(NULL), annotations(NULL), annotationGroup(NULL), laneMap(), edgeMap(), stateSwitchMsg(NULL), startMsg(
-                NULL), mapstage(0), noconnect(false), initialized(false) {
+                NULL), mapstage(0), noconnect(false), initialized(false), hostnum(100), curHostnum(0) {
 }
 
 void GlobalMapSystem::initialize(int stage) {
     // TODO - Generated method body
     BaseModule::initialize(stage);
-    if (stage == 1) {
+    if(stage == 1){
         bool draw = hasPar("draw") ? par("draw") : true;
         mapstage = 0;
         noconnect = hasPar("noconnect") ? par("noconnect") : false;
-        if (draw) {
+        if(draw){
             annotations = AnnotationManager_ColorfulAccess().getIfExists();
-            if (annotations) {
+            if(annotations){
                 annotationGroup = annotations->createGroup("maps");
             }
         }
@@ -42,29 +42,36 @@ void GlobalMapSystem::initialize(int stage) {
 }
 
 GlobalMapSystem::~GlobalMapSystem() {
-    for (map<string, Lane*>::iterator it = laneMap.begin(); it != laneMap.end(); it++) {
+    for(map<string, Lane*>::iterator it = laneMap.begin(); it != laneMap.end(); it++){
         delete (it->second);
     }
-    for (map<string, Edge*>::iterator it = edgeMap.begin(); it != edgeMap.end(); it++) {
+    for(map<string, Edge*>::iterator it = edgeMap.begin(); it != edgeMap.end(); it++){
+        delete (it->second);
+    }
+    for(map<string, MapEdge*>::iterator it = cacheBackupEdges.begin(); it != cacheBackupEdges.end(); it++){
+        for(set<MapRoute*>::iterator it_inner = it->second->routes.begin(); it_inner != it->second->routes.end();
+                it_inner++){
+            delete (*it_inner);
+        }
         delete (it->second);
     }
 }
 
 void GlobalMapSystem::handleMessage(cMessage *msg) {
     // TODO - Generated method body
-    if (msg == startMsg) {
-        if (getManager()->isConnected()) {
+    if(msg == startMsg){
+        if(getManager()->isConnected()){
             int maxStage = generateMap(mapstage);
-            if (mapstage != maxStage) {
+            if(mapstage != maxStage){
                 scheduleAt(simTime() + 0.1, startMsg);
                 mapstage++;
             }
             debugEV << "Map Generating stage " << mapstage << " finished. lane number: " << laneMap.size()
                     << ". edge number: " << edgeMap.size() << endl;
-        } else {
+        }else{
             scheduleAt(simTime() + 0.1, startMsg);
         }
-    } else {
+    }else{
         delete msg;
     }
 }
@@ -73,13 +80,13 @@ int GlobalMapSystem::generateMap(int stage) {
     int maxStage = -1;
     // 1st. get all lanes and the edges containing them.
     maxStage++;
-    if (stage == maxStage) {
+    if(stage == maxStage){
         // 0th. this function can only run at stage0 once.
-        if ((laneMap.size() != 0 || edgeMap.size() != 0)) {
+        if((laneMap.size() != 0 || edgeMap.size() != 0)){
             return -1;
         }
         list<string> laneList = getManager()->commandGetLaneIds();
-        for (list<string>::iterator it = laneList.begin(); it != laneList.end(); it++) {
+        for(list<string>::iterator it = laneList.begin(); it != laneList.end(); it++){
             Lane* lane = new Lane();
             lane->name = (*it);
             lane->linkNumber = 0;
@@ -88,39 +95,43 @@ int GlobalMapSystem::generateMap(int stage) {
             Edge* edge;
             string edgeName = getManager()->commandGetLaneEdgeId(lane->name);
             // get the edge of this lane
-            if (edgeMap.find(edgeName) == edgeMap.end()) {
+            if(edgeMap.find(edgeName) == edgeMap.end()){
                 // if the edge is not exist
                 edge = new Edge();
                 edge->name = edgeName;
-                edge->edgeNumber = 0;
                 edge->linkNumber = 0;
+                edge->laneNumber = 0;
+                edge->length = 0;
                 edgeMap[edgeName] = edge;
-            } else {
+            }else{
                 // if the edge is exist
                 edge = edgeMap[edgeName];
             }
             // set the lane's edge
             lane->edge = edge;
             // modify the edge.
-            edge->links.insert(lane);
-            edge->linkNumber++;
+            edge->lanes.insert(lane);
+            edge->laneNumber++;
         }
     }
-    // 2nd. connect lanes and edges
+    // 2nd. associate lanes and edges
     maxStage++;
-    if (stage == maxStage) {
-        if (!noconnect) {
-            for (map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++) {
+    if(stage == maxStage){
+        if(!noconnect){
+            for(map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++){
                 // get the name list of this lane's links
-                list<string> linkList = getLanes(it_lane->second);
+                list<string> linkList = commandGetLanes(it_lane->second);
                 // connect lanes and edges
-                for (list<string>::iterator it_link = linkList.begin(); it_link != linkList.end(); it_link++) {
+                for(list<string>::iterator it_link = linkList.begin(); it_link != linkList.end(); it_link++){
                     // connect links to the lane
-                    if (it_lane->second->links.insert(laneMap[*it_link]).second) {
+                    if(it_lane->second->links.insert(laneMap[*it_link]).second){
                         it_lane->second->linkNumber++;
                         // connect links' edge to the lane's edge
-                        if (it_lane->second->edge->edges.insert(laneMap[*it_link]->edge).second) {
-                            it_lane->second->edge->edgeNumber++;
+                        if(it_lane->second->edge->links.insert(laneMap[*it_link]->edge).second){
+                            it_lane->second->edge->length = (it_lane->second->edge->length
+                                    * it_lane->second->edge->linkNumber + it_lane->second->length)
+                                    / (it_lane->second->edge->linkNumber + 1);
+                            it_lane->second->edge->linkNumber++;
                         }
                     }
                 }
@@ -129,16 +140,16 @@ int GlobalMapSystem::generateMap(int stage) {
     }
     // 3rd. draw the map
     maxStage++;
-    if (stage == maxStage) {
-        if (annotations) {
-            for (map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++) {
+    if(stage == maxStage){
+        if(annotations){
+            for(map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++){
                 debugEV << "Lane { name :\"" << it_lane->second->name << "\", length : " << it_lane->second->length
                         << ", edge : \"" << it_lane->second->edge->name << "\", linknumber : "
                         << it_lane->second->linkNumber << " };" << endl;
                 list<Coord> coords = getManager()->commandGetLaneShape(it_lane->first);
                 list<Coord>::iterator it_coord = coords.begin();
                 Coord lastCoord = *it_coord;
-                for (it_coord++; it_coord != coords.end(); it_coord++) {
+                for(it_coord++; it_coord != coords.end(); it_coord++){
                     it_lane->second->visualRepresentations.push_back(
                             annotations->drawLine_Colorful(lastCoord, *it_coord, "black", annotationGroup));
                     lastCoord = *it_coord;
@@ -148,36 +159,65 @@ int GlobalMapSystem::generateMap(int stage) {
     }
     // 4th. reduce the map
     maxStage++;
-    if (stage == maxStage) {
-        for (map<string, Edge*>::iterator it_edge = edgeMap.begin(); it_edge != edgeMap.end(); it_edge++) {
-            if (it_edge->second->edgeNumber != 1) {
+    if(stage == maxStage){
+        for(map<string, Edge*>::iterator it_edge = edgeMap.begin(); it_edge != edgeMap.end(); it_edge++){
+            if(it_edge->second->linkNumber != 1){
                 MapEdge* mapEdge = new MapEdge();
-                // for()
-
+                mapEdge->edge = it_edge->second;
+                for(set<Edge*>::iterator it = it_edge->second->links.begin(); it != it_edge->second->links.end(); it++){
+                    MapRoute* mapRoute = new MapRoute();
+                    Edge* curEdge = *it;
+                    while(curEdge->linkNumber == 1){
+                        mapRoute->length += curEdge->length;
+                        mapRoute->edges.push_back(curEdge->name);
+                        ASSERT(curEdge->links.size() > 0);
+                        curEdge = *(curEdge->links.begin());
+                    }
+                    mapRoute->target = curEdge->name;
+                    mapRoute->length += curEdge->length;
+                    mapRoute->edges.push_back(curEdge->name);
+                    mapEdge->routes.insert(mapRoute);
+                    debugEV << "MapRoute { target :\"" << mapRoute->target << "\", edgeNumber : "
+                            << mapRoute->edges.size() << ", length :" << mapRoute->length << " };" << endl;
+                }
+                list<string> route;
+                route.push_back(it_edge->first);
+                getManager()->commandAddRoute(it_edge->first, route);
                 cacheBackupEdges[it_edge->first] = mapEdge;
-
+                debugEV << "MapEdge { name :\"" << mapEdge->edge->name << "\", linkNumber : "
+                        << mapEdge->edge->linkNumber << ", length :" << mapEdge->edge->length << " };" << endl;
             }
         }
     }
-    if (stage == maxStage) {
+    // 5th. generate cars
+    for(int i = 0; i < hostnum; i++){
+        maxStage++;
+        if(stage == maxStage){
+            string vid = int2str(curHostnum++);
+            string start = getRandomEdgeFromCache();
+            getManager()->commandAddVehicle(vid, "vtype0", start, simTime(), 0, 0, 0);
+            getManager()->commandChangeRouteByRouteList(vid, getRandomRoute(start, ""));
+        }
+    }
+    if(stage == maxStage){
         initialized = true;
     }
     return maxStage;
 }
 
-list<string> GlobalMapSystem::getLanes(Lane* lane) {
+list<string> GlobalMapSystem::commandGetLanes(Lane* lane) {
     return getManager()->commandGetLaneLinksIds(lane->name);
 }
 
 void GlobalMapSystem::Lane::setColor(string color) {
-    for (list<AnnotationManager_Colorful::Line_Colorful*>::iterator it = visualRepresentations.begin();
-            it != visualRepresentations.end(); it++) {
+    for(list<AnnotationManager_Colorful::Line_Colorful*>::iterator it = visualRepresentations.begin();
+            it != visualRepresentations.end(); it++){
         (*it)->setColor(color);
     }
 }
 
 void GlobalMapSystem::Edge::setColor(string color) {
-    for (set<Lane*>::iterator it = links.begin(); it != links.end(); it++) {
+    for(set<Lane*>::iterator it = lanes.begin(); it != lanes.end(); it++){
         (*it)->setColor(color);
     }
 }
@@ -193,7 +233,7 @@ void GlobalMapSystem::finish() {
 
 double GlobalMapSystem::getTravelTime(string edge, double time, double speed) {
     // TODO - Generated method body
-    double travelTime = (*(edgeMap[edge]->links.begin()))->length / speed;
+    double travelTime = (*(edgeMap[edge]->lanes.begin()))->length / speed;
     return travelTime;
 }
 
@@ -205,6 +245,25 @@ list<string> GlobalMapSystem::getFastestRoute(string fromEdge, string toEdge) {
     return route;
 }
 
+list<string> GlobalMapSystem::getRandomRoute(string from, string to) {
+    // TODO - Generated method body
+    list<string> route;
+    double len = 0;
+    MapEdge* edge = cacheBackupEdges.at(from);
+    route.push_back(from);
+    while(len < 3600 * 20){
+        int r = rand() % edge->routes.size();
+        set<MapRoute*>::iterator it = edge->routes.begin();
+        for(; r > 0; r--){
+            it++;
+        }
+        edge = cacheBackupEdges[(*it)->target];
+        len += (*it)->length;
+        route.assign((*it)->edges.begin(), (*it)->edges.end());
+    }
+    return route;
+}
+
 string GlobalMapSystem::double2color(double d) {
     d = d > 255 ? 255 : d;
     d = d < 0 ? 0 : d;
@@ -212,6 +271,24 @@ string GlobalMapSystem::double2color(double d) {
     int g = 255 - d;
     int b = 0;
     return rgb2color(r, g, b);
+}
+
+string GlobalMapSystem::int2str(int i) {
+    std::stringstream ss;
+    std::string str;
+    ss << i;
+    str = ss.str();
+    ss.clear();
+    return str;
+}
+
+string GlobalMapSystem::getRandomEdgeFromCache() {
+    int r = rand() % cacheBackupEdges.size();
+    map<string, MapEdge*>::iterator it = cacheBackupEdges.begin();
+    for(; r > 0; r--){
+        it++;
+    }
+    return it->second->edge->name;
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {

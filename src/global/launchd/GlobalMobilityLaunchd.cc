@@ -24,6 +24,32 @@ std::list<std::string> GlobalMobilityLaunchd::commandGetLaneLinksIds(std::string
     return laneLinksGetStringList(CMD_GET_LANE_VARIABLE, laneId, LANE_LINKS, RESPONSE_GET_LANE_VARIABLE);
 }
 
+void GlobalMobilityLaunchd::commandAddRoute(std::string routeId, std::list<std::string> route) {
+    uint8_t variableId = ADD;
+    uint8_t variableType = TYPE_STRINGLIST;
+    int32_t count = route.size();
+    TraCIBuffer buf = TraCIBuffer();
+    buf<<variableId<<routeId<<variableType<<count;
+    for(std::list<std::string>::iterator it = route.begin();it!=route.end();it++){
+        buf<<(*it);
+    }
+    TraCIBuffer buf0 = queryTraCI(CMD_SET_ROUTE_VARIABLE,buf);
+    ASSERT(buf0.eof());
+}
+
+void GlobalMobilityLaunchd::commandChangeRouteByRouteList(std::string nodeId, std::list<std::string> route) {
+    uint8_t variableId = VAR_ROUTE;
+    uint8_t variableType = TYPE_STRINGLIST;
+    int32_t count = route.size();
+    TraCIBuffer buf = TraCIBuffer();
+    buf<<variableId<<nodeId<<variableType<<count;
+    for(std::list<std::string>::iterator it = route.begin();it!=route.end();it++){
+        buf<<(*it);
+    }
+    TraCIBuffer buf0 = queryTraCI(CMD_SET_VEHICLE_VARIABLE,buf);
+    ASSERT(buf0.eof());
+}
+
 std::list<std::string> GlobalMobilityLaunchd::laneLinksGetStringList(uint8_t commandId, std::string objectId,
         uint8_t variableId, uint8_t responseId) {
     uint8_t resultTypeId = TYPE_COMPOUND;

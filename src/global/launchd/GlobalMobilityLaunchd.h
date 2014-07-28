@@ -29,6 +29,8 @@ public:
 
 public:
     std::list<std::string> commandGetLaneLinksIds(std::string laneId);
+    void commandAddRoute(std::string routeId, std::list<std::string> route);
+    void commandChangeRouteByRouteList(std::string nodeId, std::list<std::string> route);
 protected:
     std::list<std::string> laneLinksGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId);
 };
