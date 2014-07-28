@@ -111,9 +111,12 @@ private:
     public:
         string name;
         int edgeNumber;
-        set<MapRoute*> edges;
+        set<MapRoute*> routes;
+        double length;
     };
     class MapRoute{
+        string target;
+        double length;
         list<string> edges;
     };
 private:
