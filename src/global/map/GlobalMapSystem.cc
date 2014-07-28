@@ -67,7 +67,7 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
                 mapstage++;
             }
             debugEV << "Map Generating stage " << mapstage << " finished. lane number: " << laneMap.size()
-                    << ". edge number: " << edgeMap.size() << endl;
+                    << ". edge number: " << edgeMap.size() << ". cache number: " << cacheBackupEdges.size() << endl;
         }else{
             scheduleAt(simTime() + 0.1, startMsg);
         }
@@ -181,9 +181,9 @@ int GlobalMapSystem::generateMap(int stage) {
                             << mapRoute->edges.size() << ", length :" << mapRoute->length << " };" << endl;
                 }
                 list<string> route;
-                route.push_back(mapEdge->edge->name);
+                route.push_back(it_edge->first);
                 //route.assign((*mapEdge->routes.begin())->edges.begin(), (*mapEdge->routes.begin())->edges.end());
-                //debugEV << "route { name :\"" << mapEdge->edge->name << "\", size: " << route.size() << endl;
+                debugEV << "route { name :\"" << it_edge->first << "\", first edge: \"" << (*(route.begin())) << "\" };"<< endl;
                 getManager()->commandAddRoute(it_edge->first, route);
                 cacheBackupEdges[it_edge->first] = mapEdge;
                 debugEV << "MapEdge { name :\"" << mapEdge->edge->name << "\", linkNumber : "
@@ -197,16 +197,22 @@ int GlobalMapSystem::generateMap(int stage) {
         if(stage == maxStage && i % 3 == 0){
             string vid = "node" + int2str(curHostnum);
             string start = getRandomEdgeFromCache();
-            getManager()->commandAddVehicle(vid, "vtype0", start, simTime(), 0, 0, 0);
+            double pos = 0;
+            if (edgeMap[start]->length>10) {
+                pos = rand()%((int)(edgeMap[start]->length-10));
+            }
+            getManager()->commandAddVehicle(vid, "vtype0", start, simTime(), pos, 0, 0);
         }else if(stage == maxStage && i % 3 == 2){
             string vid = "node" + int2str(curHostnum++);
             string start = getManager()->commandGetEdgeId(vid);
             debugEV << start << endl;
             list<string> route = getRandomRoute(start, "");
-            for(list<string>::iterator it = route.begin();it!=route.end();it++){
-                EV<<(*it)<<endl;
+            if (debug) {
+                for(list<string>::iterator it = route.begin(); it != route.end(); it++){
+                    debugEV << (*it) << endl;
+                }
             }
-            //getManager()->commandChangeRouteByRouteList(vid, route);
+            getManager()->commandChangeRouteByRouteList(vid, route);
         }
     }
     if(stage == maxStage){
@@ -257,10 +263,20 @@ list<string> GlobalMapSystem::getFastestRoute(string fromEdge, string toEdge) {
 
 list<string> GlobalMapSystem::getRandomRoute(string from, string to) {
 // TODO - Generated method body
+    debugEV<<"random route from edge: "<< from <<endl;
     list<string> route;
-    double len = 0;
-    MapEdge* edge = cacheBackupEdges.at(from);
     route.push_back(from);
+    Edge* curEdge = edgeMap[from];
+    double len = 0;
+    if(cacheBackupEdges.find(from)==cacheBackupEdges.end()){
+        debugEV<<"cache failed: "<< from <<endl;
+        while(curEdge->linkNumber == 1){
+            len+=curEdge->length;
+            route.push_back(curEdge->name);
+            curEdge = *curEdge->links.begin();
+        }
+    }
+    MapEdge* edge = cacheBackupEdges[curEdge->name];
     while(len < 3600){
         int r = rand() % edge->routes.size();
         set<MapRoute*>::iterator it = edge->routes.begin();
@@ -269,8 +285,9 @@ list<string> GlobalMapSystem::getRandomRoute(string from, string to) {
         }
         edge = cacheBackupEdges[(*it)->target];
         len += (*it)->length;
-        route.assign((*it)->edges.begin(), (*it)->edges.end());
+        route.insert(route.end(),(*it)->edges.begin(), (*it)->edges.end());
     }
+    debugEV<<"len: "<<len<<endl;
     return route;
 }
 
@@ -298,7 +315,8 @@ string GlobalMapSystem::getRandomEdgeFromCache() {
     for(; r > 0; r--){
         it++;
     }
-    return it->second->edge->name;
+    debugEV<<"random edge from cache: "<<it->first<<endl;
+    return it->first;
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {
