@@ -24,4 +24,5 @@ simple GlobalMapSystem
         @class(GlobalMapSystem);
         bool draw = default(false);
         bool noconnect = default(false);
+        int hostnum = default(100);
 }

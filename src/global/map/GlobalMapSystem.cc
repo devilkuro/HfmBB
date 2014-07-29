@@ -27,6 +27,7 @@ void GlobalMapSystem::initialize(int stage) {
     BaseModule::initialize(stage);
     if(stage == 1){
         bool draw = hasPar("draw") ? par("draw") : true;
+        hostnum = hasPar("hostnum") ? par("hostnum") : 100;
         mapstage = 0;
         noconnect = hasPar("noconnect") ? par("noconnect") : false;
         if(draw){
