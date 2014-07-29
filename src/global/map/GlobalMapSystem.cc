@@ -200,7 +200,7 @@ int GlobalMapSystem::generateMap(int stage) {
             string vid = "node" + int2str(curHostnum);
             string start = getRandomEdgeFromCache();
             double pos = 0;
-            if(edgeMap[start]->length > 10){
+            if((int) (edgeMap[start]->length - 10) > 0){
                 pos = rand() % ((int) (edgeMap[start]->length - 10));
             }
             getManager()->commandAddVehicle(vid, "vtype0", start, simTime(), pos, 0, 0);
@@ -277,6 +277,10 @@ list<string> GlobalMapSystem::getRandomRoute(string from, string to) {
     }
     MapEdge* edge = cacheBackupEdges[from];
     while(len < 3600 * 20){
+        // dead end
+        if( edge->routes.size()==0){
+            break;
+        }
         int r = rand() % edge->routes.size();
         set<MapRoute*>::iterator it = edge->routes.begin();
         for(; r > 0; r--){
