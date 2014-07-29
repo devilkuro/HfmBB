@@ -37,7 +37,7 @@ void GlobalMobilityLaunchd::commandAddRoute(std::string routeId, std::list<std::
     ASSERT(buf0.eof());
 }
 
-void GlobalMobilityLaunchd::commandChangeRouteByRouteList(std::string nodeId, std::list<std::string> route) {
+void GlobalMobilityLaunchd::commandChangeRouteByEdgeList(std::string nodeId, std::list<std::string> route) {
     uint8_t variableId = VAR_ROUTE;
     uint8_t variableType = TYPE_STRINGLIST;
     int32_t count = route.size();

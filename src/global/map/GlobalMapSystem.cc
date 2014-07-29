@@ -183,7 +183,8 @@ int GlobalMapSystem::generateMap(int stage) {
                 list<string> route;
                 route.push_back(it_edge->first);
                 //route.assign((*mapEdge->routes.begin())->edges.begin(), (*mapEdge->routes.begin())->edges.end());
-                debugEV << "route { name :\"" << it_edge->first << "\", first edge: \"" << (*(route.begin())) << "\" };"<< endl;
+                debugEV << "route { name :\"" << it_edge->first << "\", first edge: \"" << (*(route.begin())) << "\" };"
+                        << endl;
                 getManager()->commandAddRoute(it_edge->first, route);
                 cacheBackupEdges[it_edge->first] = mapEdge;
                 debugEV << "MapEdge { name :\"" << mapEdge->edge->name << "\", linkNumber : "
@@ -198,21 +199,23 @@ int GlobalMapSystem::generateMap(int stage) {
             string vid = "node" + int2str(curHostnum);
             string start = getRandomEdgeFromCache();
             double pos = 0;
-            if (edgeMap[start]->length>10) {
-                pos = rand()%((int)(edgeMap[start]->length-10));
+            if(edgeMap[start]->length > 10){
+                pos = rand() % ((int) (edgeMap[start]->length - 10));
             }
             getManager()->commandAddVehicle(vid, "vtype0", start, simTime(), pos, 0, 0);
         }else if(stage == maxStage && i % 3 == 2){
             string vid = "node" + int2str(curHostnum++);
             string start = getManager()->commandGetEdgeId(vid);
             debugEV << start << endl;
-            list<string> route = getRandomRoute(start, "");
-            if (debug) {
-                for(list<string>::iterator it = route.begin(); it != route.end(); it++){
-                    debugEV << (*it) << endl;
+            if(start != ""){
+                list<string> route = getRandomRoute(start, "");
+                if(debug){
+                    for(list<string>::iterator it = route.begin(); it != route.end(); it++){
+                        debugEV << (*it) << endl;
+                    }
                 }
+                getManager()->commandChangeRouteByEdgeList(vid, route);
             }
-            getManager()->commandChangeRouteByRouteList(vid, route);
         }
     }
     if(stage == maxStage){
@@ -263,16 +266,16 @@ list<string> GlobalMapSystem::getFastestRoute(string fromEdge, string toEdge) {
 
 list<string> GlobalMapSystem::getRandomRoute(string from, string to) {
     // TODO - Generated method body
-    debugEV<<"random route from edge: "<< from <<endl;
+    debugEV << "random route from edge: " << from << endl;
     list<string> route;
     route.push_back(from);
     double len = 0;
-    if(cacheBackupEdges.find(from)==cacheBackupEdges.end()){
-        debugEV<<"cache failed: "<< from <<endl;
+    if(cacheBackupEdges.find(from) == cacheBackupEdges.end()){
+        debugEV << "cache failed: " << from << endl;
         return route;
     }
     MapEdge* edge = cacheBackupEdges[from];
-    while(len < 3600){
+    while(len < 3600 * 20){
         int r = rand() % edge->routes.size();
         set<MapRoute*>::iterator it = edge->routes.begin();
         for(; r > 0; r--){
@@ -280,9 +283,9 @@ list<string> GlobalMapSystem::getRandomRoute(string from, string to) {
         }
         edge = cacheBackupEdges[(*it)->target];
         len += (*it)->length;
-        route.insert(route.end(),(*it)->edges.begin(), (*it)->edges.end());
+        route.insert(route.end(), (*it)->edges.begin(), (*it)->edges.end());
     }
-    debugEV<<"len: "<<len<<endl;
+    debugEV << "len: " << len << endl;
     return route;
 }
 
@@ -310,7 +313,7 @@ string GlobalMapSystem::getRandomEdgeFromCache() {
     for(; r > 0; r--){
         it++;
     }
-    debugEV<<"random edge from cache: "<<it->first<<endl;
+    debugEV << "random edge from cache: " << it->first << endl;
     return it->first;
 }
 
