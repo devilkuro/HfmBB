@@ -200,7 +200,7 @@ int GlobalMapSystem::generateMap(int stage) {
             string vid = "node" + int2str(curHostnum);
             string start = getRandomEdgeFromCache();
             double pos = 0;
-            if((int) (edgeMap[start]->length - 10) > 0){
+            if((int) (edgeMap[start]->length) > 10){
                 pos = rand() % ((int) (edgeMap[start]->length - 10));
             }
             getManager()->commandAddVehicle(vid, "vtype0", start, simTime(), pos, 0, 0);
