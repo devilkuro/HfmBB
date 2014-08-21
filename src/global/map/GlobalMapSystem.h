@@ -82,7 +82,7 @@ public:
     virtual int generateMap(int stage);
     virtual double getTravelTime(string edge, double time, double speed);
     virtual list<string> getFastestRoute(string fromEdge, string toEdge);
-    virtual list<string> getRandomRoute(string from, string to);
+    virtual list<string> getRandomRoute(string from, double length = 72000);
     virtual GlobalMobilityLaunchd* getManager() const {
         if (!manager) {
             manager = GlobalMobilityLaunchdAccess().get();

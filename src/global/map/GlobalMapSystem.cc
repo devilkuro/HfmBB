@@ -209,7 +209,7 @@ int GlobalMapSystem::generateMap(int stage) {
             string start = getManager()->commandGetEdgeId(vid);
             debugEV << start << endl;
             if(start != ""){
-                list<string> route = getRandomRoute(start, "");
+                list<string> route = getRandomRoute(start);
                 if(debug){
                     for(list<string>::iterator it = route.begin(); it != route.end(); it++){
                         debugEV << (*it) << endl;
@@ -265,7 +265,7 @@ list<string> GlobalMapSystem::getFastestRoute(string fromEdge, string toEdge) {
     return route;
 }
 
-list<string> GlobalMapSystem::getRandomRoute(string from, string to) {
+list<string> GlobalMapSystem::getRandomRoute(string from, double length) {
     // TODO - Generated method body
     debugEV << "random route from edge: " << from << endl;
     list<string> route;
@@ -276,9 +276,9 @@ list<string> GlobalMapSystem::getRandomRoute(string from, string to) {
         return route;
     }
     MapEdge* edge = cacheBackupEdges[from];
-    while(len < 3600 * 20){
+    while(len < length){
         // dead end
-        if( edge->routes.size()==0){
+        if(edge->routes.size() == 0){
             break;
         }
         int r = rand() % edge->routes.size();
