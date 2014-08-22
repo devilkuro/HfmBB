@@ -70,13 +70,6 @@ public:
         double r;
         void setColor(string color);
     };
-protected:
-    virtual void initialize(int stage);
-    virtual void handleMessage(cMessage *msg);
-    virtual void finish();
-    virtual int numInitStages() const {
-        return std::max(cSimpleModule::numInitStages(), 3);
-    }
 
 public:
     virtual int generateMap(int stage);
@@ -84,7 +77,7 @@ public:
     virtual list<string> getFastestRoute(string fromEdge, string toEdge);
     virtual list<string> getRandomRoute(string from, double length = 72000);
     virtual GlobalMobilityLaunchd* getManager() const {
-        if (!manager) {
+        if(!manager){
             manager = GlobalMobilityLaunchdAccess().get();
         }
         ASSERT(manager);
@@ -108,6 +101,19 @@ protected:
     bool mapSystemInitialized;
     int hostnum;
     int curHostnum;
+
+protected:
+    virtual void initialize(int stage);
+    virtual void handleMessage(cMessage *msg);
+    virtual void finish();
+    virtual int numInitStages() const {
+        return std::max(cSimpleModule::numInitStages(), 3);
+    }
+
+    void getLanesAndEdges();
+    void connectLanesAndEdges();
+    void drawMap();
+    void reduceMap();
 private:
     class MapEdge;
     class MapRoute;
@@ -116,7 +122,7 @@ private:
         Edge* edge;
         set<MapRoute*> routes;
     };
-    class MapRoute{
+    class MapRoute {
     public:
         string target;
         double length;
