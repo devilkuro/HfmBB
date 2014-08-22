@@ -105,7 +105,7 @@ protected:
 
     int mapstage;
     bool noconnect;
-    bool initialized;
+    bool mapSystemInitialized;
     int hostnum;
     int curHostnum;
 private:
@@ -130,6 +130,7 @@ private:
     string rgb2color(int r, int g, int b);
 private:
     // use for searching routes
+    vector<MapEdge*> cacheEdgeArray;
     map<string, MapEdge*> cacheBackupEdges;
     mutable list<MapEdge*> cacheUntappedEdges;
     mutable list<MapEdge*> cacheTappedEdges;

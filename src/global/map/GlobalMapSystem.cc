@@ -19,7 +19,7 @@ Define_Module(GlobalMapSystem)
 
 GlobalMapSystem::GlobalMapSystem() :
         manager(NULL), annotations(NULL), annotationGroup(NULL), laneMap(), edgeMap(), stateSwitchMsg(NULL), startMsg(
-                NULL), mapstage(0), noconnect(false), initialized(false), hostnum(100), curHostnum(0) {
+                NULL), mapstage(0), noconnect(false), mapSystemInitialized(false), hostnum(100), curHostnum(0) {
 }
 
 void GlobalMapSystem::initialize(int stage) {
@@ -63,7 +63,7 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
     if(msg == startMsg){
         if(getManager()->isConnected()){
             int maxStage = generateMap(mapstage);
-            if(mapstage != maxStage){
+            if(mapSystemInitialized != false){
                 scheduleAt(simTime() + 0.1, startMsg);
                 mapstage++;
             }
@@ -161,6 +161,7 @@ int GlobalMapSystem::generateMap(int stage) {
     // 4th. reduce the map
     maxStage++;
     if(stage == maxStage){
+        // set member: map<MapEdge*> cacheBackupEdges
         for(map<string, Edge*>::iterator it_edge = edgeMap.begin(); it_edge != edgeMap.end(); it_edge++){
             if(it_edge->second->linkNumber != 1){
                 MapEdge* mapEdge = new MapEdge();
@@ -192,35 +193,22 @@ int GlobalMapSystem::generateMap(int stage) {
                         << mapEdge->edge->linkNumber << ", length :" << mapEdge->edge->length << " };" << endl;
             }
         }
-    }
-    // 5th. generate cars
-    for(int i = 0; i < 3 * hostnum; i++){
-        maxStage++;
-        if(stage == maxStage && i % 3 == 0){
-            string vid = "node" + int2str(curHostnum);
-            string start = getRandomEdgeFromCache();
-            double pos = 0;
-            if((int) (edgeMap[start]->length) > 10){
-                pos = rand() % ((int) (edgeMap[start]->length - 10));
-            }
-            getManager()->commandAddVehicle(vid, "vtype0", start, simTime(), pos, 0, 0);
-        }else if(stage == maxStage && i % 3 == 2){
-            string vid = "node" + int2str(curHostnum++);
-            string start = getManager()->commandGetEdgeId(vid);
-            debugEV << start << endl;
-            if(start != ""){
-                list<string> route = getRandomRoute(start);
-                if(debug){
-                    for(list<string>::iterator it = route.begin(); it != route.end(); it++){
-                        debugEV << (*it) << endl;
-                    }
-                }
-                getManager()->commandChangeRouteByEdgeList(vid, route);
+        // store cacheBackupEdges into an array to increase the performance
+        for(map<string, MapEdge*>::iterator it = cacheBackupEdges.begin(); it != cacheBackupEdges.end(); it++){
+            cacheEdgeArray.push_back(it->second);
+        }
+        // view the cacheEdgeArray
+        if(debug){
+            debugEV << "view the cacheEdgeArray" << endl;
+            for(unsigned int i = 0; i < cacheBackupEdges.size(); i++){
+                EV<< cacheEdgeArray[i]->edge->name <<endl;
             }
         }
     }
+    // 5th. generate cars
+
     if(stage == maxStage){
-        initialized = true;
+        mapSystemInitialized = true;
     }
     return maxStage;
 }
