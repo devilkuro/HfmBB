@@ -62,7 +62,7 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
     // TODO - Generated method body
     if(msg == startMsg){
         if(getManager()->isConnected()){
-            int maxStage = generateMap(mapstage);
+            generateMap(mapstage);
             if(mapSystemInitialized != false){
                 scheduleAt(simTime() + 0.1, startMsg);
                 mapstage++;
@@ -100,7 +100,7 @@ int GlobalMapSystem::generateMap(int stage) {
         reduceMap();
     }
     // 5th. generate cars
-
+    // Do Nothing NOW
     if(stage == maxStage){
         mapSystemInitialized = true;
     }
@@ -195,47 +195,46 @@ string GlobalMapSystem::int2str(int i) {
 }
 
 string GlobalMapSystem::getRandomEdgeFromCache() {
-    int r = rand() % cacheBackupEdges.size();
-    map<string, MapEdge*>::iterator it = cacheBackupEdges.begin();
-    for(; r > 0; r--){
-        it++;
+    // rewrite at 2014-8-22
+    // replace cacheBackupEdges with cacheEdgeArray to improve the performance
+    string edge = cacheEdgeArray[rand() % cacheEdgeArray.size()]->edge->name;
+    if(debug){
+        debugEV << "random edge from cache: " << edge << endl;
     }
-    debugEV << "random edge from cache: " << it->first << endl;
-    return it->first;
+    return edge;
 }
 
 void GlobalMapSystem::getLanesAndEdges() {
     // 0th. this function can only run at stage0 once.
-    if((laneMap.size() != 0 || edgeMap.size() != 0)){
-        return -1;
-    }
-    list<string> laneList = getManager()->commandGetLaneIds();
-    for(list<string>::iterator it = laneList.begin(); it != laneList.end(); it++){
-        Lane* lane = new Lane();
-        lane->name = (*it);
-        lane->linkNumber = 0;
-        lane->length = getManager()->commandGetLaneLength(lane->name);
-        laneMap[lane->name] = lane;
-        Edge* edge;
-        string edgeName = getManager()->commandGetLaneEdgeId(lane->name);
-        // get the edge of this lane
-        if(edgeMap.find(edgeName) == edgeMap.end()){
-            // if the edge is not exist
-            edge = new Edge();
-            edge->name = edgeName;
-            edge->linkNumber = 0;
-            edge->laneNumber = 0;
-            edge->length = 0;
-            edgeMap[edgeName] = edge;
-        }else{
-            // if the edge is exist
-            edge = edgeMap[edgeName];
+    if((laneMap.size() == 0 && edgeMap.size() == 0)){
+        list<string> laneList = getManager()->commandGetLaneIds();
+        for(list<string>::iterator it = laneList.begin(); it != laneList.end(); it++){
+            Lane* lane = new Lane();
+            lane->name = (*it);
+            lane->linkNumber = 0;
+            lane->length = getManager()->commandGetLaneLength(lane->name);
+            laneMap[lane->name] = lane;
+            Edge* edge;
+            string edgeName = getManager()->commandGetLaneEdgeId(lane->name);
+            // get the edge of this lane
+            if(edgeMap.find(edgeName) == edgeMap.end()){
+                // if the edge is not exist
+                edge = new Edge();
+                edge->name = edgeName;
+                edge->linkNumber = 0;
+                edge->laneNumber = 0;
+                edge->length = 0;
+                edgeMap[edgeName] = edge;
+            }else{
+                // if the edge is exist
+                edge = edgeMap[edgeName];
+            }
+            // set the lane's edge
+            lane->edge = edge;
+            // modify the edge.
+            edge->lanes.insert(lane);
+            edge->laneNumber++;
         }
-        // set the lane's edge
-        lane->edge = edge;
-        // modify the edge.
-        edge->lanes.insert(lane);
-        edge->laneNumber++;
     }
 }
 

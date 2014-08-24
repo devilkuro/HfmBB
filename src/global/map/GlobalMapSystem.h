@@ -84,6 +84,18 @@ public:
         return manager;
     }
 protected:
+    virtual void initialize(int stage);
+    virtual void handleMessage(cMessage *msg);
+    virtual void finish();
+    virtual int numInitStages() const {
+        return std::max(cSimpleModule::numInitStages(), 3);
+    }
+    // map generating process
+    void getLanesAndEdges();
+    void connectLanesAndEdges();
+    void drawMap();
+    void reduceMap();
+
     list<string> commandGetLanes(Lane* lane);
 
 protected:
@@ -102,18 +114,6 @@ protected:
     int hostnum;
     int curHostnum;
 
-protected:
-    virtual void initialize(int stage);
-    virtual void handleMessage(cMessage *msg);
-    virtual void finish();
-    virtual int numInitStages() const {
-        return std::max(cSimpleModule::numInitStages(), 3);
-    }
-
-    void getLanesAndEdges();
-    void connectLanesAndEdges();
-    void drawMap();
-    void reduceMap();
 private:
     class MapEdge;
     class MapRoute;
