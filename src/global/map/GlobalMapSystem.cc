@@ -335,6 +335,10 @@ void GlobalMapSystem::reduceMap() {
 void GlobalMapSystem::optimizeMap() {
 }
 
+list<string> GlobalMapSystem::getShortestRoute(string fromEdge, string toEdge) {
+    //TODO
+}
+
 string GlobalMapSystem::rgb2color(int r, int g, int b) {
     std::stringstream ss;
     ss << "#";
