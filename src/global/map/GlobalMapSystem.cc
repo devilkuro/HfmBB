@@ -50,7 +50,7 @@ GlobalMapSystem::~GlobalMapSystem() {
         delete (it->second);
     }
     for(map<string, MapEdge*>::iterator it = cacheBackupEdges.begin(); it != cacheBackupEdges.end(); it++){
-        for(set<MapRoute*>::iterator it_inner = it->second->routes.begin(); it_inner != it->second->routes.end();
+        for(list<MapRoute*>::iterator it_inner = it->second->routes.begin(); it_inner != it->second->routes.end();
                 it_inner++){
             delete (*it_inner);
         }
@@ -164,7 +164,7 @@ list<string> GlobalMapSystem::getRandomRoute(string from, double length) {
             break;
         }
         int r = rand() % edge->routes.size();
-        set<MapRoute*>::iterator it = edge->routes.begin();
+        list<MapRoute*>::iterator it = edge->routes.begin();
         for(; r > 0; r--){
             it++;
         }
@@ -282,25 +282,32 @@ void GlobalMapSystem::drawMap() {
 void GlobalMapSystem::reduceMap() {
     // set member: map<MapEdge*> cacheBackupEdges
     for(map<string, Edge*>::iterator it_edge = edgeMap.begin(); it_edge != edgeMap.end(); it_edge++){
+        // only primary edges will be store in cacheBackupEdges
         if(it_edge->second->linkNumber != 1){
             MapEdge* mapEdge = new MapEdge();
             mapEdge->edge = it_edge->second;
             for(set<Edge*>::iterator it = it_edge->second->links.begin(); it != it_edge->second->links.end(); it++){
                 MapRoute* mapRoute = new MapRoute();
                 Edge* curEdge = *it;
+                mapRoute->length = 0;
+                // if an edge has only one link out, it's a secondary edge.
                 while(curEdge->linkNumber == 1){
+                    // add secondary edge into a certain route
                     mapRoute->length += curEdge->length;
                     mapRoute->edges.push_back(curEdge->name);
                     ASSERT(curEdge->links.size() > 0);
                     curEdge = *(curEdge->links.begin());
                 }
+                // add the last primary edge into this route, and set it as the target edge.
                 mapRoute->target = curEdge->name;
                 mapRoute->length += curEdge->length;
                 mapRoute->edges.push_back(curEdge->name);
-                mapEdge->routes.insert(mapRoute);
+                // push this route into the route list.
+                mapEdge->routes.push_back(mapRoute);
                 debugEV << "MapRoute { target :\"" << mapRoute->target << "\", edgeNumber : " << mapRoute->edges.size()
                         << ", length :" << mapRoute->length << " };" << endl;
             }
+            // add each primary edge as short temporary route
             list<string> route;
             route.push_back(it_edge->first);
             //route.assign((*mapEdge->routes.begin())->edges.begin(), (*mapEdge->routes.begin())->edges.end());
@@ -312,7 +319,7 @@ void GlobalMapSystem::reduceMap() {
                     << ", length :" << mapEdge->edge->length << " };" << endl;
         }
     }
-    // store cacheBackupEdges into an array to increase the performance
+    // store cacheBackupEdges into an array to improve the performance
     for(map<string, MapEdge*>::iterator it = cacheBackupEdges.begin(); it != cacheBackupEdges.end(); it++){
         cacheEdgeArray.push_back(it->second);
     }
@@ -323,6 +330,9 @@ void GlobalMapSystem::reduceMap() {
             EV<< cacheEdgeArray[i]->edge->name <<endl;
         }
     }
+}
+
+void GlobalMapSystem::optimizeMap() {
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {

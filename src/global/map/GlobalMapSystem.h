@@ -95,6 +95,7 @@ protected:
     void connectLanesAndEdges();
     void drawMap();
     void reduceMap();
+    void optimizeMap();
 
     list<string> commandGetLanes(Lane* lane);
 
@@ -117,16 +118,24 @@ protected:
 private:
     class MapEdge;
     class MapRoute;
+    class MapNode;
     class MapEdge {
     public:
         Edge* edge;
-        set<MapRoute*> routes;
+        list<MapRoute*> routes;
+        vector<MapRoute*> routeArray;
     };
     class MapRoute {
     public:
         string target;
         double length;
         list<string> edges;
+    };
+    class MapNode {
+    public:
+        Coord pos;
+        set<MapEdge*> inEdges;
+        set<MapEdge*> outEdges;
     };
 private:
     string getRandomEdgeFromCache();
