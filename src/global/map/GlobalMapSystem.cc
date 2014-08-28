@@ -50,7 +50,7 @@ GlobalMapSystem::~GlobalMapSystem() {
         delete (it->second);
     }
     for(map<string, MapEdge*>::iterator it = cacheBackupEdges.begin(); it != cacheBackupEdges.end(); it++){
-        for(list<MapRoute*>::iterator it_inner = it->second->routes.begin(); it_inner != it->second->routes.end();
+        for(list<MapRoute*>::iterator it_inner = it->second->cacheRoutes.begin(); it_inner != it->second->cacheRoutes.end();
                 it_inner++){
             delete (*it_inner);
         }
@@ -148,7 +148,8 @@ list<string> GlobalMapSystem::getFastestRoute(string fromEdge, string toEdge) {
 }
 
 list<string> GlobalMapSystem::getRandomRoute(string from, double length) {
-    // TODO - Generated method body
+    // rewrite at 2014-8-25
+    // replace list-cacheRoutes with vector-routes to improve the performance
     debugEV << "random route from edge: " << from << endl;
     list<string> route;
     route.push_back(from);
@@ -157,22 +158,19 @@ list<string> GlobalMapSystem::getRandomRoute(string from, double length) {
         debugEV << "cache failed: " << from << endl;
         return route;
     }
-    MapEdge* edge = cacheBackupEdges[from];
+    MapEdge* tempEdge = cacheBackupEdges[from];
     while(len < length){
-        // dead end
-        if(edge->routes.size() == 0){
+        // break out if dead end
+        if(tempEdge->routes.size() == 0){
             break;
         }
-        int r = rand() % edge->routes.size();
-        list<MapRoute*>::iterator it = edge->routes.begin();
-        for(; r > 0; r--){
-            it++;
-        }
-        edge = cacheBackupEdges[(*it)->target];
-        len += (*it)->length;
-        route.insert(route.end(), (*it)->edges.begin(), (*it)->edges.end());
+        int r = rand() % tempEdge->routes.size();
+        len += tempEdge->routes[r]->length;
+        route.insert(route.end(), tempEdge->routes[r]->edges.begin(), tempEdge->routes[r]->edges.end());
+        // set tempEdge to next hop
+        tempEdge = cacheBackupEdges[tempEdge->routes[r]->target];
     }
-    debugEV << "len: " << len << endl;
+    debugEV << "Length: " << len << endl;
     return route;
 }
 
@@ -303,14 +301,13 @@ void GlobalMapSystem::reduceMap() {
                 mapRoute->length += curEdge->length;
                 mapRoute->edges.push_back(curEdge->name);
                 // push this route into the route list.
-                mapEdge->routes.push_back(mapRoute);
+                mapEdge->cacheRoutes.push_back(mapRoute);
                 debugEV << "MapRoute { target :\"" << mapRoute->target << "\", edgeNumber : " << mapRoute->edges.size()
                         << ", length :" << mapRoute->length << " };" << endl;
             }
             // add each primary edge as short temporary route
             list<string> route;
             route.push_back(it_edge->first);
-            //route.assign((*mapEdge->routes.begin())->edges.begin(), (*mapEdge->routes.begin())->edges.end());
             debugEV << "route { name :\"" << it_edge->first << "\", first edge: \"" << (*(route.begin())) << "\" };"
                     << endl;
             getManager()->commandAddRoute(it_edge->first, route);
@@ -336,7 +333,9 @@ void GlobalMapSystem::optimizeMap() {
 }
 
 list<string> GlobalMapSystem::getShortestRoute(string fromEdge, string toEdge) {
-    //TODO
+    // TODO
+    list<string> route;
+    return route;
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {

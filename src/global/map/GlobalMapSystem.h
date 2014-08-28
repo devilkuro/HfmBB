@@ -120,11 +120,12 @@ private:
     class MapEdge;
     class MapRoute;
     class MapNode;
+    class MapEdgeWight;
     class MapEdge {
     public:
         Edge* edge;
-        list<MapRoute*> routes;
-        vector<MapRoute*> routeArray;
+        list<MapRoute*> cacheRoutes;
+        vector<MapRoute*> routes;
     };
     class MapRoute {
     public:
@@ -138,6 +139,15 @@ private:
         set<MapEdge*> inEdges;
         set<MapEdge*> outEdges;
     };
+    class MapEdgeWight {
+    public:
+        MapEdge* edge;
+        MapEdge* preEdge;
+        double outTime;
+        bool operator<(MapEdgeWight& rhs) {
+            return this->outTime < rhs.outTime;
+        }
+    };
 private:
     string getRandomEdgeFromCache();
 
@@ -148,8 +158,8 @@ private:
     // use for searching routes
     vector<MapEdge*> cacheEdgeArray;
     map<string, MapEdge*> cacheBackupEdges;
-    mutable list<MapEdge*> cacheUntappedEdges;
-    mutable list<MapEdge*> cacheTappedEdges;
+    mutable list<MapEdgeWight> cacheUntappedEdges;
+    mutable list<MapEdgeWight> cacheTappedEdges;
 };
 
 #endif
