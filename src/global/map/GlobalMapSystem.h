@@ -64,10 +64,12 @@ public:
         void setColor(string color);
     };
     class Node {
+    public:
         string name;
         string type;
         Coord pos;
         double r;
+        list<AnnotationManager_Colorful::Line_Colorful*> visualRepresentations;
         void setColor(string color);
     };
 
@@ -93,6 +95,7 @@ protected:
     }
     // map generating process
     void getLanesAndEdges();
+    void getNodes();
     void connectLanesAndEdges();
     void drawMap();
     void reduceMap();
@@ -106,6 +109,7 @@ protected:
     AnnotationManager_Colorful::Group* annotationGroup;
     map<string, Lane*> laneMap;
     map<string, Edge*> edgeMap;
+    map<string, Node*> nodeMap;
 
     cMessage* stateSwitchMsg;
     cMessage* startMsg;
@@ -124,6 +128,7 @@ private:
     class MapEdge {
     public:
         Edge* edge;
+        Coord endPos;
         list<MapRoute*> cacheRoutes;
         vector<MapRoute*> routes;
     };

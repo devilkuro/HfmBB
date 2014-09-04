@@ -50,8 +50,8 @@ GlobalMapSystem::~GlobalMapSystem() {
         delete (it->second);
     }
     for(map<string, MapEdge*>::iterator it = cacheBackupEdges.begin(); it != cacheBackupEdges.end(); it++){
-        for(list<MapRoute*>::iterator it_inner = it->second->cacheRoutes.begin(); it_inner != it->second->cacheRoutes.end();
-                it_inner++){
+        for(list<MapRoute*>::iterator it_inner = it->second->cacheRoutes.begin();
+                it_inner != it->second->cacheRoutes.end(); it_inner++){
             delete (*it_inner);
         }
         delete (it->second);
@@ -63,12 +63,13 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
     if(msg == startMsg){
         if(getManager()->isConnected()){
             generateMap(mapstage);
-            if(mapSystemInitialized != false){
+            if(!mapSystemInitialized){
                 scheduleAt(simTime() + 0.1, startMsg);
                 mapstage++;
             }
             debugEV << "Map Generating stage " << mapstage << " finished. lane number: " << laneMap.size()
-                    << ". edge number: " << edgeMap.size() << ". cache number: " << cacheBackupEdges.size() << endl;
+                    << ". edge number: " << edgeMap.size() << ". cache number: " << cacheBackupEdges.size()
+                    << ". node number: " << nodeMap.size() << endl;
         }else{
             scheduleAt(simTime() + 0.1, startMsg);
         }
@@ -84,22 +85,27 @@ int GlobalMapSystem::generateMap(int stage) {
     if(stage == maxStage){
         getLanesAndEdges();
     }
-    // 2nd. associate lanes and edges
+    // 2nd. get all junctions
+    maxStage++;
+    if(stage == maxStage){
+        getNodes();
+    }
+    // 3rd. associate lanes and edges
     maxStage++;
     if(stage == maxStage){
         connectLanesAndEdges();
     }
-    // 3rd. draw the map
+    // 4th. draw the map
     maxStage++;
     if(stage == maxStage){
         drawMap();
     }
-    // 4th. reduce the map
+    // 5th. reduce the map
     maxStage++;
     if(stage == maxStage){
         reduceMap();
     }
-    // 5th. generate cars
+    // 6th. generate cars
     // Do Nothing NOW
     if(stage == maxStage){
         mapSystemInitialized = true;
@@ -204,7 +210,7 @@ string GlobalMapSystem::getRandomEdgeFromCache() {
 
 void GlobalMapSystem::getLanesAndEdges() {
     // 0th. this function can only run at stage0 once.
-    if((laneMap.size() == 0 && edgeMap.size() == 0)){
+    if((laneMap.size() == 0) && (edgeMap.size() == 0)){
         list<string> laneList = getManager()->commandGetLaneIds();
         for(list<string>::iterator it = laneList.begin(); it != laneList.end(); it++){
             Lane* lane = new Lane();
@@ -261,9 +267,10 @@ void GlobalMapSystem::connectLanesAndEdges() {
 
 void GlobalMapSystem::drawMap() {
     if(annotations){
+        // draw lanes
         for(map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++){
-            debugEV << "Lane { name :\"" << it_lane->second->name << "\", length : " << it_lane->second->length
-                    << ", edge : \"" << it_lane->second->edge->name << "\", linknumber : "
+            debugEV << "Lane { name:\"" << it_lane->second->name << "\", " << "length: " << it_lane->second->length
+                    << ", " << "edge : \"" << it_lane->second->edge->name << "\", " << "linknumber : "
                     << it_lane->second->linkNumber << " };" << endl;
             list<Coord> coords = getManager()->commandGetLaneShape(it_lane->first);
             list<Coord>::iterator it_coord = coords.begin();
@@ -273,6 +280,18 @@ void GlobalMapSystem::drawMap() {
                         annotations->drawLine_Colorful(lastCoord, *it_coord, "black", annotationGroup));
                 lastCoord = *it_coord;
             }
+        }
+        // draw junctions
+        for(map<string, Node*>::iterator it_node = nodeMap.begin(); it_node != nodeMap.end(); it_node++){
+            Node* node = it_node->second;
+            debugEV << "Node { name: \"" << node->name << "\"," << " position: [" << node->pos.x << "," << node->pos.y
+                    << "] };" << endl;
+            node->visualRepresentations.push_back(
+                    annotations->drawLine_Colorful(Coord(node->pos.x + node->r, node->pos.y + node->r),
+                            Coord(node->pos.x - node->r, node->pos.y - node->r), "red", annotationGroup));
+            node->visualRepresentations.push_back(
+                    annotations->drawLine_Colorful(Coord(node->pos.x + node->r, node->pos.y - node->r),
+                            Coord(node->pos.x - node->r, node->pos.y + node->r), "red", annotationGroup));
         }
     }
 }
@@ -324,6 +343,9 @@ void GlobalMapSystem::reduceMap() {
     if(debug){
         debugEV << "view the cacheEdgeArray" << endl;
         for(unsigned int i = 0; i < cacheBackupEdges.size(); i++){
+            if(debug){
+                cacheEdgeArray[i]->edge->setColor("red");
+            }
             EV<< cacheEdgeArray[i]->edge->name <<endl;
         }
     }
@@ -336,6 +358,21 @@ list<string> GlobalMapSystem::getShortestRoute(string fromEdge, string toEdge) {
     // TODO
     list<string> route;
     return route;
+}
+
+void GlobalMapSystem::getNodes() {
+    if(nodeMap.size()==0){
+        list<string> nodeList = getManager()->commandGetJunctionIds();
+        debugEV << "nodeList size:"<< nodeList.size();
+        for(list<string>::iterator it = nodeList.begin(); it != nodeList.end(); it++){
+            Node* node = new Node();
+            node->name = (*it);
+            node->type = "";
+            node->pos = getManager()->commandGetJunctionPosition(node->name);
+            node->r = 15;
+            nodeMap[node->name] = node;
+        }
+    }
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {
