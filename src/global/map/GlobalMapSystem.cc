@@ -355,8 +355,9 @@ void GlobalMapSystem::optimizeMap() {
 }
 
 list<string> GlobalMapSystem::getShortestRoute(string fromEdge, string toEdge) {
-    // TODO
+    // TODO needs to add shortest path algorithm
     list<string> route;
+
     return route;
 }
 
