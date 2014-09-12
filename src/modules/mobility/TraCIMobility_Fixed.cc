@@ -22,6 +22,7 @@ void TraCIMobility_Fixed::preInitialize(std::string external_id,
         double angle) {
     Enter_Method_Silent();
     TraCIMobility::preInitialize(external_id,position,road_id,speed,angle);
+
 }
 
 void TraCIMobility_Fixed::nextPosition(const Coord& position,
@@ -29,6 +30,7 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position,
         TraCIScenarioManager::VehicleSignal signals) {
     Enter_Method_Silent();
     TraCIMobility::nextPosition(position,road_id,speed,angle,signals);
+
 }
 
 void TraCIMobility_Fixed::changePosition() {
