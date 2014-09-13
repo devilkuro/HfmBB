@@ -28,6 +28,7 @@ public:
     virtual ~GlobalMobilityLaunchd();
 
 public:
+    uint32_t getActiveVehicleCount();
     std::list<std::string> commandGetLaneLinksIds(std::string laneId);
     void commandAddRoute(std::string routeId, std::list<std::string> route);
     void commandChangeRouteByEdgeList(std::string nodeId, std::list<std::string> route);

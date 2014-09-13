@@ -38,6 +38,7 @@ void GlobalMapSystem::initialize(int stage) {
         }
         startMsg = new cMessage("startMapSystem");
         stateSwitchMsg = new cMessage("switchMapSystemState");
+        updateMsg = new cMessage("updateMsg");
         scheduleAt(0.2, startMsg);
     }
 }
@@ -66,6 +67,8 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
             if(!mapSystemInitialized){
                 scheduleAt(simTime() + 0.1, startMsg);
                 mapstage++;
+            }else{
+                scheduleAt(simTime() + 0.1, updateMsg);
             }
             debugEV << "Map Generating stage " << mapstage << " finished. lane number: " << laneMap.size()
                     << ". edge number: " << edgeMap.size() << ". cache number: " << cacheBackupEdges.size()
@@ -73,6 +76,10 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
         }else{
             scheduleAt(simTime() + 0.1, startMsg);
         }
+    }else if(msg == updateMsg){
+        ASSERT(mapSystemInitialized);
+        // TODO add vehicle here.
+        scheduleAt(simTime() + 10.0, updateMsg);
     }else{
         delete msg;
     }
@@ -106,7 +113,7 @@ int GlobalMapSystem::generateMap(int stage) {
         reduceMap();
     }
     // 6th. generate cars
-    // Do Nothing NOW
+    // TODO Do Nothing NOW
     if(stage == maxStage){
         mapSystemInitialized = true;
     }
@@ -137,6 +144,7 @@ void GlobalMapSystem::Node::setColor(string color) {
 void GlobalMapSystem::finish() {
     cancelAndDelete(startMsg);
     cancelAndDelete(stateSwitchMsg);
+    cancelAndDelete(updateMsg);
 }
 
 double GlobalMapSystem::getTravelTime(string edge, double time, double speed) {
@@ -362,9 +370,9 @@ list<string> GlobalMapSystem::getShortestRoute(string fromEdge, string toEdge) {
 }
 
 void GlobalMapSystem::getNodes() {
-    if(nodeMap.size()==0){
+    if(nodeMap.size() == 0){
         list<string> nodeList = getManager()->commandGetJunctionIds();
-        debugEV << "nodeList size:"<< nodeList.size();
+        debugEV << "nodeList size:" << nodeList.size();
         for(list<string>::iterator it = nodeList.begin(); it != nodeList.end(); it++){
             Node* node = new Node();
             node->name = (*it);
@@ -374,6 +382,10 @@ void GlobalMapSystem::getNodes() {
             nodeMap[node->name] = node;
         }
     }
+}
+
+bool GlobalMapSystem::isInitializedFinished() {
+    return mapSystemInitialized;
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {

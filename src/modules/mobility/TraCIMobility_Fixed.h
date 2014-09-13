@@ -18,6 +18,7 @@
 
 #include <omnetpp.h>
 #include "TraCIMobility.h"
+#include "GlobalMapSystem.h"
 
 /**
  * TODO - Generated class
@@ -28,6 +29,15 @@ public:
     virtual void preInitialize(std::string external_id, const Coord& position, std::string road_id = "", double speed = -1, double angle = -1);
     virtual void nextPosition(const Coord& position, std::string road_id = "", double speed = -1, double angle = -1, TraCIScenarioManager::VehicleSignal signals = TraCIScenarioManager::VEH_SIGNAL_UNDEF);
     virtual void changePosition();
+    virtual GlobalMapSystem* getMapSystem() const {
+        if(!map){
+            map = GlobalMapSystemAccess().get();
+        }
+        ASSERT(map);
+        return map;
+    }
+protected:
+    GlobalMapSystem *map;
 };
 
 #endif

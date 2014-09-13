@@ -75,6 +75,7 @@ public:
 
 public:
     virtual int generateMap(int stage);
+    virtual bool isInitializedFinished();
     virtual double getTravelTime(string edge, double time, double speed);
     virtual list<string> getFastestRoute(string fromEdge, string toEdge);
     virtual list<string> getShortestRoute(string fromEdge, string toEdge);
@@ -113,6 +114,7 @@ protected:
 
     cMessage* stateSwitchMsg;
     cMessage* startMsg;
+    cMessage* updateMsg;
 
     int mapstage;
     bool noconnect;
@@ -166,5 +168,10 @@ private:
     mutable list<MapEdgeWight> cacheUntappedEdges;
     mutable list<MapEdgeWight> cacheTappedEdges;
 };
-
+class GlobalMapSystemAccess {
+public:
+    GlobalMapSystem* get() {
+        return FindModule<GlobalMapSystem*>::findGlobalModule();
+    }
+};
 #endif

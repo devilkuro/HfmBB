@@ -50,6 +50,10 @@ void GlobalMobilityLaunchd::commandChangeRouteByEdgeList(std::string nodeId, std
     ASSERT(buf0.eof());
 }
 
+uint32_t GlobalMobilityLaunchd::getActiveVehicleCount() {
+    return activeVehicleCount;
+}
+
 std::list<std::string> GlobalMobilityLaunchd::laneLinksGetStringList(uint8_t commandId, std::string objectId,
         uint8_t variableId, uint8_t responseId) {
     uint8_t resultTypeId = TYPE_COMPOUND;
