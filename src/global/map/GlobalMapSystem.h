@@ -94,14 +94,18 @@ protected:
     virtual int numInitStages() const {
         return std::max(cSimpleModule::numInitStages(), 3);
     }
+
     // map generating process
     void getLanesAndEdges();
-    void getNodes();
+    void getNodes(); // get junctions
     void connectLanesAndEdges();
     void drawMap();
     void reduceMap();
     void optimizeMap();
 
+    // car generating process
+    void setCarInfo();
+    void addOneCar();
     list<string> commandGetLanes(Lane* lane);
 
 protected:
