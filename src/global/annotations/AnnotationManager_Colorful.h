@@ -19,7 +19,7 @@
 #include <omnetpp.h>
 #include "AnnotationManager.h"
 /**
- * TODO - Generated class
+ *
  */
 class AnnotationManager_Colorful : public AnnotationManager {
 public:

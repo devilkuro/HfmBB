@@ -23,7 +23,6 @@ GlobalMapSystem::GlobalMapSystem() :
 }
 
 void GlobalMapSystem::initialize(int stage) {
-    // TODO - Generated method body
     BaseModule::initialize(stage);
     if(stage == 1){
         bool draw = hasPar("draw") ? par("draw") : true;
@@ -60,7 +59,6 @@ GlobalMapSystem::~GlobalMapSystem() {
 }
 
 void GlobalMapSystem::handleMessage(cMessage *msg) {
-    // TODO - Generated method body
     if(msg == startMsg){
         if(getManager()->isConnected()){
             generateMap(mapstage);
@@ -78,7 +76,7 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
         }
     }else if(msg == updateMsg){
         ASSERT(mapSystemInitialized);
-        // TODO add vehicle here.
+        // TODO add vehicles here.
         scheduleAt(simTime() + 10.0, updateMsg);
     }else{
         delete msg;
@@ -113,7 +111,7 @@ int GlobalMapSystem::generateMap(int stage) {
         reduceMap();
     }
     // 6th. generate cars
-    // TODO Do Nothing NOW
+    // HAS BEEN MOVED INTO ADDCAR FUNCTION, TRIGGERED BY UPDATEMSG
     if(stage == maxStage){
         mapSystemInitialized = true;
     }
@@ -148,13 +146,13 @@ void GlobalMapSystem::finish() {
 }
 
 double GlobalMapSystem::getTravelTime(string edge, double time, double speed) {
-// TODO - Generated method body
+    // TODO calculate travel time here
     double travelTime = (*(edgeMap[edge]->lanes.begin()))->length / speed;
     return travelTime;
 }
 
 list<string> GlobalMapSystem::getFastestRoute(string fromEdge, string toEdge) {
-// TODO - Generated method body
+    // TODO add path function here
     list<string> route;
     route.push_back(fromEdge);
     route.push_back(toEdge);

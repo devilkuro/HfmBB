@@ -20,7 +20,7 @@
 #include "mobility/traci/TraCIMobility.h"
 
 /**
- * TODO - Generated class
+ *
  */
 class TestAppDemo : public BaseWaveApplLayer {
 public:

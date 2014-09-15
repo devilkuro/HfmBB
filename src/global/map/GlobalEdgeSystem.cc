@@ -16,11 +16,11 @@
 #include "GlobalEdgeSystem.h"
 
 GlobalEdgeSystem::GlobalEdgeSystem() {
-    // TODO Auto-generated constructor stub
+    // DO NOTHING NOW
 
 }
 
 GlobalEdgeSystem::~GlobalEdgeSystem() {
-    // TODO Auto-generated destructor stub
+    // DO NOTHING NOW
 }
 

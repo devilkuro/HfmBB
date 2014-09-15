@@ -21,7 +21,7 @@
 #include "GlobalMapSystem.h"
 
 /**
- * TODO - Generated class
+ *
  */
 class TraCIMobility_Fixed : public TraCIMobility
 {

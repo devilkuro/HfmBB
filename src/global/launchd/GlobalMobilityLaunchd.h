@@ -21,7 +21,7 @@
 #include "TraCIConstants.h"
 
 /**
- * TODO - Generated class
+ *
  */
 class GlobalMobilityLaunchd: public TraCIScenarioManagerLaunchd {
 public:

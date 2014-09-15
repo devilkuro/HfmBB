@@ -28,7 +28,7 @@
 #include "AnnotationManager_Colorful.h"
 
 /**
- * TODO - Generated class
+ *
  */
 using std::string;
 using std::map;
@@ -104,6 +104,7 @@ protected:
     void optimizeMap();
 
     // car generating process
+    // TODO 1409151920
     void setCarInfo();
     void addOneCar();
     list<string> commandGetLanes(Lane* lane);
