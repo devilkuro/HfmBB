@@ -48,7 +48,8 @@ public:
         GMS_VEHICLETYPE_EMERGENCE,  // emergence vehicle: go to a random location and back to the station
         GMS_VEHICLETYPE_ADMIN,  // unnecessary! road administration: come out when the transport system is idle
         GMS_VEHICLETYPE_SHOPPING, // unimportant! shopping vehicle: go to a shop and back. just a car with a random destination now.
-        GMS_VEHICLETYPE_OTHER = 255 // means nothing
+        // add new vehicle type above if any.
+        GMS_VEHICLETYPE_NUM_MARK // means the number of the vehicle type
     };
 public:
     class Lane;
@@ -116,8 +117,8 @@ protected:
     // car generating process
     // TODO 1409151920
     void setCurrentVehicleType();
-    void addOneVehicle();
-    void addVehicles();
+    void addOneVehicle(VehicleType type);
+    void addVehicles(VehicleType type, int num);
 
     list<string> commandGetLanes(Lane* lane);
 
