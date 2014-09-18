@@ -41,6 +41,16 @@ public:
     GlobalMapSystem();
     virtual ~GlobalMapSystem();
 public:
+    enum VehicleType {
+        GMS_VEHICLETYPE_NORMAL = 0, // normal vehicle: drive to work place and back
+        GMS_VEHICLETYPE_BUS,    // bus: fixed loop path
+        GMS_VEHICLETYPE_TAXI,   // taxi: continually random path
+        GMS_VEHICLETYPE_EMERGENCE,  // emergence vehicle: go to a random location and back to the station
+        GMS_VEHICLETYPE_ADMIN,  // unnecessary! road administration: come out when the transport system is idle
+        GMS_VEHICLETYPE_SHOPPING, // unimportant! shopping vehicle: go to a shop and back. just a car with a random destination now.
+        GMS_VEHICLETYPE_OTHER = 255 // means nothing
+    };
+public:
     class Lane;
     class Edge;
     class Lane {
@@ -105,8 +115,10 @@ protected:
 
     // car generating process
     // TODO 1409151920
-    void setCarInfo();
-    void addOneCar();
+    void setCurrentVehicleType();
+    void addOneVehicle();
+    void addVehicles();
+
     list<string> commandGetLanes(Lane* lane);
 
 protected:
