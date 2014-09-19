@@ -42,14 +42,15 @@ public:
     virtual ~GlobalMapSystem();
 public:
     enum VehicleType {
-        GMS_VEHICLETYPE_NORMAL = 0, // normal vehicle: drive to work place and back
+        GMS_VEHICLETYPE_NORMAL = 0, // normal vehicle: use a random path
+        GMS_VEHICLETYPE_ONDUTY,   // on-duty vehicle: drive to work place and back
         GMS_VEHICLETYPE_BUS,    // bus: fixed loop path
         GMS_VEHICLETYPE_TAXI,   // taxi: continually random path
         GMS_VEHICLETYPE_EMERGENCE,  // emergence vehicle: go to a random location and back to the station
         GMS_VEHICLETYPE_ADMIN,  // unnecessary! road administration: come out when the transport system is idle
         GMS_VEHICLETYPE_SHOPPING, // unimportant! shopping vehicle: go to a shop and back. just a car with a random destination now.
         // add new vehicle type above if any.
-        GMS_VEHICLETYPE_NUM_MARK // means the number of the vehicle type
+        GMS_VEHICLETYPE_NUMEND_MARK // means the number of the vehicle type
     };
 public:
     class Lane;
@@ -115,10 +116,12 @@ protected:
     void optimizeMap();
 
     // car generating process
-    // TODO 1409151920
-    void setCurrentVehicleType();
-    void addOneVehicle(VehicleType type);
-    void addVehicles(VehicleType type, int num);
+    void updateVehicleList();   // generate vehicles to keep there are certain number vehicles in the network
+    // functions to add vehicles
+    // the mobility module must get its vehicle type by using function - getVehiclesType()
+    // if else that the vehicles will be marked as normal vehicle
+    void addOneVehicle(VehicleType type);   // add a car of a certain type
+    void addVehicles(VehicleType type, int num); // add several cars of a certain type
 
     list<string> commandGetLanes(Lane* lane);
 
@@ -126,6 +129,7 @@ protected:
     mutable GlobalMobilityLaunchd* manager;
     AnnotationManager_Colorful* annotations;
     AnnotationManager_Colorful::Group* annotationGroup;
+    // used in map generating process
     map<string, Lane*> laneMap;
     map<string, Edge*> edgeMap;
     map<string, Node*> nodeMap;
@@ -139,6 +143,10 @@ protected:
     bool mapSystemInitialized;
     int hostnum;
     int curHostnum;
+
+    // used in vehicle generating process
+    map<VehicleType, int > targetVehicleNum;   // the target vehicles number of each vehicle type
+    map<VehicleType, int> vehicleNum;   // the vehicles number of each vehicle type
 
 private:
     class MapEdge;
@@ -180,7 +188,7 @@ private:
     string double2color(double d);
     string rgb2color(int r, int g, int b);
 private:
-    // use for searching routes
+    // used in path-finding
     vector<MapEdge*> cacheEdgeArray;
     map<string, MapEdge*> cacheBackupEdges;
     mutable list<MapEdgeWight> cacheUntappedEdges;

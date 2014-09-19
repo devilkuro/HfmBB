@@ -37,7 +37,7 @@ public:
         return map;
     }
 protected:
-    GlobalMapSystem *map;
+    mutable GlobalMapSystem *map;
 };
 
 #endif
