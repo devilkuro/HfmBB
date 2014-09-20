@@ -144,7 +144,7 @@ protected:
     bool noconnect;
     bool mapSystemInitialized;
     int hostnum;
-    int curHostnum;
+    int lastHostNo;
 
     // used in vehicle generating process
     map<VehicleType, int> targetVehicleNum;   // the target vehicles number of each vehicle type
