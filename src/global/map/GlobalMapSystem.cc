@@ -389,13 +389,15 @@ bool GlobalMapSystem::isInitializedFinished() {
 }
 
 void GlobalMapSystem::addOneVehicle(VehicleType type) {
-    string vid = "node" + int2str(curHostNo);
+    string vid = "node" + int2str(curHostNo++);
+    string vtype = "vtype" + int2str(type);
+    // TODO change getRandomEdge to get edge from a certain area
     string start = getRandomEdgeFromCache();
     double pos = 0;
-    if((int) (edgeMap[start]->length) > 10){
+    if(edgeMap[start]->length >= 11){
         pos = rand() % ((int) (edgeMap[start]->length - 10));
     }
-    getManager()->commandAddVehicle(vid, "vtype0", start, simTime(), pos, 0, 0);
+    getManager()->commandAddVehicle(vid, vtype, start, simTime(), pos, 0, 0);
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {
