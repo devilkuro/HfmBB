@@ -73,6 +73,7 @@ public:
         int linkNumber;
         set<Edge*> links;
         double length;
+
         void setColor(string color);
     };
     class Node {
@@ -114,6 +115,7 @@ protected:
     void drawMap();
     void reduceMap();
     void optimizeMap();
+    void weightEdges(); // set the area weight for each edge.
 
     // car generating process
     void updateVehicleList();   // generate vehicles to keep there are certain number vehicles in the network
@@ -145,7 +147,7 @@ protected:
     int curHostnum;
 
     // used in vehicle generating process
-    map<VehicleType, int > targetVehicleNum;   // the target vehicles number of each vehicle type
+    map<VehicleType, int> targetVehicleNum;   // the target vehicles number of each vehicle type
     map<VehicleType, int> vehicleNum;   // the vehicles number of each vehicle type
 
 private:
@@ -156,6 +158,7 @@ private:
     class MapEdge {
     public:
         Edge* edge;
+        Coord startPos;
         Coord endPos;
         list<MapRoute*> cacheRoutes;
         vector<MapRoute*> routes;
@@ -165,6 +168,7 @@ private:
         string target;
         double length;
         list<string> edges;
+        int getVehicleNum();
     };
     class MapNode {
     public:

@@ -288,16 +288,18 @@ void GlobalMapSystem::drawMap() {
             }
         }
         // draw junctions
-        for(map<string, Node*>::iterator it_node = nodeMap.begin(); it_node != nodeMap.end(); it_node++){
-            Node* node = it_node->second;
-            debugEV << "Node { name: \"" << node->name << "\"," << " position: [" << node->pos.x << "," << node->pos.y
-                    << "] };" << endl;
-            node->visualRepresentations.push_back(
-                    annotations->drawLine_Colorful(Coord(node->pos.x + node->r, node->pos.y + node->r),
-                            Coord(node->pos.x - node->r, node->pos.y - node->r), "red", annotationGroup));
-            node->visualRepresentations.push_back(
-                    annotations->drawLine_Colorful(Coord(node->pos.x + node->r, node->pos.y - node->r),
-                            Coord(node->pos.x - node->r, node->pos.y + node->r), "red", annotationGroup));
+        if (debug) {
+            for(map<string, Node*>::iterator it_node = nodeMap.begin(); it_node != nodeMap.end(); it_node++){
+                Node* node = it_node->second;
+                debugEV << "Node { name: \"" << node->name << "\"," << " position: [" << node->pos.x << "," << node->pos.y
+                        << "] };" << endl;
+                node->visualRepresentations.push_back(
+                        annotations->drawLine_Colorful(Coord(node->pos.x + node->r, node->pos.y + node->r),
+                                Coord(node->pos.x - node->r, node->pos.y - node->r), "red", annotationGroup));
+                node->visualRepresentations.push_back(
+                        annotations->drawLine_Colorful(Coord(node->pos.x + node->r, node->pos.y - node->r),
+                                Coord(node->pos.x - node->r, node->pos.y + node->r), "red", annotationGroup));
+            }
         }
     }
 }
@@ -384,6 +386,10 @@ void GlobalMapSystem::getNodes() {
 
 bool GlobalMapSystem::isInitializedFinished() {
     return mapSystemInitialized;
+}
+
+void GlobalMapSystem::addOneVehicle(VehicleType type) {
+
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {
