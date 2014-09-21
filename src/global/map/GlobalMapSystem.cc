@@ -19,7 +19,7 @@ Define_Module(GlobalMapSystem)
 
 GlobalMapSystem::GlobalMapSystem() :
         manager(NULL), annotations(NULL), annotationGroup(NULL), laneMap(), edgeMap(), stateSwitchMsg(NULL), startMsg(
-                NULL), mapstage(0), noconnect(false), mapSystemInitialized(false), hostnum(100), curHostNo(0) {
+                NULL), mapstage(0), noconnect(false), mapSystemInitialized(false), hostnum(100), lastHostNo(0) {
 }
 
 void GlobalMapSystem::initialize(int stage) {
@@ -389,7 +389,7 @@ bool GlobalMapSystem::isInitializedFinished() {
 }
 
 void GlobalMapSystem::addOneVehicle(VehicleType type) {
-    string vid = "node" + int2str(curHostNo++);
+    string vid = "node" + int2str(lastHostNo++);
     string vtype = "vtype" + int2str(type);
     // TODO change getRandomEdge to get edge from a certain area
     string start = getRandomEdgeFromCache();
