@@ -22,7 +22,8 @@ void TraCIMobility_Fixed::preInitialize(std::string external_id,
         double angle) {
     Enter_Method_Silent();
     TraCIMobility::preInitialize(external_id,position,road_id,speed,angle);
-
+    hasInitialized = false;
+    statistic_road_id = road_id;
 }
 
 void TraCIMobility_Fixed::nextPosition(const Coord& position,
@@ -30,7 +31,20 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position,
         TraCIScenarioManager::VehicleSignal signals) {
     Enter_Method_Silent();
     TraCIMobility::nextPosition(position,road_id,speed,angle,signals);
+    if(road_id!=statistic_road_id){
+        if(!hasInitialized){
+            // switch record process trigger
+            hasInitialized = true;
+        }else{
+            // start record process
+            gs->changeName("road statistics - travel time")<<statistic_road_id<<simTime().dbl()-statistic_road_enterTime<<gs->endl;
+        }
+    }
+}
 
+void TraCIMobility_Fixed::initialize(int stage) {
+    TraCIMobility::initialize(stage);
+    gs = GlobalStatisticsAccess().get();
 }
 
 void TraCIMobility_Fixed::changePosition() {

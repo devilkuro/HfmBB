@@ -54,5 +54,10 @@ private:
     std::list<double> unitData;
     string m_name;
 };
-
+class GlobalStatisticsAccess{
+    GlobalStatistics* get() {
+        GlobalStatistics *gs = FindModule<GlobalStatistics*>::findGlobalModule();
+        return gs;
+    }
+};
 #endif

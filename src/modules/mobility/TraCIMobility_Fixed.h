@@ -19,15 +19,20 @@
 #include <omnetpp.h>
 #include "TraCIMobility.h"
 #include "GlobalMapSystem.h"
+#include "string"
+#include "GlobalStatistics.h"
 
 /**
  *
  */
-class TraCIMobility_Fixed : public TraCIMobility
-{
+//using std::string;
+class TraCIMobility_Fixed : public TraCIMobility {
 public:
-    virtual void preInitialize(std::string external_id, const Coord& position, std::string road_id = "", double speed = -1, double angle = -1);
-    virtual void nextPosition(const Coord& position, std::string road_id = "", double speed = -1, double angle = -1, TraCIScenarioManager::VehicleSignal signals = TraCIScenarioManager::VEH_SIGNAL_UNDEF);
+    virtual void initialize(int);
+    virtual void preInitialize(std::string external_id, const Coord& position, std::string road_id = "", double speed =
+            -1, double angle = -1);
+    virtual void nextPosition(const Coord& position, std::string road_id = "", double speed = -1, double angle = -1,
+            TraCIScenarioManager::VehicleSignal signals = TraCIScenarioManager::VEH_SIGNAL_UNDEF);
     virtual void changePosition();
     virtual GlobalMapSystem* getMapSystem() const {
         if(!map){
@@ -38,6 +43,12 @@ public:
     }
 protected:
     mutable GlobalMapSystem *map;
+    mutable GlobalStatistics *gs;
+    // statistics members
+    bool hasInitialized;
+    double statistic_road_enterTime;
+    string statistic_road_id;
+
 };
 
 #endif
