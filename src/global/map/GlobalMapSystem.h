@@ -101,6 +101,11 @@ public:
         ASSERT(manager);
         return manager;
     }
+
+
+    // record vehicle number
+    void registerVehiclePosition(string road_id);
+    void changeVehiclePosition(string road_from, string road_to);
 protected:
     virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
@@ -198,6 +203,8 @@ private:
     map<string, MapEdge*> cacheBackupEdges;
     mutable list<MapEdgeWight> cacheUntappedEdges;
     mutable list<MapEdgeWight> cacheTappedEdges;
+    // record vehicle number
+    map<string, int> roadVehicleNumMap;
 };
 class GlobalMapSystemAccess {
 public:

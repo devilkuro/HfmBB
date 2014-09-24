@@ -423,6 +423,18 @@ void GlobalMapSystem::addVehicles(VehicleType type, int num) {
     }
 }
 
+void GlobalMapSystem::registerVehiclePosition(string road_id) {
+    if(roadVehicleNumMap.size()==0){
+        for(map<string,Edge*>::iterator it = edgeMap.begin();it!=edgeMap.end();it++){
+            roadVehicleNumMap[it->first] = 0;
+        }
+    }
+
+}
+
+void GlobalMapSystem::changeVehiclePosition(string road_from, string road_to) {
+}
+
 string GlobalMapSystem::rgb2color(int r, int g, int b) {
     std::stringstream ss;
     ss << "#";
@@ -442,6 +454,6 @@ string GlobalMapSystem::rgb2color(int r, int g, int b) {
 }
 
 int GlobalMapSystem::MapRoute::getVehicleNum() {
-    // TODO
+    // TODO getVehicleNum from a MapRoute
     return 0;
 }
