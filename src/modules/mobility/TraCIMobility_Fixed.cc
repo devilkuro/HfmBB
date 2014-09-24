@@ -17,28 +17,40 @@
 
 Define_Module(TraCIMobility_Fixed)
 
-void TraCIMobility_Fixed::preInitialize(std::string external_id,
-        const Coord& position, std::string road_id, double speed,
-        double angle) {
+void TraCIMobility_Fixed::preInitialize(std::string external_id, const Coord& position, std::string road_id,
+        double speed, double angle) {
     Enter_Method_Silent();
-    TraCIMobility::preInitialize(external_id,position,road_id,speed,angle);
+    TraCIMobility::preInitialize(external_id, position, road_id, speed, angle);
     hasInitialized = false;
+    hasRouted = false;
+    map = NULL;
     statistic_road_id = road_id;
 }
 
-void TraCIMobility_Fixed::nextPosition(const Coord& position,
-        std::string road_id, double speed, double angle,
+void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_id, double speed, double angle,
         TraCIScenarioManager::VehicleSignal signals) {
     Enter_Method_Silent();
-    TraCIMobility::nextPosition(position,road_id,speed,angle,signals);
-    if(road_id!=statistic_road_id){
+    TraCIMobility::nextPosition(position, road_id, speed, angle, signals);
+    // path process
+    if(!hasRouted){
+        if(getMapSystem()->isInitializedFinished()){
+            getMapSystem()->setVehicleRouteByEdgeList(external_id, getMapSystem()->getRandomRoute(road_id));
+            hasRouted = true;
+        }
+    }
+
+    // statistics process
+    if(road_id != statistic_road_id){
         if(!hasInitialized){
             // switch record process trigger
             hasInitialized = true;
         }else{
             // start record process
-            gs->changeName("road statistics - travel time")<<statistic_road_id<<simTime().dbl()-statistic_road_enterTime<<gs->endl;
+            gs->changeName("road statistics - travel time - " + statistic_road_id)
+                    << simTime().dbl() - statistic_road_enterTime << gs->endl;
         }
+        statistic_road_enterTime = simTime().dbl();
+        statistic_road_id = road_id;
     }
 }
 

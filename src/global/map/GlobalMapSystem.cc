@@ -77,7 +77,7 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
     }else if(msg == updateMsg){
         ASSERT(mapSystemInitialized);
         // TODO add vehicles here.
-        scheduleAt(simTime() + 10.0, updateMsg);
+        updateVehicleList();
     }else{
         delete msg;
     }
@@ -288,11 +288,11 @@ void GlobalMapSystem::drawMap() {
             }
         }
         // draw junctions
-        if (debug) {
+        if(debug){
             for(map<string, Node*>::iterator it_node = nodeMap.begin(); it_node != nodeMap.end(); it_node++){
                 Node* node = it_node->second;
-                debugEV << "Node { name: \"" << node->name << "\"," << " position: [" << node->pos.x << "," << node->pos.y
-                        << "] };" << endl;
+                debugEV << "Node { name: \"" << node->name << "\"," << " position: [" << node->pos.x << ","
+                        << node->pos.y << "] };" << endl;
                 node->visualRepresentations.push_back(
                         annotations->drawLine_Colorful(Coord(node->pos.x + node->r, node->pos.y + node->r),
                                 Coord(node->pos.x - node->r, node->pos.y - node->r), "red", annotationGroup));
@@ -346,6 +346,8 @@ void GlobalMapSystem::reduceMap() {
     // store cacheBackupEdges into an array to improve the performance
     for(map<string, MapEdge*>::iterator it = cacheBackupEdges.begin(); it != cacheBackupEdges.end(); it++){
         cacheEdgeArray.push_back(it->second);
+        // store cacheRoutes into an array to improve the performance
+        it->second->routes.assign(it->second->cacheRoutes.begin(), it->second->cacheRoutes.end());
     }
     // view the cacheEdgeArray
     if(debug){
@@ -400,6 +402,27 @@ void GlobalMapSystem::addOneVehicle(VehicleType type) {
     getManager()->commandAddVehicle(vid, vtype, start, simTime(), pos, 0, 0);
 }
 
+void GlobalMapSystem::setVehicleRouteByEdgeList(string id, list<std::string> route) {
+    // set the route
+    getManager()->commandChangeRouteByEdgeList(id, route);
+}
+
+void GlobalMapSystem::weightEdges() {
+    // TODO
+}
+
+void GlobalMapSystem::updateVehicleList() {
+    // TODO manage vehicles
+    addVehicles(GMS_VEHICLETYPE_NORMAL, 120);
+}
+
+void GlobalMapSystem::addVehicles(VehicleType type, int num) {
+    // TODO
+    for(int i = 0; i < num; i++){
+        addOneVehicle(GMS_VEHICLETYPE_NORMAL);
+    }
+}
+
 string GlobalMapSystem::rgb2color(int r, int g, int b) {
     std::stringstream ss;
     ss << "#";
@@ -416,4 +439,9 @@ string GlobalMapSystem::rgb2color(int r, int g, int b) {
     std::string str = ss.str();
     ss.clear();
     return str;
+}
+
+int GlobalMapSystem::MapRoute::getVehicleNum() {
+    // TODO
+    return 0;
 }

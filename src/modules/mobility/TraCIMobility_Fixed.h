@@ -44,6 +44,9 @@ public:
 protected:
     mutable GlobalMapSystem *map;
     mutable GlobalStatistics *gs;
+
+    // path process
+    bool hasRouted;
     // statistics members
     bool hasInitialized;
     double statistic_road_enterTime;

@@ -34,8 +34,8 @@ GlobalStatistics::GlobalStatistics() {
 }
 
 GlobalStatistics::~GlobalStatistics() {
-    for (GlobalStatisticsMap::iterator it = globalStatisticsMap.begin(); it != globalStatisticsMap.end(); it++) {
-        for (GlobalStatisticsList::iterator lit = it->second->begin(); lit != it->second->end(); lit++) {
+    for(GlobalStatisticsMap::iterator it = globalStatisticsMap.begin(); it != globalStatisticsMap.end(); it++){
+        for(GlobalStatisticsList::iterator lit = it->second->begin(); lit != it->second->end(); lit++){
             delete (*lit);
         }
         delete (it->second);
@@ -49,13 +49,13 @@ void GlobalStatistics::record(string name, int size, ...) {
     double val;
     va_list vl;
     va_start(vl, size);
-    for (int i = 0; i < size; i++) {
+    for(int i = 0; i < size; i++){
         val = va_arg(vl,double);
         unit->setData(val, i);
     }
     va_end(vl);
     it = globalStatisticsMap.find(name);
-    if (it == globalStatisticsMap.end()) {
+    if(it == globalStatisticsMap.end()){
         GlobalStatisticsList* list = new GlobalStatisticsList();
         globalStatisticsMap[name] = list;
     }
@@ -75,16 +75,16 @@ void GlobalStatistics::finish() {
 }
 
 GlobalStatistics& GlobalStatistics::operator <<(gs_eofType& e) {
-    if (unitData.size() > 0) {
+    if(unitData.size() > 0){
         GlobalStatisticsUnit* unit = new GlobalStatisticsUnit(unitData.size());
         int i = 0;
-        for (std::list<double>::iterator it = unitData.begin(); it != unitData.end(); it++) {
+        for(std::list<double>::iterator it = unitData.begin(); it != unitData.end(); it++){
             unit->setData(*it, i);
             i++;
         }
         GlobalStatisticsMap::iterator it;
         it = globalStatisticsMap.find(m_name);
-        if (it == globalStatisticsMap.end()) {
+        if(it == globalStatisticsMap.end()){
             GlobalStatisticsList* list = new GlobalStatisticsList();
             globalStatisticsMap[m_name] = list;
         }
@@ -103,7 +103,7 @@ GlobalStatistics& GlobalStatistics::changeName(string name) {
     GlobalStatisticsMap::iterator it;
     m_name = name;
     it = globalStatisticsMap.find(m_name);
-    if (it == globalStatisticsMap.end()) {
+    if(it == globalStatisticsMap.end()){
         GlobalStatisticsList* list = new GlobalStatisticsList();
         globalStatisticsMap[m_name] = list;
     }
@@ -114,10 +114,10 @@ GlobalStatistics& GlobalStatistics::changeName(string name) {
 void GlobalStatistics::output(string name) {
     std::fstream fs;
     fs.open(name.c_str(), std::fstream::out);
-    for (GlobalStatisticsMap::iterator it = globalStatisticsMap.begin(); it != globalStatisticsMap.end(); it++) {
+    for(GlobalStatisticsMap::iterator it = globalStatisticsMap.begin(); it != globalStatisticsMap.end(); it++){
         fs << it->first << std::endl;
-        for (GlobalStatisticsList::iterator lit = it->second->begin(); lit != it->second->end(); lit++) {
-            fs << (*lit)->toString() << std::endl;
+        for(GlobalStatisticsList::iterator lit = it->second->begin(); lit != it->second->end(); lit++){
+            fs << it->first << "," << (*lit)->toString() << std::endl;
         }
     }
     fs.close();

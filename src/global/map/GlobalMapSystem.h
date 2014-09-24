@@ -93,6 +93,7 @@ public:
     virtual list<string> getFastestRoute(string fromEdge, string toEdge);
     virtual list<string> getShortestRoute(string fromEdge, string toEdge);
     virtual list<string> getRandomRoute(string from, double length = 72000);
+    virtual void setVehicleRouteByEdgeList(string id, list<std::string> route);
     virtual GlobalMobilityLaunchd* getManager() const {
         if(!manager){
             manager = GlobalMobilityLaunchdAccess().get();

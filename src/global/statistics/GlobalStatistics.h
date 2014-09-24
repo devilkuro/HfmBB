@@ -22,15 +22,14 @@
 #include<string>
 #include<stdarg.h>
 #include"GlobalStatisticsUnit.h"
-
-
+#include "FindModule.h"
 typedef std::list<GlobalStatisticsUnit*> GlobalStatisticsList;
 typedef std::map<string, GlobalStatisticsList*> GlobalStatisticsMap;
 /**
  *
  */
 
-class GlobalStatistics: public cSimpleModule {
+class GlobalStatistics : public cSimpleModule {
 public:
     GlobalStatistics();
     virtual ~GlobalStatistics();
@@ -41,8 +40,9 @@ protected:
 public:
     typedef void* gs_eofType;
 public:
-    GlobalStatistics& operator<< (gs_eofType& e);
-    GlobalStatistics& operator<< (double num);
+    GlobalStatistics& operator<<(gs_eofType& e);
+    GlobalStatistics& operator<<(double num);
+    GlobalStatistics& operator<<(string str);
     GlobalStatistics& changeName(string name);
     void record(string name, int size, ...);
     void output(string name);
@@ -50,11 +50,26 @@ public:
 public:
     static gs_eofType endl;
 private:
+    enum UnitType {
+        UNIT_TYPE_INT = 0,
+        UNIT_TYPE_DOUBLE,
+        UNIT_TYPE_STRING
+    };
+    struct DataUnit {
+        UnitType type;
+        union {
+            int intData;
+            double douData;
+        };
+        string strData;
+    };
+private:
     GlobalStatisticsMap globalStatisticsMap;
     std::list<double> unitData;
     string m_name;
 };
-class GlobalStatisticsAccess{
+class GlobalStatisticsAccess {
+public:
     GlobalStatistics* get() {
         GlobalStatistics *gs = FindModule<GlobalStatistics*>::findGlobalModule();
         return gs;
