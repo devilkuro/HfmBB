@@ -19,7 +19,8 @@ Define_Module(GlobalMapSystem)
 
 GlobalMapSystem::GlobalMapSystem() :
         manager(NULL), annotations(NULL), annotationGroup(NULL), laneMap(), edgeMap(), stateSwitchMsg(NULL), startMsg(
-                NULL), mapstage(0), noconnect(false), mapSystemInitialized(false), hostnum(100), lastHostNo(0) {
+                NULL), updateMsg(NULL), mapstage(0), noconnect(false), mapSystemInitialized(false), hostnum(100), lastHostNo(
+                0), vehicleNumber(0) {
 }
 
 void GlobalMapSystem::initialize(int stage) {
@@ -413,7 +414,7 @@ void GlobalMapSystem::weightEdges() {
 
 void GlobalMapSystem::updateVehicleList() {
     // TODO manage vehicles
-    addVehicles(GMS_VEHICLETYPE_NORMAL, 120);
+    addVehicles(GMS_VEHICLETYPE_NORMAL, hostnum);
 }
 
 void GlobalMapSystem::addVehicles(VehicleType type, int num) {
@@ -424,15 +425,29 @@ void GlobalMapSystem::addVehicles(VehicleType type, int num) {
 }
 
 void GlobalMapSystem::registerVehiclePosition(string road_id) {
-    if(roadVehicleNumMap.size()==0){
-        for(map<string,Edge*>::iterator it = edgeMap.begin();it!=edgeMap.end();it++){
+    // register vehicle at preInitilize
+    if(roadVehicleNumMap.size() == 0){
+        for(map<string, Edge*>::iterator it = edgeMap.begin(); it != edgeMap.end(); it++){
             roadVehicleNumMap[it->first] = 0;
         }
     }
-
+    roadVehicleNumMap[road_id]++;
+    vehicleNumber++;
 }
 
 void GlobalMapSystem::changeVehiclePosition(string road_from, string road_to) {
+    // change vehicle pos while the vehicle move into another edge
+    roadVehicleNumMap[road_from]--;
+    roadVehicleNumMap[road_to]++;
+}
+
+int GlobalMapSystem::getVehicleNumByEdge(string edge) {
+    return roadVehicleNumMap[edge];
+}
+
+void GlobalMapSystem::unregisterVehiclePosition(string road_id) {
+    roadVehicleNumMap[road_id]--;
+    vehicleNumber--;
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {

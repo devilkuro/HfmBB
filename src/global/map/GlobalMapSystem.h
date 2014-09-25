@@ -94,24 +94,25 @@ public:
     virtual list<string> getShortestRoute(string fromEdge, string toEdge);
     virtual list<string> getRandomRoute(string from, double length = 72000);
     virtual void setVehicleRouteByEdgeList(string id, list<std::string> route);
-    virtual GlobalMobilityLaunchd* getManager() const {
-        if(!manager){
-            manager = GlobalMobilityLaunchdAccess().get();
-        }
-        ASSERT(manager);
-        return manager;
-    }
-
-
     // record vehicle number
     void registerVehiclePosition(string road_id);
     void changeVehiclePosition(string road_from, string road_to);
+    void unregisterVehiclePosition(string road_id);
+    // get vehicle number
+    int getVehicleNumByEdge(string edge);
 protected:
     virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
     virtual int numInitStages() const {
         return std::max(cSimpleModule::numInitStages(), 3);
+    }
+    virtual GlobalMobilityLaunchd* getManager() const {
+        if(!manager){
+            manager = GlobalMobilityLaunchdAccess().get();
+        }
+        ASSERT(manager);
+        return manager;
     }
 
     // map generating process
@@ -153,8 +154,8 @@ protected:
     int lastHostNo;
 
     // used in vehicle generating process
-    map<VehicleType, int> targetVehicleNum;   // the target vehicles number of each vehicle type
-    map<VehicleType, int> vehicleNum;   // the vehicles number of each vehicle type
+    map<VehicleType, int> targetVehicleNumPerTyep;   // the target vehicles number of each vehicle type
+    map<VehicleType, int> vehicleNumPerType;   // the vehicles number of each vehicle type
 
 private:
     class MapEdge;
@@ -205,6 +206,7 @@ private:
     mutable list<MapEdgeWight> cacheTappedEdges;
     // record vehicle number
     map<string, int> roadVehicleNumMap;
+    int vehicleNumber;
 };
 class GlobalMapSystemAccess {
 public:

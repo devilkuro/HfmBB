@@ -24,7 +24,9 @@ void TraCIMobility_Fixed::preInitialize(std::string external_id, const Coord& po
     hasInitialized = false;
     hasRouted = false;
     map = NULL;
-    statistic_road_id = road_id;
+    last_road_id = road_id;
+    // record the road_id
+    getMapSystem()->registerVehiclePosition(road_id);
 }
 
 void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_id, double speed, double angle,
@@ -39,24 +41,38 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
         }
     }
 
-    // statistics process
-    if(road_id != statistic_road_id){
+    if(road_id != last_road_id){
+        // statistics process
         if(!hasInitialized){
             // switch record process trigger
             hasInitialized = true;
         }else{
-            // start record process
-            gs->changeName("road statistics - travel time - " + statistic_road_id)
-                    << simTime().dbl() - statistic_road_enterTime << gs->endl;
+            if (last_road_id == "1/1to1/2") {
+                // start record process
+                gs->changeName("road statistics - vehicle number - travel time - " + last_road_id)
+                       << getMapSystem()->getVehicleNumByEdge(last_road_id) << simTime().dbl() - statistic_road_enterTime << gs->endl;
+            }
         }
         statistic_road_enterTime = simTime().dbl();
-        statistic_road_id = road_id;
+        // change the vehicle position in map system
+        getMapSystem()->changeVehiclePosition(last_road_id,road_id);
+        // updata the last_road_id
+        last_road_id = road_id;
     }
 }
 
 void TraCIMobility_Fixed::initialize(int stage) {
     TraCIMobility::initialize(stage);
     gs = GlobalStatisticsAccess().get();
+}
+
+void TraCIMobility_Fixed::finish() {
+    TraCIMobility::finish();
+    hasRouted = false;
+    hasInitialized = false;
+    gs = NULL;
+    map = NULL;
+    getMapSystem()->unregisterVehiclePosition(last_road_id);
 }
 
 void TraCIMobility_Fixed::changePosition() {

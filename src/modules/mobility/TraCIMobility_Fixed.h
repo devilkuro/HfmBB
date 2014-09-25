@@ -29,6 +29,7 @@
 class TraCIMobility_Fixed : public TraCIMobility {
 public:
     virtual void initialize(int);
+    virtual void finish();
     virtual void preInitialize(std::string external_id, const Coord& position, std::string road_id = "", double speed =
             -1, double angle = -1);
     virtual void nextPosition(const Coord& position, std::string road_id = "", double speed = -1, double angle = -1,
@@ -50,7 +51,7 @@ protected:
     // statistics members
     bool hasInitialized;
     double statistic_road_enterTime;
-    string statistic_road_id;
+    string last_road_id;
 
 };
 
