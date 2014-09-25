@@ -19,7 +19,8 @@ Define_Module(TraCIMobility_Fixed)
 
 void TraCIMobility_Fixed::preInitialize(std::string external_id, const Coord& position, std::string road_id,
         double speed, double angle) {
-    Enter_Method_Silent();
+    Enter_Method_Silent
+    ();
     TraCIMobility::preInitialize(external_id, position, road_id, speed, angle);
     hasInitialized = false;
     hasRouted = false;
@@ -31,7 +32,8 @@ void TraCIMobility_Fixed::preInitialize(std::string external_id, const Coord& po
 
 void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_id, double speed, double angle,
         TraCIScenarioManager::VehicleSignal signals) {
-    Enter_Method_Silent();
+    Enter_Method_Silent
+    ();
     TraCIMobility::nextPosition(position, road_id, speed, angle, signals);
     // path process
     if(!hasRouted){
@@ -47,15 +49,17 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
             // switch record process trigger
             hasInitialized = true;
         }else{
-            if (last_road_id == "1/1to1/2") {
+            if(last_road_id == "1/1to1/2"){
                 // start record process
                 gs->changeName("road statistics - vehicle number - travel time - " + last_road_id)
-                       << getMapSystem()->getVehicleNumByEdge(last_road_id) << simTime().dbl() - statistic_road_enterTime << gs->endl;
+                        << statistic_road_enterVehicleNum << simTime().dbl() - statistic_road_enterTime << gs->endl;
             }
         }
+        // record the data while entering new edge
+        statistic_road_enterVehicleNum = getMapSystem()->getVehicleNumByEdge(road_id);
         statistic_road_enterTime = simTime().dbl();
         // change the vehicle position in map system
-        getMapSystem()->changeVehiclePosition(last_road_id,road_id);
+        getMapSystem()->changeVehiclePosition(last_road_id, road_id);
         // updata the last_road_id
         last_road_id = road_id;
     }
@@ -76,6 +80,7 @@ void TraCIMobility_Fixed::finish() {
 }
 
 void TraCIMobility_Fixed::changePosition() {
-    Enter_Method_Silent();
+    Enter_Method_Silent
+    ();
     TraCIMobility::changePosition();
 }

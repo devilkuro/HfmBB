@@ -51,6 +51,7 @@ protected:
     // statistics members
     bool hasInitialized;
     double statistic_road_enterTime;
+    int statistic_road_enterVehicleNum;
     string last_road_id;
 
 };
