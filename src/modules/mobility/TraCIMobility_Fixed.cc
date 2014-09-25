@@ -51,13 +51,15 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
         }else{
             if(last_road_id == "1/1to1/2"){
                 // start record process
-                gs->changeName("road statistics - vehicle number - travel time - " + last_road_id)
+                gs->changeName("road statistics - vehicle number - travel time - " + last_road_id) << simTime().dbl()
                         << statistic_road_enterVehicleNum << simTime().dbl() - statistic_road_enterTime << gs->endl;
             }
         }
         // record the data while entering new edge
-        statistic_road_enterVehicleNum = getMapSystem()->getVehicleNumByEdge(road_id);
-        statistic_road_enterTime = simTime().dbl();
+        if(road_id == "1/1to1/2"){
+            statistic_road_enterVehicleNum = getMapSystem()->getVehicleNumByEdge(road_id);
+            statistic_road_enterTime = simTime().dbl();
+        }
         // change the vehicle position in map system
         getMapSystem()->changeVehiclePosition(last_road_id, road_id);
         // updata the last_road_id
