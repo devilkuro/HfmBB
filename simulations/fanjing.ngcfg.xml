@@ -5,12 +5,21 @@
     <grid_network>
         <grid value="true"/>
         <grid.number value="4"/>
-        <grid.length value="400"/>
+        <grid.length value="200"/>
     </grid_network>
 
     <output>
         <output-file value="fanjing.net.xml"/>
         <plain-output-prefix value="fanjing"/>
     </output>
+
+    <processing>
+        <no-turnarounds value="true"/>
+        <no-turnarounds.tls value="true"/>
+    </processing>
+
+    <building_defaults>
+        <default-junction-type value="traffic_light"/>
+    </building_defaults>
 
 </configuration>

@@ -1,0 +1,1 @@
+netgenerate -c fanjing.ngcfg.xml
