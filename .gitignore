@@ -3,7 +3,7 @@
 #################
 fanjing.con.xml
 fanjing.edg.xml
-fanjing.net.xml
+*.net.xml
 fanjing.nod.xml
 fanjing.tll.xml
 result_*.txt
