@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!-- debug config -->
+<launch>
+	<copy file="matrix.net.xml" />
+	<copy file="matrix.rou.xml" />
+	<copy file="matrix.sumo.cfg" type="config" />
+</launch>
+

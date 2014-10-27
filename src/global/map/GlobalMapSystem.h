@@ -41,17 +41,6 @@ public:
     GlobalMapSystem();
     virtual ~GlobalMapSystem();
 public:
-    enum VehicleType {
-        GMS_VEHICLETYPE_NORMAL = 0, // normal vehicle: use a random path
-        GMS_VEHICLETYPE_ONDUTY,   // on-duty vehicle: drive to work place and back
-        GMS_VEHICLETYPE_BUS,    // bus: fixed loop path
-        GMS_VEHICLETYPE_TAXI,   // taxi: continually random path
-        GMS_VEHICLETYPE_EMERGENCE,  // emergence vehicle: go to a random location and back to the station
-        GMS_VEHICLETYPE_ADMIN,  // unnecessary! road administration: come out when the transport system is idle
-        GMS_VEHICLETYPE_SHOPPING, // unimportant! shopping vehicle: go to a shop and back. just a car with a random destination now.
-        // add new vehicle type above if any.
-        GMS_VEHICLETYPE_NUMEND_MARK // means the number of the vehicle type
-    };
 public:
     class Lane;
     class Edge;
@@ -87,19 +76,30 @@ public:
     };
 
 public:
-    virtual int generateMap(int stage);
-    virtual bool isInitializedFinished();
-    virtual double getTravelTime(string edge, double time, double speed);
-    virtual list<string> getFastestRoute(string fromEdge, string toEdge);
-    virtual list<string> getShortestRoute(string fromEdge, string toEdge);
-    virtual list<string> getRandomRoute(string from, double length = 72000);
-    virtual void setVehicleRouteByEdgeList(string id, list<std::string> route);
+    // API_PART
+    // functions to add vehicles
+    // the mobility module must get its vehicle type by using function - getVehiclesType()
+    // if else that the vehicles will be marked as normal vehicle
+    void addOneVehicle(string vehicleId = "", string vehicleTypeId = "", string routeId = "", simtime_t emitTime_st =
+            simTime(), double emitPosition = 0, double emitSpeed = 0, int8_t emitLane = 0); // add a car of a certain type
+    void addVehicles(int type, int num, string vehicleId = "", string vehicleTypeId = "", string routeId = "",
+            simtime_t emitTime_st = simTime(), double emitPosition = 0, double emitSpeed = 0, int8_t emitLane = 0); // add several cars of a certain type
+
     // record vehicle number
     void registerVehiclePosition(string road_id);
     void changeVehiclePosition(string road_from, string road_to);
     void unregisterVehiclePosition(string road_id);
     // get vehicle number
     int getVehicleNumByEdge(string edge);
+
+    // OTHER_PART
+    virtual bool isInitializedFinished();
+    virtual double getTravelTime(string edge, double time, double speed);
+    virtual list<string> getFastestRoute(string fromEdge, string toEdge);
+    virtual list<string> getShortestRoute(string fromEdge, string toEdge);
+    virtual list<string> getRandomRoute(string from, double length = 72000);
+    virtual void setVehicleRouteByEdgeList(string id, list<std::string> route);
+
 protected:
     virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
@@ -116,6 +116,7 @@ protected:
     }
 
     // map generating process
+    virtual int generateMap(int stage);
     void getLanesAndEdges();
     void getNodes(); // get junctions
     void connectLanesAndEdges();
@@ -123,14 +124,6 @@ protected:
     void reduceMap();
     void optimizeMap();
     void weightEdges(); // set the area weight for each edge.
-
-    // car generating process
-    void updateVehicleList();   // generate vehicles to keep there are certain number vehicles in the network
-    // functions to add vehicles
-    // the mobility module must get its vehicle type by using function - getVehiclesType()
-    // if else that the vehicles will be marked as normal vehicle
-    void addOneVehicle(VehicleType type);   // add a car of a certain type
-    void addVehicles(VehicleType type, int num); // add several cars of a certain type
 
     list<string> commandGetLanes(Lane* lane);
 
@@ -152,10 +145,6 @@ protected:
     bool mapSystemInitialized;
     int hostnum;
     int lastHostNo;
-
-    // used in vehicle generating process
-    map<VehicleType, int> targetVehicleNumPerTyep;   // the target vehicles number of each vehicle type
-    map<VehicleType, int> vehicleNumPerType;   // the vehicles number of each vehicle type
 
 private:
     class MapEdge;

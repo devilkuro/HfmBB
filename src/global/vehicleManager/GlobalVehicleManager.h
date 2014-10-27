@@ -24,6 +24,17 @@
  */
 class GlobalVehicleManager : public cSimpleModule {
 public:
+    enum VehicleType {
+        GVM_VEHICLETYPE_NORMAL = 0, // normal vehicle: use a random path
+        GVM_VEHICLETYPE_ONDUTY,   // on-duty vehicle: drive to work place and back
+        GVM_VEHICLETYPE_BUS,    // bus: fixed loop path
+        GVM_VEHICLETYPE_TAXI,   // taxi: continually random path
+        GVM_VEHICLETYPE_EMERGENCE,  // emergence vehicle: go to a random location and back to the station
+        GVM_VEHICLETYPE_ADMIN,  // unnecessary! road administration: come out when the transport system is idle
+        GVM_VEHICLETYPE_SHOPPING, // unimportant! shopping vehicle: go to a shop and back. just a car with a random destination now.
+        // add new vehicle type above if any.
+        GVM_VEHICLETYPE_NUMEND_MARK // means the number of the vehicle type
+    };
 
 protected:
     virtual void initialize();
@@ -33,9 +44,21 @@ protected:
 private:
     // members
     GlobalMapSystem *map;
+    // used in vehicle generating process
+    map<int, int> targetVehicleNumPerType;   // the target vehicles number of each vehicle type
+    map<int, int> vehicleNumPerType;   // the vehicles number of each vehicle type
 
     // functions
     GlobalMapSystem getMapSystem();
+
+    // car generating process
+    void updateVehicleList();   // generate vehicles to keep there are certain number vehicles in the network
+    // functions to add vehicles
+    // the mobility module must get its vehicle type by using function - getVehiclesType()
+    // if else that the vehicles will be marked as normal vehicle
+    void addOneVehicle(VehicleType type);   // add a car of a certain type
+    void addVehicles(VehicleType type, int num); // add several cars of a certain type
+
 };
 
 #endif

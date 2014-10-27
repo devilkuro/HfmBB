@@ -78,7 +78,8 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
     }else if(msg == updateMsg){
         ASSERT(mapSystemInitialized);
         // TODO add vehicles here.
-        updateVehicleList();
+        // vehicle manager has been move into class GlobalvehicleManager.
+        // updateVehicleList();
     }else{
         delete msg;
     }
@@ -391,16 +392,27 @@ bool GlobalMapSystem::isInitializedFinished() {
     return mapSystemInitialized;
 }
 
-void GlobalMapSystem::addOneVehicle(VehicleType type) {
+void GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, string routeId, simtime_t emitTime_st,
+        double emitPosition, double emitSpeed, int8_t emitLane) {
     string vid = "node" + int2str(lastHostNo++);
-    string vtype = "vtype" + int2str(type);
+    string vtype = vehicleTypeId == "" ? "vtype0" : vehicleTypeId;
     // TODO change getRandomEdge to get edge from a certain area
-    string start = getRandomEdgeFromCache();
-    double pos = 0;
+    string start;
+    if(routeId == ""){
+        start = getRandomEdgeFromCache();
+    }else{
+        if(edgeMap.find(routeId) == edgeMap.end()){
+            debugEV << "cannot find edge \"" + routeId + "\". System will chose a random edge instead" << endl;
+            start = getRandomEdgeFromCache();
+        }
+        start = routeId;
+    }
+    simtime_t emitTime = emitTime_st < simTime() ? simTime() : emitTime_st;
+    double pos = emitPosition > 0 ? emitPosition : 0;
     if(edgeMap[start]->length >= 11){
         pos = rand() % ((int) (edgeMap[start]->length - 10));
     }
-    getManager()->commandAddVehicle(vid, vtype, start, simTime(), pos, 0, 0);
+    getManager()->commandAddVehicle(vid, vtype, start, emitTime_st, pos, 0, 0);
 }
 
 void GlobalMapSystem::setVehicleRouteByEdgeList(string id, list<std::string> route) {
@@ -412,15 +424,11 @@ void GlobalMapSystem::weightEdges() {
     // TODO
 }
 
-void GlobalMapSystem::updateVehicleList() {
-    // TODO manage vehicles
-    addVehicles(GMS_VEHICLETYPE_NORMAL, hostnum);
-}
-
-void GlobalMapSystem::addVehicles(VehicleType type, int num) {
+void GlobalMapSystem::addVehicles(int type, int num, string vehicleId, string vehicleTypeId, string routeId,
+        simtime_t emitTime_st, double emitPosition, double emitSpeed, int8_t emitLane) {
     // TODO
     for(int i = 0; i < num; i++){
-        addOneVehicle(GMS_VEHICLETYPE_NORMAL);
+        addOneVehicle (GMS_VEHICLETYPE_NORMAL);
     }
 }
 
