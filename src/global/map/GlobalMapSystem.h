@@ -177,6 +177,7 @@ private:
         MapEdge* edge;
         MapEdge* preEdge;
         double outTime;
+        double getOutTime(double enterTime);
         bool operator<(MapEdgeWight& rhs) {
             return this->outTime < rhs.outTime;
         }

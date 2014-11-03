@@ -42,8 +42,10 @@ protected:
     virtual void finish();
 
 private:
+
     // members
     GlobalMapSystem *map;
+
     // used in vehicle generating process
     map<int, int> targetVehicleNumPerType;   // the target vehicles number of each vehicle type
     map<int, int> vehicleNumPerType;   // the vehicles number of each vehicle type

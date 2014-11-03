@@ -111,6 +111,9 @@ GlobalStatistics& GlobalStatistics::changeName(string name) {
     return *this;
 }
 
+GlobalStatistics& GlobalStatistics::operator <<(string str) {
+}
+
 void GlobalStatistics::output(string name) {
     std::fstream fs;
     fs.open(name.c_str(), std::fstream::out);
