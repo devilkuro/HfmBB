@@ -47,11 +47,11 @@ private:
     GlobalMapSystem *map;
 
     // used in vehicle generating process
-    map<int, int> targetVehicleNumPerType;   // the target vehicles number of each vehicle type
-    map<int, int> vehicleNumPerType;   // the vehicles number of each vehicle type
+    std::map<int, int> targetVehicleNumPerType;   // the target vehicles number of each vehicle type
+    std::map<int, int> vehicleNumPerType;   // the vehicles number of each vehicle type
 
     // functions
-    GlobalMapSystem getMapSystem();
+    GlobalMapSystem* getMapSystem();
 
     // car generating process
     void updateVehicleList();   // generate vehicles to keep there are certain number vehicles in the network
@@ -60,7 +60,6 @@ private:
     // if else that the vehicles will be marked as normal vehicle
     void addOneVehicle(VehicleType type);   // add a car of a certain type
     void addVehicles(VehicleType type, int num); // add several cars of a certain type
-
 };
 
 #endif

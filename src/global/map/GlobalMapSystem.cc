@@ -412,7 +412,7 @@ void GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, stri
     if(edgeMap[start]->length >= 11){
         pos = rand() % ((int) (edgeMap[start]->length - 10));
     }
-    getManager()->commandAddVehicle(vid, vtype, start, emitTime_st, pos, 0, 0);
+    getManager()->commandAddVehicle(vid, vtype, start, emitTime, pos, 0, 0);
 }
 
 void GlobalMapSystem::setVehicleRouteByEdgeList(string id, list<std::string> route) {
@@ -428,7 +428,7 @@ void GlobalMapSystem::addVehicles(int type, int num, string vehicleId, string ve
         simtime_t emitTime_st, double emitPosition, double emitSpeed, int8_t emitLane) {
     // TODO
     for(int i = 0; i < num; i++){
-        addOneVehicle (GMS_VEHICLETYPE_NORMAL);
+        addOneVehicle(vehicleId,vehicleTypeId,routeId,emitTime_st,emitPosition,emitSpeed,emitLane);
     }
 }
 

@@ -42,30 +42,16 @@ public:
 public:
     GlobalStatistics& operator<<(gs_eofType& e);
     GlobalStatistics& operator<<(double num);
+    GlobalStatistics& operator<<(int num);
     GlobalStatistics& operator<<(string str);
     GlobalStatistics& changeName(string name);
-    void record(string name, int size, ...);
     void output(string name);
     void eof();
 public:
     static gs_eofType endl;
 private:
-    enum UnitType {
-        UNIT_TYPE_INT = 0,
-        UNIT_TYPE_DOUBLE,
-        UNIT_TYPE_STRING
-    };
-    struct DataUnit {
-        UnitType type;
-        union {
-            int intData;
-            double douData;
-        };
-        string strData;
-    };
-private:
     GlobalStatisticsMap globalStatisticsMap;
-    std::list<double> unitData;
+    std::list<GlobalStatisticsUnit::DataUnit> unitData;
     string m_name;
 };
 class GlobalStatisticsAccess {

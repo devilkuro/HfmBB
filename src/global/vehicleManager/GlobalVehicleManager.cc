@@ -31,6 +31,6 @@ void GlobalVehicleManager::finish() {
     // TODO - Generated method body
 }
 
-GlobalMapSystem GlobalVehicleManager::getMapSystem() {
+GlobalMapSystem* GlobalVehicleManager::getMapSystem() {
     // TODO - Generated method body
 }

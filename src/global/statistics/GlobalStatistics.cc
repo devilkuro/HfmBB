@@ -43,25 +43,6 @@ GlobalStatistics::~GlobalStatistics() {
     globalStatisticsMap.clear();
 }
 
-void GlobalStatistics::record(string name, int size, ...) {
-    GlobalStatisticsMap::iterator it;
-    GlobalStatisticsUnit *unit = new GlobalStatisticsUnit(size);
-    double val;
-    va_list vl;
-    va_start(vl, size);
-    for(int i = 0; i < size; i++){
-        val = va_arg(vl,double);
-        unit->setData(val, i);
-    }
-    va_end(vl);
-    it = globalStatisticsMap.find(name);
-    if(it == globalStatisticsMap.end()){
-        GlobalStatisticsList* list = new GlobalStatisticsList();
-        globalStatisticsMap[name] = list;
-    }
-    globalStatisticsMap[name]->push_back(unit);
-}
-
 void GlobalStatistics::finish() {
     ostringstream name;
     time_t rawtime;
@@ -78,8 +59,20 @@ GlobalStatistics& GlobalStatistics::operator <<(gs_eofType& e) {
     if(unitData.size() > 0){
         GlobalStatisticsUnit* unit = new GlobalStatisticsUnit(unitData.size());
         int i = 0;
-        for(std::list<double>::iterator it = unitData.begin(); it != unitData.end(); it++){
-            unit->setData(*it, i);
+        for(std::list<GlobalStatisticsUnit::DataUnit>::iterator it = unitData.begin(); it != unitData.end(); it++){
+            switch ((*it).type) {
+                case GlobalStatisticsUnit::UNIT_TYPE_INT:
+                    unit->setData((*it).intData, i);
+                    break;
+                case GlobalStatisticsUnit::UNIT_TYPE_DOUBLE:
+                    unit->setData((*it).douData, i);
+                    break;
+                case GlobalStatisticsUnit::UNIT_TYPE_STRING:
+                    unit->setData((*it).strData, i);
+                    break;
+                default:
+                    break;
+            }
             i++;
         }
         GlobalStatisticsMap::iterator it;
@@ -95,7 +88,10 @@ GlobalStatistics& GlobalStatistics::operator <<(gs_eofType& e) {
 }
 
 GlobalStatistics& GlobalStatistics::operator <<(double num) {
-    unitData.push_back(num);
+    GlobalStatisticsUnit::DataUnit unit;
+    unit.type = GlobalStatisticsUnit::UNIT_TYPE_DOUBLE;
+    unit.douData = num;
+    unitData.push_back(unit);
     return *this;
 }
 
@@ -112,6 +108,19 @@ GlobalStatistics& GlobalStatistics::changeName(string name) {
 }
 
 GlobalStatistics& GlobalStatistics::operator <<(string str) {
+    GlobalStatisticsUnit::DataUnit unit;
+    unit.type = GlobalStatisticsUnit::UNIT_TYPE_STRING;
+    unit.strData = str;
+    unitData.push_back(unit);
+    return *this;
+}
+
+GlobalStatistics& GlobalStatistics::operator <<(int num) {
+    GlobalStatisticsUnit::DataUnit unit;
+    unit.type = GlobalStatisticsUnit::UNIT_TYPE_INT;
+    unit.intData = num;
+    unitData.push_back(unit);
+    return *this;
 }
 
 void GlobalStatistics::output(string name) {
@@ -126,3 +135,5 @@ void GlobalStatistics::output(string name) {
     fs.close();
 }
 
+void GlobalStatistics::eof() {
+}
