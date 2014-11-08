@@ -120,7 +120,7 @@ int GlobalMapSystem::generateMap(int stage) {
     return maxStage;
 }
 
-list<string> GlobalMapSystem::commandGetLanes(Lane* lane) {
+list<string> GlobalMapSystem::getNextLanes(Lane* lane) {
     return getManager()->commandGetLaneLinksIds(lane->name);
 }
 
@@ -254,7 +254,7 @@ void GlobalMapSystem::connectLanesAndEdges() {
     if(!noconnect){
         for(map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++){
             // get the name list of this lane's links
-            list<string> linkList = commandGetLanes(it_lane->second);
+            list<string> linkList = getNextLanes(it_lane->second);
             // connect lanes and edges
             for(list<string>::iterator it_link = linkList.begin(); it_link != linkList.end(); it_link++){
                 // connect links to the lane
@@ -417,7 +417,7 @@ void GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, stri
 
 void GlobalMapSystem::setVehicleRouteByEdgeList(string id, list<std::string> route) {
     // set the route
-    getManager()->commandChangeRouteByEdgeList(id, route);
+    getManager()->commandSetRouteByEdgeList(id, route);
 }
 
 void GlobalMapSystem::weightEdges() {
@@ -458,6 +458,18 @@ void GlobalMapSystem::unregisterVehiclePosition(string road_id) {
     vehicleNumber--;
 }
 
+void GlobalMapSystem::setLaneChangeMode(string nodeId, uint32_t bitset) {
+    getManager()->commandSetLaneChangeMode(nodeId, bitset);
+}
+
+void GlobalMapSystem::setLaneChangePermission(string nodeId, bool allowed) {
+    if(allowed){
+        setLaneChangeMode(nodeId, GlobalMobilityLaunchd::GML_ALLOW_ALL);
+    }else{
+        setLaneChangeMode(nodeId, GlobalMobilityLaunchd::GML_DISALLOW_ALL);
+    }
+}
+
 string GlobalMapSystem::rgb2color(int r, int g, int b) {
     std::stringstream ss;
     ss << "#";
@@ -479,4 +491,8 @@ string GlobalMapSystem::rgb2color(int r, int g, int b) {
 int GlobalMapSystem::MapRoute::getVehicleNum() {
     // TODO getVehicleNum from a MapRoute
     return 0;
+}
+
+double GlobalMapSystem::MapEdgeWight::getOutTime(double enterTime) {
+    // TODO
 }

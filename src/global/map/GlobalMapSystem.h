@@ -78,13 +78,13 @@ public:
 public:
     // API_PART
     // functions to add vehicles
-    // the mobility module must get its vehicle type by using function - getVehiclesType()
-    // if else that the vehicles will be marked as normal vehicle
     void addOneVehicle(string vehicleId = "", string vehicleTypeId = "", string routeId = "", simtime_t emitTime_st =
             simTime(), double emitPosition = 0, double emitSpeed = 0, int8_t emitLane = 0); // add a car of a certain type
     void addVehicles(int type, int num, string vehicleId = "", string vehicleTypeId = "", string routeId = "",
             simtime_t emitTime_st = simTime(), double emitPosition = 0, double emitSpeed = 0, int8_t emitLane = 0); // add several cars of a certain type
-
+    // lane change mode control
+    void setLaneChangeMode(string nodeId, uint32_t bitset);
+    void setLaneChangePermission(string nodeId, bool allowed);
     // record vehicle number
     void registerVehiclePosition(string road_id);
     void changeVehiclePosition(string road_from, string road_to);
@@ -125,7 +125,8 @@ protected:
     void optimizeMap();
     void weightEdges(); // set the area weight for each edge.
 
-    list<string> commandGetLanes(Lane* lane);
+    // non-public APIs
+    list<string> getNextLanes(Lane* lane);
 
 protected:
     mutable GlobalMobilityLaunchd* manager;
