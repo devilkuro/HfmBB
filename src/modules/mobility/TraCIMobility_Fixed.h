@@ -43,6 +43,13 @@ public:
         return map;
     }
 protected:
+    // set lane change mode of this node
+    void disableLaneChange();
+    void allowLaneChange();
+
+    // get lane position of this vehicle
+    double getLanePosition();
+protected:
     mutable GlobalMapSystem *map;
     mutable GlobalStatistics *gs;
 

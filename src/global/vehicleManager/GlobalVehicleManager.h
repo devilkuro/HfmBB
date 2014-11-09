@@ -42,10 +42,9 @@ protected:
     virtual void finish();
 
 private:
-
+    cMessage* testMsg;
     // members
     GlobalMapSystem *map;
-
     // used in vehicle generating process
     std::map<int, int> targetVehicleNumPerType;   // the target vehicles number of each vehicle type
     std::map<int, int> vehicleNumPerType;   // the vehicles number of each vehicle type

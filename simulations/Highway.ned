@@ -27,6 +27,7 @@ import smartcity.flowreserved.global.annotations.AnnotationManager_Colorful;
 import smartcity.flowreserved.global.map.GlobalMapSystem;
 import smartcity.flowreserved.global.launchd.GlobalMobilityLaunchd;
 import smartcity.flowreserved.global.statistics.GlobalStatistics;
+import smartcity.flowreserved.global.vehicleManager.GlobalVehicleManager;
 
 module Highway
 {
@@ -63,6 +64,9 @@ module Highway
         gs: GlobalStatistics {
             parameters:
                 @display("p=200,100;i=block/blackboard;is=s");
+        }
+        vm: GlobalVehicleManager {
+            @display("p=200,150");
         }
     connections allowunconnected:
 }

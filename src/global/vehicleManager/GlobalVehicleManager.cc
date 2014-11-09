@@ -20,11 +20,21 @@ Define_Module(GlobalVehicleManager);
 void GlobalVehicleManager::initialize()
 {
     // TODO - Generated method body
+    // TODO just for test use
+    testMsg = new cMessage("testMsg");
+    scheduleAt(simTime()+0.1,testMsg);
 }
 
 void GlobalVehicleManager::handleMessage(cMessage *msg)
 {
     // TODO - Generated method body
+    if(msg==testMsg){
+        if (getMapSystem()->isInitializedFinished()) {
+            addVehicles(GVM_VEHICLETYPE_NORMAL, 10);
+        }else{
+            scheduleAt(simTime()+0.1,testMsg);
+        }
+    }
 }
 
 void GlobalVehicleManager::finish() {
@@ -33,4 +43,23 @@ void GlobalVehicleManager::finish() {
 
 GlobalMapSystem* GlobalVehicleManager::getMapSystem() {
     // TODO - Generated method body
+    if(!map){
+        map = GlobalMapSystemAccess().get();
+    }
+    ASSERT(map);
+    return map;
+}
+
+void GlobalVehicleManager::updateVehicleList() {
+    // TODO - Generated method body
+}
+
+void GlobalVehicleManager::addOneVehicle(VehicleType type) {
+    // TODO - Generated method body
+    getMapSystem()->addOneVehicle();
+}
+
+void GlobalVehicleManager::addVehicles(VehicleType type, int num) {
+    // TODO - Generated method body
+    getMapSystem()->addVehicles(type,num);
 }
