@@ -20,4 +20,6 @@ package smartcity.flowreserved.global.vehicleManager;
 //
 simple GlobalVehicleManager
 {
+    parameters:
+        @class(GlobalVehicleManager);
 }

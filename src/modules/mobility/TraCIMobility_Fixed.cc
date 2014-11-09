@@ -26,17 +26,6 @@ void TraCIMobility_Fixed::preInitialize(std::string external_id, const Coord& po
     hasRouted = false;
     map = NULL;
     last_road_id = road_id;
-    // TODO 2014-11-9 debug use
-    if (getMapSystem()->isInitializedFinished()) {
-        double pos = getLanePosition();
-        if(pos>0){
-            if(pos < 50){
-                allowLaneChange();
-            }else{
-                disableLaneChange();
-            }
-        }
-    }
     // record the road_id
     getMapSystem()->registerVehiclePosition(road_id);
 }
@@ -50,7 +39,7 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
     if (getMapSystem()->isInitializedFinished()) {
         double pos = getLanePosition();
         if(pos>0){
-            if(pos < 50){
+            if(pos > 25){
                 allowLaneChange();
             }else{
                 disableLaneChange();
@@ -115,11 +104,11 @@ void TraCIMobility_Fixed::changePosition() {
 }
 
 void TraCIMobility_Fixed::disableLaneChange() {
-    //getMapSystem()->setLaneChangePermission(getExternalId(),false);
+    getMapSystem()->setLaneChangePermission(getExternalId(),false);
 }
 
 void TraCIMobility_Fixed::allowLaneChange() {
-    //getMapSystem()->setLaneChangePermission(getExternalId(),true);
+    getMapSystem()->setLaneChangePermission(getExternalId(),true);
 }
 
 double TraCIMobility_Fixed::getLanePosition() {

@@ -24,6 +24,9 @@
  */
 class GlobalVehicleManager : public cSimpleModule {
 public:
+    GlobalVehicleManager();
+    virtual ~GlobalVehicleManager();
+public:
     enum VehicleType {
         GVM_VEHICLETYPE_NORMAL = 0, // normal vehicle: use a random path
         GVM_VEHICLETYPE_ONDUTY,   // on-duty vehicle: drive to work place and back

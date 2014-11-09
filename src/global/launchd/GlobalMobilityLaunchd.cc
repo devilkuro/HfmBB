@@ -57,7 +57,7 @@ uint32_t GlobalMobilityLaunchd::getActiveVehicleCount() {
 void GlobalMobilityLaunchd::commandSetLaneChangeMode(std::string nodeId, uint32_t bitset) {
     uint8_t variableId = VAR_LANECHANGE_MODE;
     uint8_t variableType = TYPE_INTEGER;
-    TraCIBuffer buf = queryTraCI(VAR_LANECHANGE_MODE, TraCIBuffer() << variableId << nodeId << variableType << bitset);
+    TraCIBuffer buf = queryTraCI(CMD_SET_VEHICLE_VARIABLE, TraCIBuffer() << variableId << nodeId << variableType << bitset);
     ASSERT(buf.eof());
 }
 

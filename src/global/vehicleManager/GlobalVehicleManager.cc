@@ -30,7 +30,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg)
     // TODO - Generated method body
     if(msg==testMsg){
         if (getMapSystem()->isInitializedFinished()) {
-            addVehicles(GVM_VEHICLETYPE_NORMAL, 10);
+            addVehicles(GVM_VEHICLETYPE_NORMAL, 480);
         }else{
             scheduleAt(simTime()+0.1,testMsg);
         }
@@ -57,6 +57,14 @@ void GlobalVehicleManager::updateVehicleList() {
 void GlobalVehicleManager::addOneVehicle(VehicleType type) {
     // TODO - Generated method body
     getMapSystem()->addOneVehicle();
+}
+
+GlobalVehicleManager::GlobalVehicleManager() {
+    map = NULL;
+    testMsg = NULL;
+}
+
+GlobalVehicleManager::~GlobalVehicleManager() {
 }
 
 void GlobalVehicleManager::addVehicles(VehicleType type, int num) {
