@@ -409,10 +409,7 @@ void GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, stri
     }
     simtime_t emitTime = emitTime_st < simTime() ? simTime() : emitTime_st;
     double pos = emitPosition > 0 ? emitPosition : 0;
-    if(edgeMap[start]->length >= 11){
-        pos = rand() % ((int) (edgeMap[start]->length - 10));
-    }
-    getManager()->commandAddVehicle(vid, vtype, start, emitTime, pos, 0, 0);
+    getManager()->commandAddVehicle(vid, vtype, start, emitTime, pos, emitSpeed, emitLane);
 }
 
 void GlobalMapSystem::setVehicleRouteByEdgeList(string id, list<std::string> route) {
