@@ -408,7 +408,7 @@ void GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, stri
         start = routeId;
     }
     simtime_t emitTime = emitTime_st < simTime() ? simTime() : emitTime_st;
-    double pos = emitPosition > 0 ? emitPosition : 0;
+    double pos = emitPosition > 0 ? emitPosition : 10;
     getManager()->commandAddVehicle(vid, vtype, start, emitTime, pos, emitSpeed, emitLane);
 }
 
