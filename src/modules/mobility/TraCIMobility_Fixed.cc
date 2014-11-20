@@ -14,7 +14,7 @@
 // 
 
 #include "TraCIMobility_Fixed.h"
-
+#include "ShortPath.h"
 Define_Module(TraCIMobility_Fixed)
 
 void TraCIMobility_Fixed::preInitialize(std::string external_id, const Coord& position, std::string road_id,
@@ -49,7 +49,12 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
     // path process
     if(!hasRouted){
         if(getMapSystem()->isInitializedFinished()){
-            getMapSystem()->setVehicleRouteByEdgeList(external_id, getMapSystem()->getRandomRoute(road_id));
+            Config cfg;
+            cfg.init(getMapSystem());
+            CShortPath shortPath;
+            shortPath.InitData(&cfg); //初始化
+            shortPath.Search(); //开始搜索
+            getMapSystem()->setVehicleRouteByEdgeList(external_id, shortPath.route);
             hasRouted = true;
         }
     }

@@ -69,5 +69,5 @@ GlobalVehicleManager::~GlobalVehicleManager() {
 
 void GlobalVehicleManager::addVehicles(VehicleType type, int num) {
     // TODO - Generated method body
-    getMapSystem()->addVehicles(type,num);
+    getMapSystem()->addVehicles(num);
 }

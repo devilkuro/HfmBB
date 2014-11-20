@@ -41,9 +41,14 @@ public:
     GlobalMapSystem();
     virtual ~GlobalMapSystem();
 public:
+
 public:
     class Lane;
     class Edge;
+    class MapEdge;
+    class MapRoute;
+    class MapNode;
+    class MapEdgeWight;
     class Lane {
     public:
         string name;
@@ -74,13 +79,43 @@ public:
         list<AnnotationManager_Colorful::Line_Colorful*> visualRepresentations;
         void setColor(string color);
     };
-
+    class MapEdge {
+    public:
+        Edge* edge;
+        Coord startPos;
+        Coord endPos;
+        list<MapRoute*> cacheRoutes;
+        vector<MapRoute*> routes;
+    };
+    class MapRoute {
+    public:
+        string target;
+        double length;
+        list<string> edges;
+        int getVehicleNum();
+    };
+    class MapNode {
+    public:
+        Coord pos;
+        map<string,MapEdge*> inEdges;
+        map<string,MapEdge*> outEdges;
+    };
+    class MapEdgeWight {
+    public:
+        MapEdge* edge;
+        MapEdge* preEdge;
+        double outTime;
+        double getOutTime(double enterTime);
+        bool operator<(MapEdgeWight& rhs) {
+            return this->outTime < rhs.outTime;
+        }
+    };
 public:
     // API_PART
     // functions to add vehicles
     void addOneVehicle(string vehicleId = "", string vehicleTypeId = "", string routeId = "", simtime_t emitTime_st =
             simTime(), double emitPosition = 0, double emitSpeed = 0, int8_t emitLane = 0); // add a car of a certain type
-    void addVehicles(int type, int num, string vehicleId = "", string vehicleTypeId = "", string routeId = "",
+    void addVehicles(int num, string vehicleId = "", string vehicleTypeId = "", string routeId = "",
             simtime_t emitTime_st = simTime(), double emitPosition = 0, double emitSpeed = 0, int8_t emitLane = 0); // add several cars of a certain type
     // lane change mode control
     void setLaneChangeMode(string nodeId, uint32_t bitset);
@@ -98,6 +133,10 @@ public:
     virtual list<string> getFastestRoute(string fromEdge, string toEdge);
     virtual list<string> getShortestRoute(string fromEdge, string toEdge);
     virtual list<string> getRandomRoute(string from, double length = 72000);
+    virtual list<string> getAllEdges();
+    virtual list<string> getNextEdges(string edge);
+    virtual double getEdgeLength(string edge);
+
     virtual void setVehicleRouteByEdgeList(string id, list<std::string> route);
 
 protected:
@@ -123,6 +162,7 @@ protected:
     void drawMap();
     void reduceMap();
     void optimizeMap();
+    void outputMap();
     void weightEdges(); // set the area weight for each edge.
 
     // non-public APIs
@@ -148,45 +188,10 @@ protected:
     int lastHostNo;
 
 private:
-    class MapEdge;
-    class MapRoute;
-    class MapNode;
-    class MapEdgeWight;
-    class MapEdge {
-    public:
-        Edge* edge;
-        Coord startPos;
-        Coord endPos;
-        list<MapRoute*> cacheRoutes;
-        vector<MapRoute*> routes;
-    };
-    class MapRoute {
-    public:
-        string target;
-        double length;
-        list<string> edges;
-        int getVehicleNum();
-    };
-    class MapNode {
-    public:
-        Coord pos;
-        set<MapEdge*> inEdges;
-        set<MapEdge*> outEdges;
-    };
-    class MapEdgeWight {
-    public:
-        MapEdge* edge;
-        MapEdge* preEdge;
-        double outTime;
-        double getOutTime(double enterTime);
-        bool operator<(MapEdgeWight& rhs) {
-            return this->outTime < rhs.outTime;
-        }
-    };
-private:
     string getRandomEdgeFromCache();
 
     string int2str(int i);
+    string dou2str(double i);
     string double2color(double d);
     string rgb2color(int r, int g, int b);
 private:

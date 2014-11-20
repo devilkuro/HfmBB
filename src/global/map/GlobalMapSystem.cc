@@ -114,6 +114,11 @@ int GlobalMapSystem::generateMap(int stage) {
     }
     // 6th. generate cars
     // HAS BEEN MOVED INTO ADDCAR FUNCTION, TRIGGERED BY UPDATEMSG
+    // 7th. output map file
+    maxStage++;
+    if(stage == maxStage){
+        outputMap();
+    }
     if(stage == maxStage){
         mapSystemInitialized = true;
     }
@@ -198,6 +203,14 @@ string GlobalMapSystem::double2color(double d) {
 }
 
 string GlobalMapSystem::int2str(int i) {
+    std::stringstream ss;
+    std::string str;
+    ss << i;
+    str = ss.str();
+    ss.clear();
+    return str;
+}
+string GlobalMapSystem::dou2str(double i) {
     std::stringstream ss;
     std::string str;
     ss << i;
@@ -421,7 +434,7 @@ void GlobalMapSystem::weightEdges() {
     // TODO
 }
 
-void GlobalMapSystem::addVehicles(int type, int num, string vehicleId, string vehicleTypeId, string routeId,
+void GlobalMapSystem::addVehicles(int num, string vehicleId, string vehicleTypeId, string routeId,
         simtime_t emitTime_st, double emitPosition, double emitSpeed, int8_t emitLane) {
     // TODO
     for(int i = 0; i < num; i++){
@@ -465,6 +478,30 @@ void GlobalMapSystem::setLaneChangePermission(string nodeId, bool allowed) {
     }else{
         setLaneChangeMode(nodeId, GlobalMobilityLaunchd::GML_DISALLOW_ALL);
     }
+}
+
+void GlobalMapSystem::outputMap() {
+   // do nodthing now
+}
+
+list<string> GlobalMapSystem::getAllEdges() {
+    list<string> edges;
+    for(map<string, Edge*>::iterator it = edgeMap.begin();it!=edgeMap.end();it++){
+        edges.push_back(it->second->name);
+    }
+    return edges;
+}
+
+list<string> GlobalMapSystem::getNextEdges(string edge) {
+    list<string> edges;
+    for(set<Edge*>::iterator it = edgeMap[edge]->links.begin();it!=edgeMap[edge]->links.end();it++){
+        edges.push_back((*it)->name);
+    }
+    return edges;
+}
+
+double GlobalMapSystem::getEdgeLength(string edge) {
+    return edgeMap[edge]->length;
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {
