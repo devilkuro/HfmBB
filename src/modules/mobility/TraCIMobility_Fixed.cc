@@ -55,7 +55,7 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
             CShortPath shortPath;
             shortPath.InitData(&cfg); //初始化
             string start = road_id;
-            string end = getMapSystem()->getRandomEdgeFromCache();
+            string end = "4900041#1";
             shortPath.Search(start,end); //开始搜索
             EV<< start << ":"<< end<<endl;
             //shortPath.route = getMapSystem()->getRandomRoute(start);
