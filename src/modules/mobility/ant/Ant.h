@@ -28,10 +28,9 @@ public:
 	double m_dbPathLength; //蚂蚁走过的路径长度
 
 public:
-
+	vector<int> setAllowRoad();
 	int ChooseNextRoad();   //选择下一个城市
 	void Init(int startRoadNumber,int endRoadNumber); //初始化
-	void Move(); //蚂蚁在城市间移动
 	void Search(int startRoadNumber,int endRoadNumber);			//搜索路径
 	void CalPathLength();   //计算蚂蚁走过的路径长度
 	list<string> displayPath();

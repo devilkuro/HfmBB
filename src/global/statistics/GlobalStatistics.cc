@@ -122,17 +122,27 @@ GlobalStatistics& GlobalStatistics::operator <<(int num) {
     unitData.push_back(unit);
     return *this;
 }
+GlobalStatistics& GlobalStatistics::operator <<(unsigned int num) {
+    GlobalStatisticsUnit::DataUnit unit;
+    unit.type = GlobalStatisticsUnit::UNIT_TYPE_INT;
+    unit.intData = num;
+    unitData.push_back(unit);
+    return *this;
+}
 
 void GlobalStatistics::output(string name) {
     std::fstream fs;
     fs.open(name.c_str(), std::fstream::out);
     for(GlobalStatisticsMap::iterator it = globalStatisticsMap.begin(); it != globalStatisticsMap.end(); it++){
-        fs << it->first << std::endl;
         for(GlobalStatisticsList::iterator lit = it->second->begin(); lit != it->second->end(); lit++){
             fs << it->first << "," << (*lit)->toString() << std::endl;
         }
     }
     fs.close();
+}
+
+GlobalStatistics& GlobalStatistics::get() {
+    return *this;
 }
 
 void GlobalStatistics::eof() {

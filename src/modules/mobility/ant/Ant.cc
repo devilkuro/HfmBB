@@ -2,6 +2,7 @@
 using namespace std;
 
 CAnt::CAnt(void) {
+
 }
 //构造函数
 CAnt::CAnt(int startRoadNumber, int endRoadNumber) {
@@ -17,13 +18,35 @@ CAnt::CAnt(int startRoadNumber, int endRoadNumber) {
 //析构函数
 CAnt::~CAnt(void) {
 }
+
+vector<int> CAnt::setAllowRoad() {
+	int preRoadNumber = -1;
+	if (movedPath.size() > 2) {
+		int index = movedPath.size() - 2;
+		preRoadNumber = movedPath[index];
+	} else {
+		preRoadNumber = startRoadNumber;
+	}
+	map<int, double> temp = Config::roadNetInfo[m_nCurRoadNumber];
+	vector<int> allowedRoad;
+	map<int, double>::iterator temp_iter;
+	for (temp_iter = temp.begin(); temp_iter != temp.end(); temp_iter++) {
+		if (Config::g_Trial[m_nCurRoadNumber][temp_iter->first] != 0.0) {
+			allowedRoad.push_back(temp_iter->first);
+		}
+	}
+	return allowedRoad;
+}
+
 list<string> CAnt::displayPath() {
 	list<string> route;
-	map<int,string> reMap;
-	for(map<string,int>::iterator it = Config::roadMaps.begin();it!=Config::roadMaps.end();it++){
+	map<int, string> reMap;
+	for (map<string, int>::iterator it = Config::roadMaps.begin();
+			it != Config::roadMaps.end(); it++) {
 		reMap[it->second] = it->first;
 	}
-	for(vector<int>::iterator it = movedPath.begin();it!=movedPath.end();it++){
+	for (vector<int>::iterator it = movedPath.begin(); it != movedPath.end();
+			it++) {
 		route.push_back(reMap[*it]);
 	}
 	return route;
@@ -34,51 +57,37 @@ void CAnt::Init(int startRoadNumber, int endRoadNumber) {
 	this->endRoadNumber = endRoadNumber;
 	m_dbPathLength = 0.0;
 
-	//随机选择一个出发城市
+//随机选择一个出发城市
 	m_nCurRoadNumber = startRoadNumber;
 
-	//把出发城市保存入路径数组中
+//把出发城市保存入路径数组中
 	this->movedPath.push_back(startRoadNumber);
 }
 
 //选择下一个城市
 //返回值 为城市编号
 int CAnt::ChooseNextRoad() {
-
 	int nSelectedRoad = -1; //返回结果，先暂时把其设置为-1
-
-	//==============================================================================
-	//计算当前城市和没去过的城市之间的信息素总和
-
 	double dbTotal = 0.0;
 	double *prob = new double[Config::N_CITY_COUNT]; //保存各个城市被选中的概率
-
-	map<int, double> temp = Config::roadNetInfo[m_nCurRoadNumber];
-	vector<int> allowedRoad;
-
+	vector<int> allowedRoad = setAllowRoad();
 	int preRoadNumber = -1;
-	if (movedPath.size() >= 2)
-		preRoadNumber = movedPath[movedPath.size() - 2];
+	if (movedPath.size() > 2) {
+		int index = movedPath.size() - 2;
+		preRoadNumber = movedPath[index];
+	} else {
+		preRoadNumber = startRoadNumber;
+	}
 
-	while (temp.size() == 0 || (temp.size() == 1 && temp.count(preRoadNumber))) { //走到死胡同 进行回溯
+	while ((allowedRoad.size() == 0)
+			|| (allowedRoad.size() == 1 && contains(movedPath, allowedRoad[0]))) { //走到死胡同 进行回溯
 		preRoadNumber = movedPath[movedPath.size() - 2];
 		Config::g_Trial[preRoadNumber][m_nCurRoadNumber] = 0.0;
-		temp = Config::roadNetInfo[preRoadNumber];
-		temp.erase(m_nCurRoadNumber);
 		m_nCurRoadNumber = preRoadNumber;
-
-		std::vector<int>::iterator it = movedPath.begin() + movedPath.size()
-				- 1;
-		movedPath.erase(it);
-
+		movedPath.pop_back();
+		allowedRoad = setAllowRoad();
 	}
-
-	map<int, double>::iterator temp_iter;
-	for (temp_iter = temp.begin(); temp_iter != temp.end(); temp_iter++) {
-		allowedRoad.push_back(temp_iter->first);
-	}
-	for (int i = 0; i != allowedRoad.size(); i++)
-	{
+	for (int i = 0; i != allowedRoad.size(); i++) {
 		int nextRoadNum = allowedRoad[i];
 		if (!contains(movedPath, nextRoadNum)) {
 			double a = Config::g_Trial[m_nCurRoadNumber][nextRoadNum];
@@ -94,8 +103,7 @@ int CAnt::ChooseNextRoad() {
 	double dbTemp = 0.0;
 	if (dbTotal > 0.0) {
 		dbTemp = rnd(0.0, dbTotal);
-		for (int i = 0; i != allowedRoad.size(); i++)
-		{
+		for (int i = 0; i != allowedRoad.size(); i++) {
 			int nextRoadNum = allowedRoad[i];
 			if (!contains(movedPath, nextRoadNum)) {
 				dbTemp = dbTemp - prob[nextRoadNum];
@@ -105,18 +113,8 @@ int CAnt::ChooseNextRoad() {
 				}
 			}
 		}
-		if (nSelectedRoad == -1) {
-			for (int i = 0; i != allowedRoad.size(); i++)
-			{
-				int nextRoadNum = allowedRoad[i];
-				if (!contains(movedPath, nextRoadNum)) {
-					nSelectedRoad = nextRoadNum;
-					break;
-				}
-			}
-		}
 	}
-	//返回结果，就是城市的编号
+//返回结果，就是城市的编号
 	return nSelectedRoad;
 }
 //蚂蚁进行搜索一次
@@ -134,7 +132,7 @@ void CAnt::Search(int startRoadNumber, int endRoadNumber) {
 			m_nCurRoadNumber = nRoadNo;
 		}
 	}
-	//完成搜索后计算走过的路径长度
+//完成搜索后计算走过的路径长度
 	CalPathLength();
 }
 
@@ -144,8 +142,7 @@ void CAnt::CalPathLength() {
 	m_dbPathLength = 0.0; //先把路径长度置0
 	int m = 0;
 	int n = 0;
-	for (int i = 1; i != movedPath.size(); i++)
-	{
+	for (int i = 1; i != movedPath.size(); i++) {
 		m = movedPath[i];
 		n = movedPath[i - 1];
 		m_dbPathLength += Config::getDistance(n, m);

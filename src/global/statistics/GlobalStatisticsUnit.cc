@@ -38,6 +38,13 @@ void GlobalStatisticsUnit::setData(int data, int index) {
     }
 }
 
+void GlobalStatisticsUnit::setData(unsigned int data, int index) {
+    if (index >= 0 && index < size) {
+        this->data[index].type = UNIT_TYPE_UINT;
+        this->data[index].uintData = data;
+    }
+}
+
 void GlobalStatisticsUnit::setData(string data, int index) {
     if (index >= 0 && index < size) {
         this->data[index].type = UNIT_TYPE_STRING;
@@ -67,6 +74,9 @@ string GlobalStatisticsUnit::DataUnit::toString() {
     stringstream ss;
     switch (type) {
         case UNIT_TYPE_INT:
+            ss<<intData;
+            break;
+        case UNIT_TYPE_UINT:
             ss<<intData;
             break;
         case UNIT_TYPE_DOUBLE:

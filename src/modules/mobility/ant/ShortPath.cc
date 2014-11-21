@@ -1,7 +1,10 @@
 #include "ShortPath.h"
 
 CShortPath::CShortPath(void) {
-
+    cfg = NULL;
+    m_cBestAnt = NULL;
+    endPos = 0;
+    startPos = 0;
 	m_cAntAry = new CAnt*[Config::N_CITY_COUNT];
 }
 
@@ -10,12 +13,11 @@ CShortPath::~CShortPath(void) {
 
 //初始化数据
 void CShortPath::InitData(Config* cfg) {
-
+    this->cfg = cfg;
 	//计算两两城市间距离
-	double dbTemp = 0.0;
 	m_cBestAnt = new CAnt();
 	m_cBestAnt->m_dbPathLength = Config::DB_MAX;
-	for (int i = 1; i <= 6; i++) {
+	for (unsigned int i = 1; i <= cfg->roadMaps.size(); i++) {
 		map<int, double> temp;
 		Config::roadNetInfo[i] = temp;
 	}
@@ -69,7 +71,7 @@ void CShortPath::UpdateTrial() {
 	int n = 0;
 	for (int i = 0; i < Config::N_ANT_COUNT; i++) //计算每只蚂蚁留下的信息素
 			{
-		for (int j = 1; j != m_cAntAry[i]->movedPath.size(); j++) {
+		for (unsigned int j = 1; j != m_cAntAry[i]->movedPath.size(); j++) {
 			m = m_cAntAry[i]->movedPath[j];
 			n = m_cAntAry[i]->movedPath[j - 1];
 			dbTempAry[n][m] = dbTempAry[n][m]
@@ -88,14 +90,16 @@ void CShortPath::UpdateTrial() {
 
 }
 
-void CShortPath::Search() {
+void CShortPath::Search(string start, string end) {
 
 //在迭代次数内进行循环
 	for (int i = 0; i < Config::N_IT_COUNT; i++) {
 		//每只蚂蚁搜索一遍
 		for (int j = 0; j < Config::N_ANT_COUNT; j++) {
 			m_cAntAry[j] = new CAnt();
-			m_cAntAry[j]->Search(1, 6);
+			int istart = cfg->roadMaps[start];
+			int iend = cfg->roadMaps[end];
+			m_cAntAry[j]->Search(istart, iend);
 		}
 
 		//更新环境信息素

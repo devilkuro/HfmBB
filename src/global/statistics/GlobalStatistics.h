@@ -43,8 +43,10 @@ public:
     GlobalStatistics& operator<<(gs_eofType& e);
     GlobalStatistics& operator<<(double num);
     GlobalStatistics& operator<<(int num);
+    GlobalStatistics& operator<<(unsigned int num);
     GlobalStatistics& operator<<(string str);
     GlobalStatistics& changeName(string name);
+    GlobalStatistics& get();
     void output(string name);
     void eof();
 public:

@@ -30,7 +30,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg)
     // TODO - Generated method body
     if(msg==testMsg){
         if (getMapSystem()->isInitializedFinished()) {
-            addVehicles(GVM_VEHICLETYPE_NORMAL, 480);
+            addVehicles(GVM_VEHICLETYPE_NORMAL, 1);
         }else{
             scheduleAt(simTime()+0.1,testMsg);
         }

@@ -51,9 +51,18 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
         if(getMapSystem()->isInitializedFinished()){
             Config cfg;
             cfg.init(getMapSystem());
+            EV << "cfg.init finished!" << endl;
             CShortPath shortPath;
             shortPath.InitData(&cfg); //初始化
-            shortPath.Search(); //开始搜索
+            string start = road_id;
+            string end = getMapSystem()->getRandomEdgeFromCache();
+            shortPath.Search(start,end); //开始搜索
+            EV<< start << ":"<< end<<endl;
+            //shortPath.route = getMapSystem()->getRandomRoute(start);
+            EV<< shortPath.route.size() <<endl;
+            for(list<string>::iterator it = shortPath.route.begin();it!=shortPath.route.end();it++){
+                EV<<*it<<endl;
+            }
             getMapSystem()->setVehicleRouteByEdgeList(external_id, shortPath.route);
             hasRouted = true;
         }

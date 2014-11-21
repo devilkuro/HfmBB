@@ -1,4 +1,5 @@
 #include "Config.h"
+#include "statistics/GlobalStatistics.h"
 double Config::ALPHA = 1.0; //启发因子，信息素的重要程度
 double Config::BETA = 2.0;   //期望因子，城市间距离的重要程度
 double Config::ROU = 0.5; //信息素残留参数
@@ -40,8 +41,32 @@ map<string, int> Config::convertStringToID(list<string> allEdges) {
 
 void Config::init(GlobalMapSystem* gms) {
     this->gms = gms;
-	roadMaps  = convertStringToID(
-			getAllEdges());
+    GlobalStatistics* gs = GlobalStatisticsAccess().get();
+	roadMaps  = convertStringToID(getAllEdges());
+	gs->changeName("edgeName");
+	for(map<string,int>::iterator it = roadMaps.begin();it!=roadMaps.end();it++){
+	    gs->get()<<(it->first);
+	}
+	gs->get()<<gs->endl;
+
+    gs->output("con-edge.txt");
+	gs->changeName("edgeLength");
+    for(map<string,int>::iterator it = roadMaps.begin();it!=roadMaps.end();it++){
+        gs->get()<<it->first<<getEdgeLength(it->first);
+    }
+    gs->get()<<gs->endl;
+    gs->output("con-length.txt");
+    for(map<string, int>::iterator it = roadMaps.begin(); it != roadMaps.end(); it++){
+        gs->changeName(it->first);
+        list<string> edges = getNextEdges(it->first);
+        for(list<string>::iterator lit = edges.begin();lit!=edges.end();lit++){
+            gs->get()<<*lit;
+        }
+        gs->get()<<gs->endl;
+    }
+    gs->output("con-connect.txt");
+
+	N_CITY_COUNT = roadMaps.size()+1;
 }
 
 list<string> Config::getAllEdges() {

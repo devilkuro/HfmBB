@@ -21,6 +21,7 @@ public:
     enum UnitType {
         UNIT_TYPE_ERROR = -1,
         UNIT_TYPE_INT = 0,
+        UNIT_TYPE_UINT,
         UNIT_TYPE_DOUBLE,
         UNIT_TYPE_STRING
     };
@@ -28,6 +29,7 @@ public:
         UnitType type;
         union {
             int intData;
+            unsigned uintData;
             double douData;
         };
         string strData;
@@ -37,6 +39,7 @@ public:
     int getDataType(int index);
     void setData(double data, int index);
     void setData(int data, int index);
+    void setData(unsigned int data, int index);
     void setData(string data, int index);
     int getSize() const;
     string toString();

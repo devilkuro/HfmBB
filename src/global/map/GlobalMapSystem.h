@@ -136,6 +136,7 @@ public:
     virtual list<string> getAllEdges();
     virtual list<string> getNextEdges(string edge);
     virtual double getEdgeLength(string edge);
+    string getRandomEdgeFromCache();
 
     virtual void setVehicleRouteByEdgeList(string id, list<std::string> route);
 
@@ -188,7 +189,6 @@ protected:
     int lastHostNo;
 
 private:
-    string getRandomEdgeFromCache();
 
     string int2str(int i);
     string dou2str(double i);

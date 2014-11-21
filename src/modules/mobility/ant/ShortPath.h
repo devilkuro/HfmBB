@@ -20,7 +20,10 @@ public:
 	int endPos;			//终点位置
 public:
 	void InitData(Config* cfg);	//初始化数据
-	void Search();		//开始搜索
+	void Search(string start, string end);		//开始搜索
 	void UpdateTrial(); //更新环境信息素
+
+private:
+	Config* cfg;
 };
 #endif

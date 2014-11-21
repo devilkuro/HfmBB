@@ -489,6 +489,7 @@ list<string> GlobalMapSystem::getAllEdges() {
     for(map<string, Edge*>::iterator it = edgeMap.begin();it!=edgeMap.end();it++){
         edges.push_back(it->second->name);
     }
+    debugEV<<"gms.getAllEdges finished!"<<endl;
     return edges;
 }
 
@@ -497,10 +498,12 @@ list<string> GlobalMapSystem::getNextEdges(string edge) {
     for(set<Edge*>::iterator it = edgeMap[edge]->links.begin();it!=edgeMap[edge]->links.end();it++){
         edges.push_back((*it)->name);
     }
+    debugEV<<"gms.getNextEdges finished!"<<endl;
     return edges;
 }
 
 double GlobalMapSystem::getEdgeLength(string edge) {
+    debugEV<<"gms.getEdgeLength finished!"<<endl;
     return edgeMap[edge]->length;
 }
 
