@@ -56,7 +56,7 @@ void GlobalVehicleManager::updateVehicleList() {
 
 void GlobalVehicleManager::addOneVehicle(VehicleType type) {
     // TODO - Generated method body
-    getMapSystem()->addOneVehicle("","","-31401017#2");
+    getMapSystem()->addOneVehicle();
 }
 
 GlobalVehicleManager::GlobalVehicleManager() {

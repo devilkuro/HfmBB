@@ -31,7 +31,7 @@ vector<int> CAnt::setAllowRoad() {
 	vector<int> allowedRoad;
 	map<int, double>::iterator temp_iter;
 	for (temp_iter = temp.begin(); temp_iter != temp.end(); temp_iter++) {
-		if (Config::g_Trial[m_nCurRoadNumber][temp_iter->first] != 0.0) {
+		if (Config::g_Trial[m_nCurRoadNumber][temp_iter->first] != 0.0&&!contains(movedPath,temp_iter->first)) {
 			allowedRoad.push_back(temp_iter->first);
 		}
 	}
@@ -79,8 +79,7 @@ int CAnt::ChooseNextRoad() {
 		preRoadNumber = startRoadNumber;
 	}
 
-	while ((allowedRoad.size() == 0)
-			|| (allowedRoad.size() == 1 && contains(movedPath, allowedRoad[0]))) { //走到死胡同 进行回溯
+	while (allowedRoad.size() == 0) { //走到死胡同 进行回溯
 		preRoadNumber = movedPath[movedPath.size() - 2];
 		Config::g_Trial[preRoadNumber][m_nCurRoadNumber] = 0.0;
 		m_nCurRoadNumber = preRoadNumber;
@@ -114,6 +113,11 @@ int CAnt::ChooseNextRoad() {
 			}
 		}
 	}
+	if(nSelectedRoad == -1){
+	    int roads = allowedRoad.size();
+	    nSelectedRoad = allowedRoad[(int)rnd(0,roads-1)];
+	}
+	delete prob;
 //返回结果，就是城市的编号
 	return nSelectedRoad;
 }
