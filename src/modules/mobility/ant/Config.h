@@ -44,6 +44,7 @@ public:
 	int getVehicleNum(string edge);
 	double getTravelTime(string edge);
 	void setRoute(list<string> route);
+	list<Coord> getEdgeShape(string edge);
 private:
 	GlobalMapSystem* gms;
 };

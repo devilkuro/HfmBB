@@ -532,4 +532,14 @@ int GlobalMapSystem::MapRoute::getVehicleNum() {
 
 double GlobalMapSystem::MapEdgeWight::getOutTime(double enterTime) {
     // TODO
+    return 0;
+}
+
+list<Coord> GlobalMapSystem::getLaneShape(string lane) {
+    return getManager()->commandGetLaneShape(lane);
+}
+
+list<Coord> GlobalMapSystem::getEdgeShape(string edge) {
+    Lane* lane = *(edgeMap[edge]->lanes.begin());
+    return getLaneShape(lane->name);
 }

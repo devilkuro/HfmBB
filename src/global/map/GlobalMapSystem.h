@@ -136,6 +136,9 @@ public:
     virtual list<string> getAllEdges();
     virtual list<string> getNextEdges(string edge);
     virtual double getEdgeLength(string edge);
+    virtual list<Coord> getLaneShape(string lane);
+    virtual list<Coord> getEdgeShape(string edge);
+
     string getRandomEdgeFromCache();
 
     virtual void setVehicleRouteByEdgeList(string id, list<std::string> route);
