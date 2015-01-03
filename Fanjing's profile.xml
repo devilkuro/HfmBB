@@ -165,4 +165,3 @@
 <setting id="org.eclipse.cdt.core.formatter.insert_space_after_opening_angle_bracket_in_template_arguments" value="do not insert"/>
 </profile>
 </profiles>
-
