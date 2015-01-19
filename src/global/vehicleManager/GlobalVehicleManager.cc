@@ -22,6 +22,7 @@ void GlobalVehicleManager::initialize()
     // TODO - Generated method body
     // TODO just for test use
     testMsg = new cMessage("testMsg");
+    targetNum = 500;
     scheduleAt(simTime()+0.1,testMsg);
 }
 
@@ -30,7 +31,11 @@ void GlobalVehicleManager::handleMessage(cMessage *msg)
     // TODO - Generated method body
     if(msg==testMsg){
         if (getMapSystem()->isInitializedFinished()) {
-            addVehicles(GVM_VEHICLETYPE_NORMAL, 1);
+            if (targetNum>0) {
+                addVehicles(GVM_VEHICLETYPE_NORMAL, 1);
+                targetNum--;
+                scheduleAt(simTime()+0.1,testMsg);
+            }
         }else{
             scheduleAt(simTime()+0.1,testMsg);
         }
@@ -62,6 +67,7 @@ void GlobalVehicleManager::addOneVehicle(VehicleType type) {
 GlobalVehicleManager::GlobalVehicleManager() {
     map = NULL;
     testMsg = NULL;
+    targetNum = 100;
 }
 
 GlobalVehicleManager::~GlobalVehicleManager() {

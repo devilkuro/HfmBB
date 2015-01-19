@@ -40,6 +40,22 @@ void BaseSeekRouteFunc::init(GlobalMapSystem* gms) {
     // todo build, search.
 }
 
+list<BaseSeekRouteFunc::BSRF_Coord> BaseSeekRouteFunc::getShapeByEdge(string edge) {
+    list<Coord> shape = this->gms->getEdgeShape(edge);
+    list<BSRF_Coord> result;
+    for(list<Coord>::iterator it = shape.begin(); it!=shape.end();it++){
+        BSRF_Coord pos;
+        pos.x = it->x;
+        pos.y = it->y;
+        result.push_back(pos);
+    }
+    return result;
+}
+
+void BaseSeekRouteFunc::seekRoute(string startRoad, string endRoad) {
+    // do nothing in base
+}
+
 void BaseSeekRouteFunc::setRoute(list<string> route) {
     this->seleted_route = route;
 }

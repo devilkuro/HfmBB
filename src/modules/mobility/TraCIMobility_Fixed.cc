@@ -14,7 +14,7 @@
 // 
 
 #include "TraCIMobility_Fixed.h"
-#include "ShortPath.h"
+#include "ACOTest.h"
 Define_Module(TraCIMobility_Fixed)
 
 void TraCIMobility_Fixed::preInitialize(std::string external_id, const Coord& position, std::string road_id,
@@ -49,21 +49,23 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
     // path process
     if(!hasRouted){
         if(getMapSystem()->isInitializedFinished()){
-            Config cfg;
-            cfg.init(getMapSystem());
             EV << "cfg.init finished!" << endl;
-            CShortPath shortPath;
-            shortPath.InitData(&cfg); //初始化
+            // todo
             string start = road_id;
-            string end = getMapSystem()->getRandomEdgeFromCache();
-            shortPath.Search(start,end); //开始搜索
-            EV<< start << ":"<< end<<endl;
-            //shortPath.route = getMapSystem()->getRandomRoute(start);
-            EV<< shortPath.route.size() <<endl;
-            for(list<string>::iterator it = shortPath.route.begin();it!=shortPath.route.end();it++){
-                EV<<*it<<endl;
+            if (external_id=="node499") {
+                ACOTest acot;
+                string end = getMapSystem()->getRandomEdgeFromCache();
+                acot.init(getMapSystem());
+                acot.seekRoute(start,end); //开始搜索
+                EV<< start << ":"<< end<<endl;
+                //shortPath.route = getMapSystem()->getRandomRoute(start);
+                EV<< acot.seleted_route.size() <<endl;
+                getMapSystem()->setVehicleRouteByEdgeList(external_id, acot.seleted_route);
+                statistic_start_time = simTime().dbl();
+            }else{
+                list<string> route = getMapSystem()->getRandomRoute(start);
+                getMapSystem()->setVehicleRouteByEdgeList(external_id, route);
             }
-            getMapSystem()->setVehicleRouteByEdgeList(external_id, shortPath.route);
             hasRouted = true;
         }
     }
@@ -109,6 +111,10 @@ void TraCIMobility_Fixed::finish() {
     gs = NULL;
     map = NULL;
     getMapSystem()->unregisterVehiclePosition(last_road_id, simTime().dbl()-statistic_road_enterTime);
+    if(external_id == "node499"){
+        gs<<external_id<<simTime().dbl()-statistic_start_time<<gs->endl;
+    }
+    gs->output("node499.txt");
 }
 
 void TraCIMobility_Fixed::changePosition() {

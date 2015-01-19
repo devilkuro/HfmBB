@@ -21,8 +21,8 @@ private:
 	AntNode* endRoad; //终点街道
 	AntNode* curRoad; // 当前所在街道
 	double movedPathLength; // 蚂蚁走过的路径长度
-	vector<AntNode*> movedPath; // 蚂蚁已经走过的路径
 public:
+    vector<AntNode*> movedPath; // 蚂蚁已经走过的路径
 	AntNode* getStartRoad();
 	void setStartRoad(AntNode *startRoad);
 	AntNode* getEndRoad();

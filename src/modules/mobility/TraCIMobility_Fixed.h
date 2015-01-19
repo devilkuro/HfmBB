@@ -58,6 +58,7 @@ protected:
     // statistics members
     bool hasInitialized;
     double statistic_road_enterTime;
+    double statistic_start_time;
     int statistic_road_enterVehicleNum;
     int statistic_junction_enterVehicleNum;
     string last_road_id;

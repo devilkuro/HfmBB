@@ -60,6 +60,7 @@ GlobalMapSystem::~GlobalMapSystem() {
 }
 
 void GlobalMapSystem::handleMessage(cMessage *msg) {
+
     if(msg == startMsg){
         if(getManager()->isConnected()){
             generateMap(mapstage);

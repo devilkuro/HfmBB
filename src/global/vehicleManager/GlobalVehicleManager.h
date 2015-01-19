@@ -45,6 +45,7 @@ protected:
     virtual void finish();
 
 private:
+    unsigned int targetNum;
     cMessage* testMsg;
     // members
     GlobalMapSystem *map;

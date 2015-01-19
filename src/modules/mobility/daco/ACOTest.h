@@ -10,12 +10,17 @@
 #include <string>
 #include "ACO.h"
 #include "Ant.h"
+#include "BaseSeekRouteFunc.h"
 using namespace std;
-class ACOTest {
+class ACOTest: public BaseSeekRouteFunc{
 private:
 	Ant** ordAnts; // 普通蚂蚁数组
 	Ant* bestAnt; // 定义一个蚂蚁变量，用来保存搜索过程中的最优结果
 	Ant* badestAnt; // 保存最差蚂蚁
+
+    Ant* dbestAnt; // 定义一个蚂蚁变量，用来保存搜索过程中的最优结果
+    Ant* dbadestAnt; // 保存最差蚂蚁
+
 public:
 	list<AntNode*> route;
 	ACOTest();
@@ -33,6 +38,7 @@ public:
 	void updateTrial(); // 更新环境信息素
 	void setMaxMinTrial(); // 设置最小最大系统
 	void search(string startRoad, string endRoad); // 开迭代始搜索
+	void seekRoute(string startRoad, string endRoad);
 };
 
 #endif /* ACOTEST_H_ */
