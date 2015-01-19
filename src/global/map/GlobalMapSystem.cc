@@ -449,12 +449,25 @@ void GlobalMapSystem::registerVehiclePosition(string road_id) {
             roadVehicleNumMap[it->first] = 0;
         }
     }
+    if(roadVehiclePassTimeMap.size() == 0){
+        for(map<string, Edge*>::iterator it = edgeMap.begin(); it != edgeMap.end(); it++){
+            roadVehiclePassTimeMap[it->first] = 0;
+        }
+    }
+    roadVehiclePassTimeMap[road_id] = 0;
     roadVehicleNumMap[road_id]++;
     vehicleNumber++;
 }
 
-void GlobalMapSystem::changeVehiclePosition(string road_from, string road_to) {
+void GlobalMapSystem::changeVehiclePosition(string road_from, string road_to, double pass_time) {
     // change vehicle pos while the vehicle move into another edge
+    if(pass_time>0){
+        if(roadVehiclePassTimeMap[road_from]==0){
+            roadVehiclePassTimeMap[road_from] = pass_time;
+        }else{
+            roadVehiclePassTimeMap[road_from] +=(pass_time - roadVehiclePassTimeMap[road_from])/20;
+        }
+    }
     roadVehicleNumMap[road_from]--;
     roadVehicleNumMap[road_to]++;
 }
@@ -463,7 +476,14 @@ int GlobalMapSystem::getVehicleNumByEdge(string edge) {
     return roadVehicleNumMap[edge];
 }
 
-void GlobalMapSystem::unregisterVehiclePosition(string road_id) {
+void GlobalMapSystem::unregisterVehiclePosition(string road_id, double pass_time) {
+    if(pass_time>0){
+        if(roadVehiclePassTimeMap[road_id]==0){
+            roadVehiclePassTimeMap[road_id] = pass_time;
+        }else{
+            roadVehiclePassTimeMap[road_id] +=(pass_time - roadVehiclePassTimeMap[road_id])/20;
+        }
+    }
     roadVehicleNumMap[road_id]--;
     vehicleNumber--;
 }
@@ -505,6 +525,10 @@ list<string> GlobalMapSystem::getNextEdges(string edge) {
 double GlobalMapSystem::getEdgeLength(string edge) {
     debugEV<<"gms.getEdgeLength finished!"<<endl;
     return edgeMap[edge]->length;
+}
+
+double GlobalMapSystem::getAvgTravelTimeByEdge(string edge) {
+    return roadVehiclePassTimeMap[edge];
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {

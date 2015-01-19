@@ -122,12 +122,13 @@ public:
     void setLaneChangePermission(string nodeId, bool allowed);
     // record vehicle number
     void registerVehiclePosition(string road_id);
-    void changeVehiclePosition(string road_from, string road_to);
-    void unregisterVehiclePosition(string road_id);
+    void changeVehiclePosition(string road_from, string road_to, double pass_time = -1);
+    void unregisterVehiclePosition(string road_id, double pass_time = -1);
     // get vehicle number
     int getVehicleNumByEdge(string edge);
+    double getAvgTravelTimeByEdge(string edge);
 
-    // OTHER_PART
+    // OTHER_API PART
     virtual bool isInitializedFinished();
     virtual double getTravelTime(string edge, double time, double speed);
     virtual list<string> getFastestRoute(string fromEdge, string toEdge);
@@ -205,6 +206,7 @@ private:
     mutable list<MapEdgeWight> cacheTappedEdges;
     // record vehicle number
     map<string, int> roadVehicleNumMap;
+    map<string, double> roadVehiclePassTimeMap;
     int vehicleNumber;
 };
 class GlobalMapSystemAccess {

@@ -88,11 +88,11 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
             statistic_junction_enterVehicleNum += getMapSystem()->getVehicleNumByEdge("1/3to1/2");
             statistic_junction_enterVehicleNum += getMapSystem()->getVehicleNumByEdge("0/2to1/2");
             statistic_junction_enterVehicleNum += getMapSystem()->getVehicleNumByEdge("1/1to1/2");
-            statistic_road_enterTime = simTime().dbl();
         }
         // change the vehicle position in map system
-        getMapSystem()->changeVehiclePosition(last_road_id, road_id);
-        // updata the last_road_id
+        getMapSystem()->changeVehiclePosition(last_road_id, road_id, simTime().dbl()-statistic_road_enterTime);
+        // updata the last_road_id and enterTime
+        statistic_road_enterTime = simTime().dbl();
         last_road_id = road_id;
     }
 }
@@ -108,7 +108,7 @@ void TraCIMobility_Fixed::finish() {
     hasInitialized = false;
     gs = NULL;
     map = NULL;
-    getMapSystem()->unregisterVehiclePosition(last_road_id);
+    getMapSystem()->unregisterVehiclePosition(last_road_id, simTime().dbl()-statistic_road_enterTime);
 }
 
 void TraCIMobility_Fixed::changePosition() {
