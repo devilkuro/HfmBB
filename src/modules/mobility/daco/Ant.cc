@@ -125,6 +125,7 @@ AntNode* Ant::chooseNextRoad() {
 			dbTotal += prob[i];
 			if (prob[i] > maxProb) {
 				maxProbRoad = allowedRoad[i];
+				maxProb = prob[i];
 			}
 		} else {
 			nextRoad->setPheromone(0.0);
@@ -191,16 +192,19 @@ double Ant::countThreshold(int iter) {
 }
 
 list<AntNode*> Ant::displayPath() {
-	double totalCost = 0.0;
-	list<AntNode*> route;
-	vector<AntNode*>::iterator iter;
-	for (iter = movedPath.begin(); iter != movedPath.end(); iter++) {
-		route.push_back(*iter);
-		AntNode *temp = *iter;
-		totalCost += temp->getRoadWeight();
-	}
-	cout << "cost:" << totalCost << endl;
-	return route;
+    double totalCost = 0.0;
+    list<AntNode*> route;
+    vector<AntNode*>::iterator iter;
+    cout << "roadPath: ";
+    for (iter = movedPath.begin(); iter != movedPath.end(); iter++) {
+        route.push_back(*iter);
+        AntNode *temp = *iter;
+        totalCost += temp->getRoadWeight();
+        cout << temp->getRoadName() + " ";
+    }
+    cout << endl;
+    cout << "cost:" << totalCost <<":"<<this->movedPathLength<< endl;
+    return route;
 }
 
 void Ant::checkmovedPath() {
@@ -221,6 +225,7 @@ void Ant::checkmovedPath() {
 			}
 		}
 	}
+	displayPath();
 }
 
 Ant::~Ant() {

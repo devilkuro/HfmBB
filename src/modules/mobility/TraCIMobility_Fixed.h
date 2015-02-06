@@ -21,6 +21,8 @@
 #include "GlobalMapSystem.h"
 #include "string"
 #include "GlobalStatistics.h"
+#include "ASMTimer.h"
+#include "ACOTest.h"
 
 /**
  *
@@ -52,7 +54,9 @@ protected:
 protected:
     mutable GlobalMapSystem *map;
     mutable GlobalStatistics *gs;
-
+    // fixme chage to the correct class
+    ACOTest acot;
+    ASMTimer asmtimer;
     // path process
     bool hasRouted;
     // statistics members
@@ -62,7 +66,6 @@ protected:
     int statistic_road_enterVehicleNum;
     int statistic_junction_enterVehicleNum;
     string last_road_id;
-
 };
 
 #endif

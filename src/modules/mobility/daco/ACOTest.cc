@@ -15,12 +15,17 @@ ACOTest::ACOTest() {
     this->bestAnt = new Ant();
     this->dbadestAnt = badestAnt;
     this->dbestAnt = bestAnt;
+    for (int var = 0; var < ACO::N_ANT_COUNT; ++var) {
+        ordAnts[var] = NULL;
+    }
 }
 
 ACOTest::~ACOTest() {
     // TODO Auto-generated destructor stub
     for(int i = 0; i < ACO::N_ANT_COUNT; i++){
-        delete ordAnts[i];
+        if (ordAnts[i] == NULL) {
+            delete ordAnts[i];
+        }
     }
     delete dbadestAnt;
     delete dbestAnt;
@@ -175,8 +180,8 @@ void ACOTest::search(string startRoad, string endRoad) {
             }
         }
         Ant *localBestAnt;
+        localBestAnt = ordAnts[0];
         for(int j = 0; j < ACO::N_ANT_COUNT; j++){
-            localBestAnt = ordAnts[0];
             if(ordAnts[j]->getMovedPathLength() < localBestAnt->getMovedPathLength()){
                 localBestAnt = ordAnts[j];
             }
@@ -207,52 +212,39 @@ void ACOTest::search(string startRoad, string endRoad) {
 
 void ACOTest::seekRoute(string startRoad, string endRoad) {
     {
+        ACO aco;
+        AntNode *sAntNode = aco.getAntNode(startRoad);
+        AntNode *eAntNode = aco.getAntNode(endRoad);
+        AntNode *curAntNode = sAntNode;
+        for(int i = 0; i < ACO::N_ANT_COUNT; i++){
+            Ant *temp = new Ant(sAntNode, eAntNode, curAntNode);
+            ordAnts[i] = temp;
+        }
+        bestAnt->setMovedPathLength(ACO::DB_MAX); // 初始化最好的蚂蚁的数据
+        badestAnt->setMovedPathLength(ACO::DB_MIN); // 初始化最差的蚂蚁的数据
+    }
+    {
+        // search
+        search(startRoad, endRoad);
+    }
+    {
+        list<string> route;
+        vector<AntNode*>::iterator iter;
+        for(iter = bestAnt->movedPath.begin(); iter != bestAnt->movedPath.end(); iter++){
+            route.push_back((*iter)->getRoadName());
+        }
+        setRoute(route);
+    }
+}
+
+void ACOTest::init(GlobalMapSystem* gms) {
+
+    this->gms = gms;
+    {
         // initData
         ACO aco;
         //aco.setRoadMap(0.1);
         {
-            /*
-             AntNode *road1 = new AntNode("1", 0.1, 1.0, 1.0, pre_trial);
-             AntNode *road2 = new AntNode("2", 0.2, 1.0, 2.0, pre_trial);
-             AntNode *road3 = new AntNode("3", 0.2, 2.0, 1.0, pre_trial);
-             AntNode *road4 = new AntNode("4", 0.2, 4.0, 1.0, pre_trial);
-             AntNode *road5 = new AntNode("5", 0.2, 2.0, 3.0, pre_trial);
-             AntNode *road6 = new AntNode("6", 0.2, 3.0, 2.0, pre_trial);
-             AntNode *road7 = new AntNode("7", 0.2, 5.0, 2.0, pre_trial);
-             AntNode *road8 = new AntNode("8", 0.2, 1.0, 4.0, pre_trial);
-             AntNode *road9 = new AntNode("9", 0.2, 3.0, 4.0, pre_trial);
-             AntNode *road10 = new AntNode("10", 0.2, 5.0, 4.0, pre_trial);
-             list<AntNode*> temp1;
-             temp1.push_back(road2);
-             temp1.push_back(road3);
-             roadMap[road1] = temp1;
-             list<AntNode*> temp2;
-             temp2.push_back(road8);
-             roadMap[road2] = temp2;
-             list<AntNode*> temp3;
-             temp3.push_back(road4);
-             temp3.push_back(road5);
-             temp3.push_back(road6);
-             roadMap[road3] = temp3;
-             list<AntNode*> temp4;
-             temp4.push_back(road7);
-             roadMap[road4] = temp4;
-             list<AntNode*> temp5;
-             temp5.push_back(road9);
-             roadMap[road5] = temp5;
-             list<AntNode*> temp6;
-             temp6.push_back(road10);
-             roadMap[road6] = temp6;
-             list<AntNode*> temp7;
-             roadMap[road7] = temp7;
-             list<AntNode*> temp8;
-             roadMap[road8] = temp8;
-             list<AntNode*> temp9;
-             temp9.push_back(road10);
-             roadMap[road9] = temp9;
-             list<AntNode*> temp10;
-             roadMap[road10] = temp10;
-             */
             // set road map
             list<string> edges = getAllEdges();
             for(list<string>::iterator it = edges.begin(); it != edges.end(); ++it){
@@ -279,26 +271,5 @@ void ACOTest::seekRoute(string startRoad, string endRoad) {
                 aco.roadMap[aco.getAntNode(*it)] = outEdges;
             }
         }
-        AntNode *sAntNode = aco.getAntNode(startRoad);
-        AntNode *eAntNode = aco.getAntNode(endRoad);
-        AntNode *curAntNode = sAntNode;
-        for(int i = 0; i < ACO::N_ANT_COUNT; i++){
-            Ant *temp = new Ant(sAntNode, eAntNode, curAntNode);
-            ordAnts[i] = temp;
-        }
-        bestAnt->setMovedPathLength(ACO::DB_MAX); // 初始化最好的蚂蚁的数据
-        badestAnt->setMovedPathLength(ACO::DB_MIN); // 初始化最差的蚂蚁的数据
-    }
-    {
-        // search
-        search(startRoad, endRoad);
-    }
-    {
-        list<string> route;
-        vector<AntNode*>::iterator iter;
-        for(iter = bestAnt->movedPath.begin(); iter != bestAnt->movedPath.end(); iter++){
-            route.push_back((*iter)->getRoadName());
-        }
-        setRoute(route);
     }
 }

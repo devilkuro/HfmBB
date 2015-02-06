@@ -39,6 +39,7 @@ public:
 	void setMaxMinTrial(); // 设置最小最大系统
 	void search(string startRoad, string endRoad); // 开迭代始搜索
 	void seekRoute(string startRoad, string endRoad);
+	void init(GlobalMapSystem* gms);
 };
 
 #endif /* ACOTEST_H_ */

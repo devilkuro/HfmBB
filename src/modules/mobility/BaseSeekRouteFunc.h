@@ -35,7 +35,7 @@ public:
     virtual int getVehicleNum(string edge);
     virtual double getTravelTime(string edge);
     virtual void setRoute(list<string> route);
-private:
+protected:
     GlobalMapSystem* gms;
 };
 

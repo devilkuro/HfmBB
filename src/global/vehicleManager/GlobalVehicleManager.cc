@@ -31,10 +31,15 @@ void GlobalVehicleManager::handleMessage(cMessage *msg)
     // TODO - Generated method body
     if(msg==testMsg){
         if (getMapSystem()->isInitializedFinished()) {
-            if (targetNum>0) {
+            if (targetNum>1) {
                 addVehicles(GVM_VEHICLETYPE_NORMAL, 1);
                 targetNum--;
                 scheduleAt(simTime()+0.1,testMsg);
+            }else{
+                if(targetNum==1){
+                    // fixme start from certain road.
+                    getMapSystem()->addOneVehicle("node499", "","-10425131" );
+                }
             }
         }else{
             scheduleAt(simTime()+0.1,testMsg);

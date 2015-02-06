@@ -131,6 +131,7 @@ GlobalStatistics& GlobalStatistics::operator <<(unsigned int num) {
 }
 
 void GlobalStatistics::output(string name) {
+    name = "results\\"+name;
     std::fstream fs;
     fs.open(name.c_str(), std::fstream::out);
     for(GlobalStatisticsMap::iterator it = globalStatisticsMap.begin(); it != globalStatisticsMap.end(); it++){

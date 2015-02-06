@@ -408,7 +408,7 @@ bool GlobalMapSystem::isInitializedFinished() {
 
 void GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, string routeId, simtime_t emitTime_st,
         double emitPosition, double emitSpeed, int8_t emitLane) {
-    string vid = "node" + int2str(lastHostNo++);
+    string vid = "DefaultNode" + int2str(lastHostNo++);
     string vtype = vehicleTypeId == "" ? "vtype0" : vehicleTypeId;
     // TODO change getRandomEdge to get edge from a certain area
     string start;
@@ -422,7 +422,7 @@ void GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, stri
         start = routeId;
     }
     simtime_t emitTime = emitTime_st < simTime() ? simTime() : emitTime_st;
-    double pos = emitPosition > 0 ? emitPosition : 10;
+    double pos = emitPosition > 0 ? emitPosition : 0;
     getManager()->commandAddVehicle(vid, vtype, start, emitTime, pos, emitSpeed, emitLane);
 }
 
@@ -466,7 +466,10 @@ void GlobalMapSystem::changeVehiclePosition(string road_from, string road_to, do
         if(roadVehiclePassTimeMap[road_from]==0){
             roadVehiclePassTimeMap[road_from] = pass_time;
         }else{
-            roadVehiclePassTimeMap[road_from] +=(pass_time - roadVehiclePassTimeMap[road_from])/20;
+            roadVehiclePassTimeMap[road_from] +=(pass_time - roadVehiclePassTimeMap[road_from])/4;
+            // double fact = 20;
+            // newW' = oldW*alpha+newW*beta (alpha+beta=1)
+            // roadVehiclePassTimeMap[road_from] = (roadVehiclePassTimeMap[road_from]*fact + pass_time)/fact;
         }
     }
     roadVehicleNumMap[road_from]--;

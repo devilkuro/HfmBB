@@ -14,7 +14,6 @@
 // 
 
 #include "TraCIMobility_Fixed.h"
-#include "ACOTest.h"
 Define_Module(TraCIMobility_Fixed)
 
 void TraCIMobility_Fixed::preInitialize(std::string external_id, const Coord& position, std::string road_id,
@@ -36,27 +35,39 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
     ();
     TraCIMobility::nextPosition(position, road_id, speed, angle, signals);
     // TODO 2014-11-9 debug use
-    if (getMapSystem()->isInitializedFinished()) {
-        double pos = getLanePosition();
-        if(pos>0){
-            if(pos > 25){
-                allowLaneChange();
-            }else{
-                disableLaneChange();
-            }
-        }
-    }
+//    if (getMapSystem()->isInitializedFinished()) {
+//        double pos = getLanePosition();
+//        if(pos>0){
+//            if(pos > 25){
+//                allowLaneChange();
+//            }else{
+//                disableLaneChange();
+//            }
+//        }
+//    }
     // path process
     if(!hasRouted){
         if(getMapSystem()->isInitializedFinished()){
             EV << "cfg.init finished!" << endl;
             // todo
+            // 1st. set start and end road
             string start = road_id;
+            // fixme change to fixed road
+            //string end = getMapSystem()->getRandomEdgeFromCache();
+            string end = "4006702#2";
+
             if (external_id=="node499") {
-                ACOTest acot;
-                string end = getMapSystem()->getRandomEdgeFromCache();
+                // init seek function
                 acot.init(getMapSystem());
+                asmtimer.start();   // timer start
+                // call seek function
                 acot.seekRoute(start,end); //¿ªÊ¼ËÑË÷
+                asmtimer.end(); // timer end
+
+                // output result
+                gs->changeName("node")<<external_id<<(int)asmtimer.getMilliseconds()<<gs->endl;
+                gs->output("nodeTimer.txt");
+                //endSimulation();// fixme comment this line
                 EV<< start << ":"<< end<<endl;
                 //shortPath.route = getMapSystem()->getRandomRoute(start);
                 EV<< acot.seleted_route.size() <<endl;
@@ -64,12 +75,25 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
                 statistic_start_time = simTime().dbl();
             }else{
                 list<string> route = getMapSystem()->getRandomRoute(start);
-                getMapSystem()->setVehicleRouteByEdgeList(external_id, route);
+                if (start[0]!=':') {
+                    getMapSystem()->setVehicleRouteByEdgeList(external_id, route);
+                }
             }
             hasRouted = true;
         }
     }
+    // fixme reseek flag
+    bool reseekFlag = false;
+    // add judgement here
+    // example:  if(road_id != last_road_id){reseekFlag = true}
 
+    if (reseekFlag) {
+        if (external_id=="node499") {
+            // fixme add reseek function here
+            // acot.reseek(road_id,end);
+            // getMapSystem()->setVehicleRouteByEdgeList(external_id, acot.seleted_route);
+        }
+    }
     if(road_id != last_road_id){
         // statistics process
         if(!hasInitialized){
@@ -108,13 +132,12 @@ void TraCIMobility_Fixed::finish() {
     TraCIMobility::finish();
     hasRouted = false;
     hasInitialized = false;
-    gs = NULL;
-    map = NULL;
     getMapSystem()->unregisterVehiclePosition(last_road_id, simTime().dbl()-statistic_road_enterTime);
     if(external_id == "node499"){
-        gs<<external_id<<simTime().dbl()-statistic_start_time<<gs->endl;
+        gs->changeName("node")<<external_id<<simTime().dbl()-statistic_start_time<<gs->endl;
+        gs->output("node499.txt");
+        endSimulation();
     }
-    gs->output("node499.txt");
 }
 
 void TraCIMobility_Fixed::changePosition() {

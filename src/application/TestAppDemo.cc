@@ -25,6 +25,9 @@ void TestAppDemo::initialize(int stage) {
         ASSERT(annotations);
 
         sentMessage = false;
+        if(sendBeaconEvt->isScheduled()){
+            cancelEvent(sendBeaconEvt);
+        }
         lastDroveAt = simTime();
     }
 }
