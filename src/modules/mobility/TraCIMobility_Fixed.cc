@@ -35,16 +35,18 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
     ();
     TraCIMobility::nextPosition(position, road_id, speed, angle, signals);
     // TODO 2014-11-9 debug use
-//    if (getMapSystem()->isInitializedFinished()) {
-//        double pos = getLanePosition();
-//        if(pos>0){
-//            if(pos > 25){
-//                allowLaneChange();
-//            }else{
-//                disableLaneChange();
-//            }
-//        }
-//    }
+    /*
+    if (getMapSystem()->isInitializedFinished()) {
+        double pos = getLanePosition();
+        if(pos>0){
+            if(pos > 25){
+                allowLaneChange();
+            }else{
+                disableLaneChange();
+            }
+        }
+    }
+    */
     // path process
     if(!hasRouted){
         if(getMapSystem()->isInitializedFinished()){
@@ -56,27 +58,28 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
             //string end = getMapSystem()->getRandomEdgeFromCache();
             string end = "4006702#2";
 
-            if (external_id=="node499") {
-                // init seek function
-                acot.init(getMapSystem());
-                asmtimer.start();   // timer start
-                // call seek function
-                acot.seekRoute(start,end); //开始搜索
-                asmtimer.end(); // timer end
+            if (false) {
+                // do not change the route
+                if (external_id=="node499") {
+                    // init seek function
+                    acot.init(getMapSystem());
+                    asmtimer.start();   // timer start
+                    // call seek function
+                    acot.seekRoute(start,end); //开始搜索
+                    asmtimer.end(); // timer end
 
-                // output result
-                gs->changeName("node")<<external_id<<(int)asmtimer.getMilliseconds()<<gs->endl;
-                gs->output("nodeTimer.txt");
-                //endSimulation();// fixme comment this line
-                EV<< start << ":"<< end<<endl;
-                //shortPath.route = getMapSystem()->getRandomRoute(start);
-                EV<< acot.seleted_route.size() <<endl;
-                getMapSystem()->setVehicleRouteByEdgeList(external_id, acot.seleted_route);
-                statistic_start_time = simTime().dbl();
-            }else{
-                list<string> route = getMapSystem()->getRandomRoute(start);
-                if (start[0]!=':') {
-                    getMapSystem()->setVehicleRouteByEdgeList(external_id, route);
+                    // output result
+                    //endSimulation();// fixme comment this line
+                    EV<< start << ":"<< end<<endl;
+                    //shortPath.route = getMapSystem()->getRandomRoute(start);
+                    EV<< acot.seleted_route.size() <<endl;
+                    getMapSystem()->setVehicleRouteByEdgeList(external_id, acot.seleted_route);
+                    statistic_start_time = simTime().dbl();
+                }else{
+                    list<string> route = getMapSystem()->getRandomRoute(start);
+                    if (start[0]!=':') {
+                        getMapSystem()->setVehicleRouteByEdgeList(external_id, route);
+                    }
                 }
             }
             hasRouted = true;
@@ -102,9 +105,6 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
         }else{
             if(last_road_id == "1/1to1/2"){
                 // start record process
-                gs->changeName("road statistics - vehicle number - travel time - " + last_road_id) << simTime().dbl()
-                        << statistic_road_enterTime << statistic_junction_enterVehicleNum
-                        << statistic_road_enterVehicleNum << simTime().dbl() - statistic_road_enterTime << gs->endl;
             }
         }
         // record the data while entering new edge
@@ -125,7 +125,7 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
 
 void TraCIMobility_Fixed::initialize(int stage) {
     TraCIMobility::initialize(stage);
-    gs = GlobalStatisticsAccess().get();
+    srtool = StatisticsRecordTools::request();
 }
 
 void TraCIMobility_Fixed::finish() {
@@ -133,10 +133,8 @@ void TraCIMobility_Fixed::finish() {
     hasRouted = false;
     hasInitialized = false;
     getMapSystem()->unregisterVehiclePosition(last_road_id, simTime().dbl()-statistic_road_enterTime);
-    if(external_id == "node499"){
-        gs->changeName("node")<<external_id<<simTime().dbl()-statistic_start_time<<gs->endl;
-        gs->output("node499.txt");
-        endSimulation();
+    if(external_id == "nodeTarget"){
+
     }
 }
 

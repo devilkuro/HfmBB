@@ -20,10 +20,11 @@
 #include "TraCIMobility.h"
 #include "GlobalMapSystem.h"
 #include "string"
-#include "GlobalStatistics.h"
+#include "StatisticsRecordTools.h"
 #include "ASMTimer.h"
 #include "ACOTest.h"
 
+using Fanjing::StatisticsRecordTools;
 /**
  *
  */
@@ -53,7 +54,7 @@ protected:
     double getLanePosition();
 protected:
     mutable GlobalMapSystem *map;
-    mutable GlobalStatistics *gs;
+    StatisticsRecordTools *srtool;
     // fixme chage to the correct class
     ACOTest acot;
     ASMTimer asmtimer;

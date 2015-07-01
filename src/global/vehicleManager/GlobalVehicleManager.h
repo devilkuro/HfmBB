@@ -18,6 +18,7 @@
 
 #include <omnetpp.h>
 #include "GlobalMapSystem.h"
+using std::string;
 
 /**
  * TODO - Generated class
@@ -46,6 +47,8 @@ protected:
 
 private:
     unsigned int targetNum;
+    std::map<string, int> intMap;
+    std::map<string, cMessage*> msgMap;
     cMessage* testMsg;
     // members
     GlobalMapSystem *map;

@@ -17,38 +17,120 @@
 
 Define_Module(GlobalVehicleManager);
 
-void GlobalVehicleManager::initialize()
-{
+void GlobalVehicleManager::initialize() {
     // TODO - Generated method body
     // TODO just for test use
     testMsg = new cMessage("testMsg");
     targetNum = 500;
-    scheduleAt(simTime()+0.1,testMsg);
+    intMap["roundID"] = 0;
+    intMap["turnID"] = 0;
+    intMap["carSID"] = 0;
+    intMap["tickID"] = 0;
+    intMap["oldTickID"] = 0;
+    intMap["startTickID"] = 0;
+    intMap["interval"] = 10;
+    scheduleAt(simTime() + 0.1, testMsg);
 }
 
-void GlobalVehicleManager::handleMessage(cMessage *msg)
-{
+void GlobalVehicleManager::handleMessage(cMessage *msg) {
     // TODO - Generated method body
-    if(msg==testMsg){
-        if (getMapSystem()->isInitializedFinished()) {
-            if (targetNum>1) {
-                addVehicles(GVM_VEHICLETYPE_NORMAL, 1);
-                targetNum--;
-                scheduleAt(simTime()+0.1,testMsg);
-            }else{
-                if(targetNum==1){
-                    // fixme start from certain road.
-                    getMapSystem()->addOneVehicle("node499", "","-10425131" );
+    if(msg == testMsg){
+        if(getMapSystem()->isInitializedFinished()){
+            // the car adding logic
+            // record tick number
+            intMap["tickID"]++;
+            // if active vehicle count is zero, start new round;
+            if(getMapSystem()->getActiveVehicleCount() == 0){
+                // modify roundID
+                intMap["roundID"]++;
+                // set & reset attributes
+                intMap["carSID"] = 0;
+                intMap["oldTickID"] = intMap["tickID"];
+                intMap["startTickID"] = intMap["tickID"];
+                intMap["turnID"] = 0;
+            }
+            // for each round
+            if(intMap["roundID"] > 0){
+                // caculate the car number: for each number there 15 kinds: Speed:[S/N/F] & fisrt car length:L01~L04,L00(L05==L00);
+                // when the roundID == 1, there no other car in the map system.
+                int num = (intMap["roundID"] - 1) / 3 * 5 + 1;
+                int lenInt = (intMap["roundID"] - 1 + 1) % 5;
+                string lenStr = "L0" + getMapSystem()->int2str(lenInt);
+                int speedInt = ((intMap["roundID"] - 1) / 5) % 3;
+                string speedStr = "";
+                switch(speedInt){
+                    case 0:
+                        speedStr = "S";
+                        break;
+                    case 0:
+                        speedStr = "N";
+                        break;
+                    case 0:
+                        speedStr = "F";
+                        break;
+                    default:
+                        break;
                 }
+                if(intMap["turnID"] < num){
+                    // generate the first car
+                    if(intMap["startTickID"] == intMap["tickID"]){
+                        intMap["turnID"]++;
+                        intMap["carSID"]++;
+                        string vid = "L" + getMapSystem()->int2str(intMap["carSID"]);
+                        string vtype = lenStr + speedStr;
+                        getMapSystem()->addVehicles(1, vid, vtype, "2/0to2/2");
+                    }else{
+                        // generate the other cars in different directions
+                        switch((intMap["tickID"] - intMap["startTickID"] + intMap["interval"] + 1)
+                                % (intMap["interval"] + 1)){
+                            case 3:
+                                // turn left
+                                intMap["turnID"]++;
+                                intMap["carSID"]++;
+                                string vid = "L" + getMapSystem()->int2str(intMap["carSID"]);
+                                string vtype = "L00" + speedStr;
+                                getMapSystem()->addVehicles(1, vid, vtype, "2/0to2/2");
+                                break;
+                            case 6:
+                                // stright
+                                intMap["carSID"]++;
+                                string vid = "S" + getMapSystem()->int2str(intMap["carSID"]);
+                                string vtype = "L00" + "N";
+                                getMapSystem()->addVehicles(1, vid, vtype, "2/0to2/2");
+                                break;
+                            case 9:
+                                // turn right
+                                intMap["carSID"]++;
+                                string vid = "R" + getMapSystem()->int2str(intMap["carSID"]);
+                                string vtype = "L00" + "N";
+                                getMapSystem()->addVehicles(1, vid, vtype, "2/0to2/2");
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }else{
+                    // generate the target car
+                    // turn left
+                    intMap["turnID"]++;
+                    intMap["carSID"]++;
+                    string vid = "T" + getMapSystem()->int2str(intMap["carSID"]);
+                    string vtype = "L00" + "S";
+                    getMapSystem()->addVehicles(1, vid, vtype, "2/0to2/2");
+                }
+
             }
         }else{
-            scheduleAt(simTime()+0.1,testMsg);
+            scheduleAt(simTime() + 0.1, testMsg);
         }
     }
 }
 
 void GlobalVehicleManager::finish() {
     // TODO - Generated method body
+    for(std::map<string, cMessage*>::iterator it = msgMap.begin(); it != msgMap.end(); it++){
+        cancelAndDelete(it->second);
+    }
 }
 
 GlobalMapSystem* GlobalVehicleManager::getMapSystem() {

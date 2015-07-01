@@ -19,8 +19,8 @@ Define_Module(GlobalMapSystem)
 
 GlobalMapSystem::GlobalMapSystem() :
         manager(NULL), annotations(NULL), annotationGroup(NULL), laneMap(), edgeMap(), stateSwitchMsg(NULL), startMsg(
-                NULL), updateMsg(NULL), mapstage(0), noconnect(false), mapSystemInitialized(false), hostnum(100), lastHostNo(
-                0), vehicleNumber(0) {
+        NULL), updateMsg(NULL), mapstage(0), noconnect(false), mapSystemInitialized(false), hostnum(100), lastHostNo(0), vehicleNumber(
+                0) {
 }
 
 void GlobalMapSystem::initialize(int stage) {
@@ -372,7 +372,7 @@ void GlobalMapSystem::reduceMap() {
             if(debug){
                 cacheEdgeArray[i]->edge->setColor("red");
             }
-            EV<< cacheEdgeArray[i]->edge->name <<endl;
+            EV << cacheEdgeArray[i]->edge->name << endl;
         }
     }
 }
@@ -408,7 +408,7 @@ bool GlobalMapSystem::isInitializedFinished() {
 
 void GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, string routeId, simtime_t emitTime_st,
         double emitPosition, double emitSpeed, int8_t emitLane) {
-    string vid = "DefaultNode" + int2str(lastHostNo++);
+    string vid = vehicleId == "" ? "DefaultNode" + int2str(lastHostNo++) : vehicleId;
     string vtype = vehicleTypeId == "" ? "vtype0" : vehicleTypeId;
     // TODO change getRandomEdge to get edge from a certain area
     string start;
@@ -439,7 +439,7 @@ void GlobalMapSystem::addVehicles(int num, string vehicleId, string vehicleTypeI
         simtime_t emitTime_st, double emitPosition, double emitSpeed, int8_t emitLane) {
     // TODO
     for(int i = 0; i < num; i++){
-        addOneVehicle(vehicleId,vehicleTypeId,routeId,emitTime_st,emitPosition,emitSpeed,emitLane);
+        addOneVehicle(vehicleId, vehicleTypeId, routeId, emitTime_st, emitPosition, emitSpeed, emitLane);
     }
 }
 
@@ -462,11 +462,11 @@ void GlobalMapSystem::registerVehiclePosition(string road_id) {
 
 void GlobalMapSystem::changeVehiclePosition(string road_from, string road_to, double pass_time) {
     // change vehicle pos while the vehicle move into another edge
-    if(pass_time>0){
-        if(roadVehiclePassTimeMap[road_from]==0){
+    if(pass_time > 0){
+        if(roadVehiclePassTimeMap[road_from] == 0){
             roadVehiclePassTimeMap[road_from] = pass_time;
         }else{
-            roadVehiclePassTimeMap[road_from] +=(pass_time - roadVehiclePassTimeMap[road_from])/4;
+            roadVehiclePassTimeMap[road_from] += (pass_time - roadVehiclePassTimeMap[road_from]) / 4;
             // double fact = 20;
             // newW' = oldW*alpha+newW*beta (alpha+beta=1)
             // roadVehiclePassTimeMap[road_from] = (roadVehiclePassTimeMap[road_from]*fact + pass_time)/fact;
@@ -481,11 +481,11 @@ int GlobalMapSystem::getVehicleNumByEdge(string edge) {
 }
 
 void GlobalMapSystem::unregisterVehiclePosition(string road_id, double pass_time) {
-    if(pass_time>0){
-        if(roadVehiclePassTimeMap[road_id]==0){
+    if(pass_time > 0){
+        if(roadVehiclePassTimeMap[road_id] == 0){
             roadVehiclePassTimeMap[road_id] = pass_time;
         }else{
-            roadVehiclePassTimeMap[road_id] +=(pass_time - roadVehiclePassTimeMap[road_id])/20;
+            roadVehiclePassTimeMap[road_id] += (pass_time - roadVehiclePassTimeMap[road_id]) / 20;
         }
     }
     roadVehicleNumMap[road_id]--;
@@ -505,34 +505,38 @@ void GlobalMapSystem::setLaneChangePermission(string nodeId, bool allowed) {
 }
 
 void GlobalMapSystem::outputMap() {
-   // do nodthing now
+    // do nodthing now
 }
 
 list<string> GlobalMapSystem::getAllEdges() {
     list<string> edges;
-    for(map<string, Edge*>::iterator it = edgeMap.begin();it!=edgeMap.end();it++){
+    for(map<string, Edge*>::iterator it = edgeMap.begin(); it != edgeMap.end(); it++){
         edges.push_back(it->second->name);
     }
-    debugEV<<"gms.getAllEdges finished!"<<endl;
+    debugEV << "gms.getAllEdges finished!" << endl;
     return edges;
 }
 
 list<string> GlobalMapSystem::getNextEdges(string edge) {
     list<string> edges;
-    for(set<Edge*>::iterator it = edgeMap[edge]->links.begin();it!=edgeMap[edge]->links.end();it++){
+    for(set<Edge*>::iterator it = edgeMap[edge]->links.begin(); it != edgeMap[edge]->links.end(); it++){
         edges.push_back((*it)->name);
     }
-    debugEV<<"gms.getNextEdges finished!"<<endl;
+    debugEV << "gms.getNextEdges finished!" << endl;
     return edges;
 }
 
 double GlobalMapSystem::getEdgeLength(string edge) {
-    debugEV<<"gms.getEdgeLength finished!"<<endl;
+    debugEV << "gms.getEdgeLength finished!" << endl;
     return edgeMap[edge]->length;
 }
 
 double GlobalMapSystem::getAvgTravelTimeByEdge(string edge) {
     return roadVehiclePassTimeMap[edge];
+}
+
+uint32_t GlobalMapSystem::getActiveVehicleCount() {
+    return getManager()->getActiveVehicleCount();
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {

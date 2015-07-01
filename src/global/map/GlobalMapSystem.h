@@ -130,6 +130,7 @@ public:
 
     // OTHER_API PART
     virtual bool isInitializedFinished();
+    virtual uint32_t getActiveVehicleCount();
     virtual double getTravelTime(string edge, double time, double speed);
     virtual list<string> getFastestRoute(string fromEdge, string toEdge);
     virtual list<string> getShortestRoute(string fromEdge, string toEdge);
@@ -192,7 +193,7 @@ protected:
     int hostnum;
     int lastHostNo;
 
-private:
+public:
 
     string int2str(int i);
     string dou2str(double i);
