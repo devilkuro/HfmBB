@@ -34,67 +34,49 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
     Enter_Method_Silent
     ();
     TraCIMobility::nextPosition(position, road_id, speed, angle, signals);
-    // TODO 2014-11-9 debug use
-    /*
-    if (getMapSystem()->isInitializedFinished()) {
-        double pos = getLanePosition();
-        if(pos>0){
-            if(pos > 25){
-                allowLaneChange();
-            }else{
-                disableLaneChange();
-            }
-        }
-    }
-    */
     // path process
     if(!hasRouted){
         if(getMapSystem()->isInitializedFinished()){
             EV << "cfg.init finished!" << endl;
-            // todo
-            // 1st. set start and end road
-            string start = road_id;
-            // fixme change to fixed road
-            //string end = getMapSystem()->getRandomEdgeFromCache();
-            string end = "4006702#2";
-
-            if (false) {
-                // do not change the route
-                if (external_id=="node499") {
-                    // init seek function
-                    acot.init(getMapSystem());
-                    asmtimer.start();   // timer start
-                    // call seek function
-                    acot.seekRoute(start,end); //¿ªÊ¼ËÑË÷
-                    asmtimer.end(); // timer end
-
-                    // output result
-                    //endSimulation();// fixme comment this line
-                    EV<< start << ":"<< end<<endl;
-                    //shortPath.route = getMapSystem()->getRandomRoute(start);
-                    EV<< acot.seleted_route.size() <<endl;
-                    getMapSystem()->setVehicleRouteByEdgeList(external_id, acot.seleted_route);
-                    statistic_start_time = simTime().dbl();
-                }else{
-                    list<string> route = getMapSystem()->getRandomRoute(start);
-                    if (start[0]!=':') {
-                        getMapSystem()->setVehicleRouteByEdgeList(external_id, route);
-                    }
-                }
+            list<string> route;
+            switch (external_id[0]) {
+                case 'T':
+                case 'L':
+                    // turn left: "2/0to2/2","2/2to0/2","0/2to0/4";
+                    route.push_back("2/0to2/2");
+                    route.push_back("2/2to0/2");
+                    route.push_back("0/2to0/4");
+                    getMapSystem()->setVehicleRouteByEdgeList(external_id,route);
+                    break;
+                case 'S':
+                    // stright: "2/0to2/2","2/2to2/4","2/4to4/4";
+                    route.push_back("2/0to2/2");
+                    route.push_back("2/2to2/4");
+                    route.push_back("2/4to4/4");
+                    getMapSystem()->setVehicleRouteByEdgeList(external_id,route);
+                    break;
+                case 'R':
+                    // turn right: "2/0to2/2","2/2to4/2","4/2to4/4";
+                    route.push_back("2/0to2/2");
+                    route.push_back("2/2to4/2");
+                    route.push_back("4/2to4/4");
+                    getMapSystem()->setVehicleRouteByEdgeList(external_id,route);
+                    break;
+                case 'P':
+                    // turn right: "2/0to2/2","2/2to4/2","4/2to4/4";
+                    route.push_back("2/4to2/2");
+                    route.push_back("2/2to0/2");
+                    getMapSystem()->setVehicleRouteByEdgeList(external_id,route);
+                    break;
+                default:
+                    // default
+                    break;
             }
             hasRouted = true;
         }
-    }
-    // fixme reseek flag
-    bool reseekFlag = false;
-    // add judgement here
-    // example:  if(road_id != last_road_id){reseekFlag = true}
-
-    if (reseekFlag) {
-        if (external_id=="node499") {
-            // fixme add reseek function here
-            // acot.reseek(road_id,end);
-            // getMapSystem()->setVehicleRouteByEdgeList(external_id, acot.seleted_route);
+    }else{
+        if(external_id[0]=='P'){
+            commandSetSpeed(0);
         }
     }
     if(road_id != last_road_id){
@@ -102,18 +84,6 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
         if(!hasInitialized){
             // switch record process trigger
             hasInitialized = true;
-        }else{
-            if(last_road_id == "1/1to1/2"){
-                // start record process
-            }
-        }
-        // record the data while entering new edge
-        if(road_id == "1/1to1/2"){
-            statistic_road_enterVehicleNum = getMapSystem()->getVehicleNumByEdge("2/2to1/2");
-            statistic_junction_enterVehicleNum = statistic_road_enterVehicleNum;
-            statistic_junction_enterVehicleNum += getMapSystem()->getVehicleNumByEdge("1/3to1/2");
-            statistic_junction_enterVehicleNum += getMapSystem()->getVehicleNumByEdge("0/2to1/2");
-            statistic_junction_enterVehicleNum += getMapSystem()->getVehicleNumByEdge("1/1to1/2");
         }
         // change the vehicle position in map system
         getMapSystem()->changeVehiclePosition(last_road_id, road_id, simTime().dbl()-statistic_road_enterTime);

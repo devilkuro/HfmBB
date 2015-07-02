@@ -22,7 +22,6 @@
 #include "string"
 #include "StatisticsRecordTools.h"
 #include "ASMTimer.h"
-#include "ACOTest.h"
 
 using Fanjing::StatisticsRecordTools;
 /**
@@ -56,7 +55,6 @@ protected:
     mutable GlobalMapSystem *map;
     StatisticsRecordTools *srtool;
     // fixme chage to the correct class
-    ACOTest acot;
     ASMTimer asmtimer;
     // path process
     bool hasRouted;

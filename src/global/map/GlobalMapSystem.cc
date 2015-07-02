@@ -406,12 +406,12 @@ bool GlobalMapSystem::isInitializedFinished() {
     return mapSystemInitialized;
 }
 
-void GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, string routeId, simtime_t emitTime_st,
+bool GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, string routeId, simtime_t emitTime_st,
         double emitPosition, double emitSpeed, int8_t emitLane) {
     string vid = vehicleId == "" ? "DefaultNode" + int2str(lastHostNo++) : vehicleId;
     string vtype = vehicleTypeId == "" ? "vtype0" : vehicleTypeId;
     // TODO change getRandomEdge to get edge from a certain area
-    string start;
+    string start = routeId;
     if(routeId == ""){
         start = getRandomEdgeFromCache();
     }else{
@@ -419,11 +419,10 @@ void GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, stri
             debugEV << "cannot find edge \"" + routeId + "\". System will chose a random edge instead" << endl;
             start = getRandomEdgeFromCache();
         }
-        start = routeId;
     }
     simtime_t emitTime = emitTime_st < simTime() ? simTime() : emitTime_st;
     double pos = emitPosition > 0 ? emitPosition : 0;
-    getManager()->commandAddVehicle(vid, vtype, start, emitTime, pos, emitSpeed, emitLane);
+    return getManager()->commandAddVehicle(vid, vtype, start, emitTime, pos, emitSpeed, emitLane);
 }
 
 void GlobalMapSystem::setVehicleRouteByEdgeList(string id, list<std::string> route) {
@@ -435,12 +434,16 @@ void GlobalMapSystem::weightEdges() {
     // TODO
 }
 
-void GlobalMapSystem::addVehicles(int num, string vehicleId, string vehicleTypeId, string routeId,
+bool GlobalMapSystem::addVehicles(int num, string vehicleId, string vehicleTypeId, string routeId,
         simtime_t emitTime_st, double emitPosition, double emitSpeed, int8_t emitLane) {
     // TODO
+    bool result = true;
     for(int i = 0; i < num; i++){
-        addOneVehicle(vehicleId, vehicleTypeId, routeId, emitTime_st, emitPosition, emitSpeed, emitLane);
+        if(!addOneVehicle(vehicleId, vehicleTypeId, routeId, emitTime_st, emitPosition, emitSpeed, emitLane)){
+            result = false;
+        }
     }
+    return result;
 }
 
 void GlobalMapSystem::registerVehiclePosition(string road_id) {

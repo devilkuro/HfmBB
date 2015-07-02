@@ -113,9 +113,9 @@ public:
 public:
     // API_PART
     // functions to add vehicles
-    void addOneVehicle(string vehicleId = "", string vehicleTypeId = "", string routeId = "", simtime_t emitTime_st =
+    bool addOneVehicle(string vehicleId = "", string vehicleTypeId = "", string routeId = "", simtime_t emitTime_st =
             simTime(), double emitPosition = 0, double emitSpeed = 0, int8_t emitLane = 0); // add a car of a certain type
-    void addVehicles(int num, string vehicleId = "", string vehicleTypeId = "", string routeId = "",
+    bool addVehicles(int num, string vehicleId = "", string vehicleTypeId = "", string routeId = "",
             simtime_t emitTime_st = simTime(), double emitPosition = 0, double emitSpeed = 0, int8_t emitLane = 0); // add several cars of a certain type
     // lane change mode control
     void setLaneChangeMode(string nodeId, uint32_t bitset);
@@ -144,20 +144,20 @@ public:
     string getRandomEdgeFromCache();
 
     virtual void setVehicleRouteByEdgeList(string id, list<std::string> route);
-
-protected:
-    virtual void initialize(int stage);
-    virtual void handleMessage(cMessage *msg);
-    virtual void finish();
-    virtual int numInitStages() const {
-        return std::max(cSimpleModule::numInitStages(), 3);
-    }
+    // protected..
     virtual GlobalMobilityLaunchd* getManager() const {
         if(!manager){
             manager = GlobalMobilityLaunchdAccess().get();
         }
         ASSERT(manager);
         return manager;
+    }
+protected:
+    virtual void initialize(int stage);
+    virtual void handleMessage(cMessage *msg);
+    virtual void finish();
+    virtual int numInitStages() const {
+        return std::max(cSimpleModule::numInitStages(), 3);
     }
 
     // map generating process

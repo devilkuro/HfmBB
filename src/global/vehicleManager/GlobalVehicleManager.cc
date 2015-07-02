@@ -23,7 +23,7 @@ void GlobalVehicleManager::initialize() {
     testMsg = new cMessage("testMsg");
     targetNum = 500;
     intMap["roundID"] = 0;
-    intMap["turnID"] = 0;
+    intMap["turnID"] = 1;
     intMap["carSID"] = 0;
     intMap["tickID"] = 0;
     intMap["oldTickID"] = 0;
@@ -39,90 +39,116 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
             // the car adding logic
             // record tick number
             intMap["tickID"]++;
+            if(intMap["tickID"] == 1){
+                if(!getMapSystem()->addOneVehicle("P00", "L00P", "2/4to2/2")){
+                    std::cout << "adding car failed:P00,L00P" << std::endl;
+                }
+            }
             // if active vehicle count is zero, start new round;
-            if(getMapSystem()->getActiveVehicleCount() == 0){
+            if(getMapSystem()->getActiveVehicleCount() == 1 && intMap["oldTickID"] + 10 < intMap["tickID"]){
+                getMapSystem()->getManager()->commandSetTrafficLightPhaseIndex("2/2",0);
+                std::cout << intMap["roundID"] << std::endl;
                 // modify roundID
                 intMap["roundID"]++;
+//                int num = (intMap["roundID"] - 2 + 15) / (3 * 5);
+//                std::cout << "round = " << intMap["roundID"] << " ,num = " << num << std::endl;
+
                 // set & reset attributes
-                intMap["carSID"] = 0;
+                // intMap["carSID"] = 0;
                 intMap["oldTickID"] = intMap["tickID"];
                 intMap["startTickID"] = intMap["tickID"];
                 intMap["turnID"] = 0;
-            }
-            // for each round
-            if(intMap["roundID"] > 0){
-                // caculate the car number: for each number there 15 kinds: Speed:[S/N/F] & fisrt car length:L01~L04,L00(L05==L00);
-                // when the roundID == 1, there no other car in the map system.
-                int num = (intMap["roundID"] - 1) / 3 * 5 + 1;
-                int lenInt = (intMap["roundID"] - 1 + 1) % 5;
-                string lenStr = "L0" + getMapSystem()->int2str(lenInt);
-                int speedInt = ((intMap["roundID"] - 1) / 5) % 3;
-                string speedStr = "";
-                switch(speedInt){
-                    case 0:
-                        speedStr = "S";
-                        break;
-                    case 0:
-                        speedStr = "N";
-                        break;
-                    case 0:
-                        speedStr = "F";
-                        break;
-                    default:
-                        break;
-                }
-                if(intMap["turnID"] < num){
-                    // generate the first car
-                    if(intMap["startTickID"] == intMap["tickID"]){
-                        intMap["turnID"]++;
-                        intMap["carSID"]++;
-                        string vid = "L" + getMapSystem()->int2str(intMap["carSID"]);
-                        string vtype = lenStr + speedStr;
-                        getMapSystem()->addVehicles(1, vid, vtype, "2/0to2/2");
-                    }else{
+            }else{
+                // for each round
+                if(intMap["roundID"] > 0){
+                    // caculate the car number: for each number there 15 kinds: Speed:[S/N/F] & fisrt car length:L01~L04,L00(L05==L00);
+                    // when the roundID == 1, there no other car in the map system.
+                    // when the roundID == 2, L01 insert befrore target car
+                    int num = (intMap["roundID"] - 2 + 15) / (3 * 5);
+                    int lenInt = (intMap["roundID"] - 1 + 1) % 5;
+                    string lenStr = "L0" + getMapSystem()->int2str(lenInt);
+                    int speedInt = ((intMap["roundID"] - 1) / 5) % 3;
+                    string speedStr = "";
+                    switch(speedInt){
+                        case 0:
+                            speedStr = "S";
+                            break;
+                        case 1:
+                            speedStr = "N";
+                            break;
+                        case 2:
+                            speedStr = "F";
+                            break;
+                        default:
+                            break;
+                    }
+                    if(intMap["turnID"] < num){
                         // generate the other cars in different directions
-                        switch((intMap["tickID"] - intMap["startTickID"] + intMap["interval"] + 1)
-                                % (intMap["interval"] + 1)){
-                            case 3:
-                                // turn left
-                                intMap["turnID"]++;
-                                intMap["carSID"]++;
-                                string vid = "L" + getMapSystem()->int2str(intMap["carSID"]);
-                                string vtype = "L00" + speedStr;
-                                getMapSystem()->addVehicles(1, vid, vtype, "2/0to2/2");
-                                break;
+                        string vid = "";
+                        string vtype = "";
+                        switch((intMap["tickID"] - intMap["startTickID"] + intMap["interval"]) % (intMap["interval"])){
                             case 6:
+                                if(intMap["turnID"] == 0){
+                                    // generate the first car turn left
+                                    intMap["turnID"]++;
+                                    intMap["carSID"]++;
+                                    string vid = "L" + getMapSystem()->int2str(intMap["carSID"]);
+                                    string vtype = lenStr + speedStr;
+                                    if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2")){
+                                        std::cout << "adding car failed:" << vid << "," << vtype << std::endl;
+                                    }
+                                }else{
+                                    // turn left
+                                    std::cout << "turn left" << std::endl;
+                                    intMap["turnID"]++;
+                                    intMap["carSID"]++;
+                                    vid = "L" + getMapSystem()->int2str(intMap["carSID"]);
+                                    vtype = "L00" + speedStr;
+                                    if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2")){
+                                        std::cout << "adding car failed:" << vid << "," << vtype << std::endl;
+                                    }
+                                }
+                                break;
+                            case 3:
                                 // stright
+                                std::cout << "stright" << std::endl;
                                 intMap["carSID"]++;
-                                string vid = "S" + getMapSystem()->int2str(intMap["carSID"]);
-                                string vtype = "L00" + "N";
-                                getMapSystem()->addVehicles(1, vid, vtype, "2/0to2/2");
+                                vid = "S" + getMapSystem()->int2str(intMap["carSID"]);
+                                vtype = vtype + "L00" + "N";
+                                if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2")){
+                                    std::cout << "adding car failed:" << vid << "," << vtype << std::endl;
+                                }
                                 break;
                             case 9:
                                 // turn right
+                                std::cout << "turn right" << std::endl;
                                 intMap["carSID"]++;
-                                string vid = "R" + getMapSystem()->int2str(intMap["carSID"]);
-                                string vtype = "L00" + "N";
-                                getMapSystem()->addVehicles(1, vid, vtype, "2/0to2/2");
+                                vid = "R" + getMapSystem()->int2str(intMap["carSID"]);
+                                vtype = vtype + "L00" + "N";
+                                if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2")){
+                                    std::cout << "adding car failed:" << vid << "," << vtype << std::endl;
+                                }
                                 break;
                             default:
                                 break;
                         }
+                    }else if(intMap["turnID"] == num){
+                        // generate the target car
+                        // turn left
+                        intMap["turnID"]++;
+                        intMap["carSID"]++;
+                        string vid = "T" + getMapSystem()->int2str(intMap["carSID"]);
+                        string vtype = "";
+                        vtype = vtype + "L00" + "S";
+                        if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2")){
+                            std::cout << "adding car failed:" << vid << "," << vtype << std::endl;
+                        }
                     }
-                }else{
-                    // generate the target car
-                    // turn left
-                    intMap["turnID"]++;
-                    intMap["carSID"]++;
-                    string vid = "T" + getMapSystem()->int2str(intMap["carSID"]);
-                    string vtype = "L00" + "S";
-                    getMapSystem()->addVehicles(1, vid, vtype, "2/0to2/2");
-                }
 
+                }
             }
-        }else{
-            scheduleAt(simTime() + 0.1, testMsg);
         }
+        scheduleAt(simTime() + 0.1, testMsg);
     }
 }
 

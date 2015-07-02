@@ -72,6 +72,7 @@ public:
     virtual void finish();
 
     static gs_eofType endl;
+    std::map<string, double> dblMap;
 protected:
     GlobalStatisticsMap globalStatisticsMap;
     std::map<string, string> titleMap;
