@@ -53,7 +53,8 @@ protected:
     double getLanePosition();
 protected:
     mutable GlobalMapSystem *map;
-    StatisticsRecordTools *srtool;
+    StatisticsRecordTools* srt;
+    simtime_t lastDroveAt;
     // fixme chage to the correct class
     ASMTimer asmtimer;
     // path process

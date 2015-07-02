@@ -18,7 +18,9 @@
 
 #include <omnetpp.h>
 #include "GlobalMapSystem.h"
+#include "StatisticsRecordTools.h"
 using std::string;
+using Fanjing::StatisticsRecordTools;
 
 /**
  * TODO - Generated class
@@ -50,6 +52,7 @@ private:
     std::map<string, int> intMap;
     std::map<string, cMessage*> msgMap;
     cMessage* testMsg;
+    StatisticsRecordTools* srt;
     // members
     GlobalMapSystem *map;
     // used in vehicle generating process

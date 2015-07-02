@@ -25,6 +25,7 @@
 #include <iostream>
 #include <sstream>
 #include "StatisticsRecordUnit.h"
+//#include "cmessage.h"
 
 namespace Fanjing {
 typedef std::list<StatisticsRecordUnit*> GlobalStatisticsList;
@@ -73,6 +74,7 @@ public:
 
     static gs_eofType endl;
     std::map<string, double> dblMap;
+    //std::map<string, cMessage*> msgMap;
 protected:
     GlobalStatisticsMap globalStatisticsMap;
     std::map<string, string> titleMap;

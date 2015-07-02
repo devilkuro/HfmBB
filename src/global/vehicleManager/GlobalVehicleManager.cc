@@ -29,6 +29,7 @@ void GlobalVehicleManager::initialize() {
     intMap["oldTickID"] = 0;
     intMap["startTickID"] = 0;
     intMap["interval"] = 10;
+    srt = StatisticsRecordTools::request();
     scheduleAt(simTime() + 0.1, testMsg);
 }
 
@@ -40,24 +41,32 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
             // record tick number
             intMap["tickID"]++;
             if(intMap["tickID"] == 1){
-                if(!getMapSystem()->addOneVehicle("P00", "L00P", "2/4to2/2")){
+                if(!getMapSystem()->addOneVehicle("P00", "L00P", "2/4to2/2", 0, 20)){
                     std::cout << "adding car failed:P00,L00P" << std::endl;
                 }
             }
             // if active vehicle count is zero, start new round;
             if(getMapSystem()->getActiveVehicleCount() == 1 && intMap["oldTickID"] + 10 < intMap["tickID"]){
-                getMapSystem()->getManager()->commandSetTrafficLightPhaseIndex("2/2",0);
                 std::cout << intMap["roundID"] << std::endl;
                 // modify roundID
                 intMap["roundID"]++;
-//                int num = (intMap["roundID"] - 2 + 15) / (3 * 5);
-//                std::cout << "round = " << intMap["roundID"] << " ,num = " << num << std::endl;
+                int num = (intMap["roundID"] - 2 + 15) / (3 * 5);
+                int lenInt = (intMap["roundID"] - 1 + 1) % 5;
+                int speedInt = ((intMap["roundID"] - 1) / 5) % 3;
+                srt->dblMap["roundID"] = intMap["roundID"];
+                srt->dblMap["num"] = num;
+                srt->dblMap["lenInt"] = lenInt;
+                srt->dblMap["speedInt"] = speedInt;
+
+                //int num = (intMap["roundID"] - 2 + 15) / (3 * 5);
+                //std::cout << "round = " << intMap["roundID"] << " ,num = " << num << std::endl;
 
                 // set & reset attributes
                 // intMap["carSID"] = 0;
                 intMap["oldTickID"] = intMap["tickID"];
                 intMap["startTickID"] = intMap["tickID"];
                 intMap["turnID"] = 0;
+                getMapSystem()->getManager()->commandSetTrafficLightPhaseIndex("2/2", 5);
             }else{
                 // for each round
                 if(intMap["roundID"] > 0){
@@ -94,7 +103,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                                     intMap["carSID"]++;
                                     string vid = "L" + getMapSystem()->int2str(intMap["carSID"]);
                                     string vtype = lenStr + speedStr;
-                                    if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2")){
+                                    if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2", 0, 10, 0, 2)){
                                         std::cout << "adding car failed:" << vid << "," << vtype << std::endl;
                                     }
                                 }else{
@@ -104,7 +113,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                                     intMap["carSID"]++;
                                     vid = "L" + getMapSystem()->int2str(intMap["carSID"]);
                                     vtype = "L00" + speedStr;
-                                    if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2")){
+                                    if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2", 0, 10, 0, 2)){
                                         std::cout << "adding car failed:" << vid << "," << vtype << std::endl;
                                     }
                                 }
@@ -115,7 +124,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                                 intMap["carSID"]++;
                                 vid = "S" + getMapSystem()->int2str(intMap["carSID"]);
                                 vtype = vtype + "L00" + "N";
-                                if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2")){
+                                if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2", 0, 10, 0, 1)){
                                     std::cout << "adding car failed:" << vid << "," << vtype << std::endl;
                                 }
                                 break;
@@ -125,7 +134,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                                 intMap["carSID"]++;
                                 vid = "R" + getMapSystem()->int2str(intMap["carSID"]);
                                 vtype = vtype + "L00" + "N";
-                                if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2")){
+                                if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2", 0, 10, 0, 0)){
                                     std::cout << "adding car failed:" << vid << "," << vtype << std::endl;
                                 }
                                 break;
@@ -140,7 +149,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                         string vid = "T" + getMapSystem()->int2str(intMap["carSID"]);
                         string vtype = "";
                         vtype = vtype + "L00" + "S";
-                        if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2")){
+                        if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2", 0, 10, 0, 2)){
                             std::cout << "adding car failed:" << vid << "," << vtype << std::endl;
                         }
                     }
@@ -157,6 +166,7 @@ void GlobalVehicleManager::finish() {
     for(std::map<string, cMessage*>::iterator it = msgMap.begin(); it != msgMap.end(); it++){
         cancelAndDelete(it->second);
     }
+    srt->outputSeparate("passtime", "results");
 }
 
 GlobalMapSystem* GlobalVehicleManager::getMapSystem() {
@@ -177,7 +187,8 @@ void GlobalVehicleManager::addOneVehicle(VehicleType type) {
     getMapSystem()->addOneVehicle();
 }
 
-GlobalVehicleManager::GlobalVehicleManager() {
+GlobalVehicleManager::GlobalVehicleManager() :
+        srt(NULL) {
     map = NULL;
     testMsg = NULL;
     targetNum = 100;
