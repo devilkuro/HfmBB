@@ -52,7 +52,7 @@ void GlobalStatistics::finish() {
     name.width(2);
     name << "result_" << timeinfo->tm_year << "_" << timeinfo->tm_mon << "_" << timeinfo->tm_mday << "_"
             << timeinfo->tm_hour << "_" << timeinfo->tm_min << "_" << timeinfo->tm_sec << ".txt";
-    output(name.str());
+    // output(name.str());
 }
 
 GlobalStatistics& GlobalStatistics::operator <<(gs_eofType& e) {

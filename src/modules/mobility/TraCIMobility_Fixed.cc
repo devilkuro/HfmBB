@@ -112,12 +112,12 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
             if(road_id == "2/0to2/2" && simTime() - lastDroveAt > 3){
                 // set the triffic lights
                 getMapSystem()->getManager()->commandSetTrafficLightPhaseIndex("2/2", 6);
-                srt->dblMap["stopPos"] = this->getLanePosition();
+                srt->dblMap["stopPos"] = 280.6 - this->getLanePosition();
                 srt->dblMap["startTime"] = simTime().dbl();
             }
             if(road_id == "2/2to0/2"){
                 getMapSystem()->getManager()->commandSetTrafficLightPhaseIndex("0/2", 0);
-                srt->dblMap["secodStopPos"] = this->getLanePosition();
+                srt->dblMap["secodStopPos"] = 280.6 - this->getLanePosition();
                 srt->dblMap["secodStopTime"] = simTime().dbl();
                 srt->dblMap["throughNextEdgeTime"] = simTime().dbl() - srt->dblMap["reachNextEdgeTime"];
             }
@@ -151,14 +151,19 @@ void TraCIMobility_Fixed::finish() {
     hasRouted = false;
     hasInitialized = false;
     getMapSystem()->unregisterVehiclePosition(last_road_id, simTime().dbl() - statistic_road_enterTime);
-    if(external_id == "nodeTarget"){
-        srt->changeName("passtime",
-                "roundID,num,lenInt,speedInt,stopPos,startTime,passFirstTime,droveOutTime,passJunctionTime,reachNextEdgeTime,throughNextEdgeTime,secodStopTime,secodStopPos,50mTime,100mTime,150mTime")
-                << srt->dblMap["roundID"] << srt->dblMap["num"] << srt->dblMap["lenInt"] << srt->dblMap["speedInt"]
-                << srt->dblMap["stopPos"] << srt->dblMap["startTime"] << srt->dblMap["passFirstTime"]
-                << srt->dblMap["droveOutTime"] << srt->dblMap["passJunctionTime"] << srt->dblMap["reachNextEdgeTime"]
-                << srt->dblMap["throughNextEdgeTime"] << srt->dblMap["secodStopTime"] << srt->dblMap["secodStopPos"]
-                << srt->dblMap["50mTime"] << srt->dblMap["100mTime"] << srt->dblMap["150mTime"] << srt->endl;
+    if(external_id[0] == 'T'){
+        string name = "passtime" + getMapSystem()->dou2str(srt->dblMap["speedInt"])
+                + external_id.substr(external_id.length() - 1);
+        string title = "";
+        title += "roundID,num,lenInt,speedInt,";
+        title += "stopPos,startTime,passFirstTime,droveOutTime,passJunctionTime,reachNextEdgeTime,";
+        title += "throughNextEdgeTime,secodStopTime,secodStopPos,50mTime,100mTime,150mTime";
+        srt->changeName(name, title) << srt->dblMap["roundID"] << srt->dblMap["num"] << srt->dblMap["lenInt"]
+                << srt->dblMap["speedInt"] << srt->dblMap["stopPos"] << srt->dblMap["startTime"]
+                << srt->dblMap["passFirstTime"] << srt->dblMap["droveOutTime"] << srt->dblMap["passJunctionTime"]
+                << srt->dblMap["reachNextEdgeTime"] << srt->dblMap["throughNextEdgeTime"]
+                << srt->dblMap["secodStopTime"] << srt->dblMap["secodStopPos"] << srt->dblMap["50mTime"]
+                << srt->dblMap["100mTime"] << srt->dblMap["150mTime"] << srt->endl;
     }
 }
 

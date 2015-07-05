@@ -67,6 +67,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                 intMap["startTickID"] = intMap["tickID"];
                 intMap["turnID"] = 0;
                 getMapSystem()->getManager()->commandSetTrafficLightPhaseIndex("2/2", 5);
+                getMapSystem()->getManager()->commandSetTrafficLightPhaseIndex("0/2", 2);
             }else{
                 // for each round
                 if(intMap["roundID"] > 0){
@@ -108,7 +109,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                                     }
                                 }else{
                                     // turn left
-                                    std::cout << "turn left" << std::endl;
+                                    //std::cout << "turn left" << std::endl;
                                     intMap["turnID"]++;
                                     intMap["carSID"]++;
                                     vid = "L" + getMapSystem()->int2str(intMap["carSID"]);
@@ -120,7 +121,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                                 break;
                             case 3:
                                 // stright
-                                std::cout << "stright" << std::endl;
+                                //std::cout << "stright" << std::endl;
                                 intMap["carSID"]++;
                                 vid = "S" + getMapSystem()->int2str(intMap["carSID"]);
                                 vtype = vtype + "L00" + "N";
@@ -130,7 +131,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                                 break;
                             case 9:
                                 // turn right
-                                std::cout << "turn right" << std::endl;
+                                //std::cout << "turn right" << std::endl;
                                 intMap["carSID"]++;
                                 vid = "R" + getMapSystem()->int2str(intMap["carSID"]);
                                 vtype = vtype + "L00" + "N";
@@ -146,9 +147,9 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                         // turn left
                         intMap["turnID"]++;
                         intMap["carSID"]++;
-                        string vid = "T" + getMapSystem()->int2str(intMap["carSID"]);
                         string vtype = "";
-                        vtype = vtype + "L00" + "S";
+                        vtype = vtype + "L00" + "F";
+                        string vid = "T" + getMapSystem()->int2str(intMap["carSID"]) + vtype;
                         if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2", 0, 10, 0, 2)){
                             std::cout << "adding car failed:" << vid << "," << vtype << std::endl;
                         }
@@ -166,7 +167,9 @@ void GlobalVehicleManager::finish() {
     for(std::map<string, cMessage*>::iterator it = msgMap.begin(); it != msgMap.end(); it++){
         cancelAndDelete(it->second);
     }
-    srt->outputSeparate("passtime", "results");
+    srt->outputSeparate("passtime.txt", "results");
+
+    srt->release();
 }
 
 GlobalMapSystem* GlobalVehicleManager::getMapSystem() {

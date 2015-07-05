@@ -39,6 +39,7 @@ void StatisticsRecordTools::setDefaultDir(string dir) {
 }
 
 StatisticsRecordTools::~StatisticsRecordTools() {
+    outputSeparate("default.txt","results");
     clean();
 }
 
