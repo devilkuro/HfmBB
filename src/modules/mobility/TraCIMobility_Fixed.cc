@@ -152,7 +152,7 @@ void TraCIMobility_Fixed::finish() {
     hasInitialized = false;
     getMapSystem()->unregisterVehiclePosition(last_road_id, simTime().dbl() - statistic_road_enterTime);
     if(external_id[0] == 'T'){
-        string name = "passtime" + getMapSystem()->dou2str(srt->dblMap["speedInt"])
+        string name = "passtime-ao-" + getMapSystem()->dou2str(srt->dblMap["speedInt"])
                 + external_id.substr(external_id.length() - 1);
         string title = "";
         title += "roundID,num,lenInt,speedInt,";
