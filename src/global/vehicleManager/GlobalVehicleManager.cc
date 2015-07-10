@@ -148,7 +148,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                         intMap["turnID"]++;
                         intMap["carSID"]++;
                         string vtype = "";
-                        vtype = vtype + "L00" + "F";
+                        vtype = vtype + "L00" + "S";
                         string vid = "T" + getMapSystem()->int2str(intMap["carSID"]) + vtype;
                         if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2", 0, 10, 0, 2)){
                             std::cout << "adding car failed:" << vid << "," << vtype << std::endl;
