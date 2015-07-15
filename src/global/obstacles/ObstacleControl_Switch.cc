@@ -18,7 +18,6 @@
 Define_Module(ObstacleControl_Switch)
 
 void ObstacleControl_Switch::initialize(int stage) {
-    // TODO - Generated method body
     if (stage == 1) {
         debug = par("debug");
 

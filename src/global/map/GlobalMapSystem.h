@@ -28,7 +28,7 @@
 #include "AnnotationManager_Colorful.h"
 
 /**
- * TODO - Generated class
+ *
  */
 using std::string;
 using std::map;
@@ -41,8 +41,14 @@ public:
     GlobalMapSystem();
     virtual ~GlobalMapSystem();
 public:
+
+public:
     class Lane;
     class Edge;
+    class MapEdge;
+    class MapRoute;
+    class MapNode;
+    class MapEdgeWight;
     class Lane {
     public:
         string name;
@@ -61,21 +67,84 @@ public:
         int linkNumber;
         set<Edge*> links;
         double length;
+
         void setColor(string color);
     };
     class Node {
+    public:
         string name;
         string type;
         Coord pos;
         double r;
+        list<AnnotationManager_Colorful::Line_Colorful*> visualRepresentations;
         void setColor(string color);
     };
-
+    class MapEdge {
+    public:
+        Edge* edge;
+        Coord startPos;
+        Coord endPos;
+        list<MapRoute*> cacheRoutes;
+        vector<MapRoute*> routes;
+    };
+    class MapRoute {
+    public:
+        string target;
+        double length;
+        list<string> edges;
+        int getVehicleNum();
+    };
+    class MapNode {
+    public:
+        Coord pos;
+        map<string,MapEdge*> inEdges;
+        map<string,MapEdge*> outEdges;
+    };
+    class MapEdgeWight {
+    public:
+        MapEdge* edge;
+        MapEdge* preEdge;
+        double outTime;
+        double getOutTime(double enterTime);
+        bool operator<(MapEdgeWight& rhs) {
+            return this->outTime < rhs.outTime;
+        }
+    };
 public:
-    virtual int generateMap(int stage);
+    // API_PART
+    // functions to add vehicles
+    bool addOneVehicle(string vehicleId = "", string vehicleTypeId = "", string routeId = "", simtime_t emitTime_st =
+            simTime(), double emitPosition = 0, double emitSpeed = 0, int8_t emitLane = 0); // add a car of a certain type
+    bool addVehicles(int num, string vehicleId = "", string vehicleTypeId = "", string routeId = "",
+            simtime_t emitTime_st = simTime(), double emitPosition = 0, double emitSpeed = 0, int8_t emitLane = 0); // add several cars of a certain type
+    // lane change mode control
+    void setLaneChangeMode(string nodeId, uint32_t bitset);
+    void setLaneChangePermission(string nodeId, bool allowed);
+    // record vehicle number
+    void registerVehiclePosition(string road_id);
+    void changeVehiclePosition(string road_from, string road_to, double pass_time = -1);
+    void unregisterVehiclePosition(string road_id, double pass_time = -1);
+    // get vehicle number
+    int getVehicleNumByEdge(string edge);
+    double getAvgTravelTimeByEdge(string edge);
+
+    // OTHER_API PART
+    virtual bool isInitializedFinished();
+    virtual uint32_t getActiveVehicleCount();
     virtual double getTravelTime(string edge, double time, double speed);
     virtual list<string> getFastestRoute(string fromEdge, string toEdge);
+    virtual list<string> getShortestRoute(string fromEdge, string toEdge);
     virtual list<string> getRandomRoute(string from, double length = 72000);
+    virtual list<string> getAllEdges();
+    virtual list<string> getNextEdges(string edge);
+    virtual double getEdgeLength(string edge);
+    virtual list<Coord> getLaneShape(string lane);
+    virtual list<Coord> getEdgeShape(string edge);
+
+    string getRandomEdgeFromCache();
+
+    virtual void setVehicleRouteByEdgeList(string id, list<std::string> route);
+    // protected..
     virtual GlobalMobilityLaunchd* getManager() const {
         if(!manager){
             manager = GlobalMobilityLaunchdAccess().get();
@@ -90,65 +159,61 @@ protected:
     virtual int numInitStages() const {
         return std::max(cSimpleModule::numInitStages(), 3);
     }
+
     // map generating process
+    virtual int generateMap(int stage);
     void getLanesAndEdges();
+    void getNodes(); // get junctions
     void connectLanesAndEdges();
     void drawMap();
     void reduceMap();
     void optimizeMap();
+    void outputMap();
+    void weightEdges(); // set the area weight for each edge.
 
-    list<string> commandGetLanes(Lane* lane);
+    // non-public APIs
+    list<string> getNextLanes(Lane* lane);
 
 protected:
     mutable GlobalMobilityLaunchd* manager;
     AnnotationManager_Colorful* annotations;
     AnnotationManager_Colorful::Group* annotationGroup;
+    // used in map generating process
     map<string, Lane*> laneMap;
     map<string, Edge*> edgeMap;
+    map<string, Node*> nodeMap;
 
     cMessage* stateSwitchMsg;
     cMessage* startMsg;
+    cMessage* updateMsg;
 
     int mapstage;
     bool noconnect;
     bool mapSystemInitialized;
     int hostnum;
-    int curHostnum;
+    int lastHostNo;
 
-private:
-    class MapEdge;
-    class MapRoute;
-    class MapNode;
-    class MapEdge {
-    public:
-        Edge* edge;
-        list<MapRoute*> routes;
-        vector<MapRoute*> routeArray;
-    };
-    class MapRoute {
-    public:
-        string target;
-        double length;
-        list<string> edges;
-    };
-    class MapNode {
-    public:
-        Coord pos;
-        set<MapEdge*> inEdges;
-        set<MapEdge*> outEdges;
-    };
-private:
-    string getRandomEdgeFromCache();
+public:
 
     string int2str(int i);
+    string dou2str(double i);
     string double2color(double d);
     string rgb2color(int r, int g, int b);
 private:
-    // use for searching routes
+    // used in path-finding
     vector<MapEdge*> cacheEdgeArray;
     map<string, MapEdge*> cacheBackupEdges;
-    mutable list<MapEdge*> cacheUntappedEdges;
-    mutable list<MapEdge*> cacheTappedEdges;
+    mutable list<MapEdgeWight> cacheUntappedEdges;
+    mutable list<MapEdgeWight> cacheTappedEdges;
+    // record vehicle number
+    map<string, int> roadVehicleNumMap;
+    map<string, double> roadVehiclePassTimeMap;
+    int vehicleNumber;
 };
-
+class GlobalMapSystemAccess {
+public:
+    GlobalMapSystem* get() {
+        return FindModule<GlobalMapSystem*>::findGlobalModule();
+    }
+};
 #endif

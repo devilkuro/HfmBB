@@ -24,14 +24,14 @@ AnnotationManager_Colorful::Line_Colorful* AnnotationManager_Colorful::drawLine_
 
     annotations.push_back(l);
 
-    if (par("draw"))
+    if(par("draw")){
         show(l);
-
+    }
     return l;
 }
 
 void AnnotationManager_Colorful::Line_Colorful::setColor(std::string color) {
-    for (std::list<cModule*>::iterator it = dummyObjects.begin(); it != dummyObjects.end(); it++) {
+    for(std::list<cModule*>::iterator it = dummyObjects.begin(); it != dummyObjects.end(); it++){
         (*it)->getDisplayString().setTagArg("b", 4, color.c_str());
     }
 }

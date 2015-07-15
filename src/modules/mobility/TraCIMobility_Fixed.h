@@ -18,16 +18,54 @@
 
 #include <omnetpp.h>
 #include "TraCIMobility.h"
+#include "GlobalMapSystem.h"
+#include "string"
+#include "StatisticsRecordTools.h"
+#include "ASMTimer.h"
 
+using Fanjing::StatisticsRecordTools;
 /**
- * TODO - Generated class
+ *
  */
-class TraCIMobility_Fixed : public TraCIMobility
-{
+//using std::string;
+class TraCIMobility_Fixed : public TraCIMobility {
 public:
-    virtual void preInitialize(std::string external_id, const Coord& position, std::string road_id = "", double speed = -1, double angle = -1);
-    virtual void nextPosition(const Coord& position, std::string road_id = "", double speed = -1, double angle = -1, TraCIScenarioManager::VehicleSignal signals = TraCIScenarioManager::VEH_SIGNAL_UNDEF);
+    virtual void initialize(int);
+    virtual void finish();
+    virtual void preInitialize(std::string external_id, const Coord& position, std::string road_id = "", double speed =
+            -1, double angle = -1);
+    virtual void nextPosition(const Coord& position, std::string road_id = "", double speed = -1, double angle = -1,
+            TraCIScenarioManager::VehicleSignal signals = TraCIScenarioManager::VEH_SIGNAL_UNDEF);
     virtual void changePosition();
+    virtual GlobalMapSystem* getMapSystem() const {
+        if(!map){
+            map = GlobalMapSystemAccess().get();
+        }
+        ASSERT(map);
+        return map;
+    }
+protected:
+    // set lane change mode of this node
+    void disableLaneChange();
+    void allowLaneChange();
+
+    // get lane position of this vehicle
+    double getLanePosition();
+protected:
+    mutable GlobalMapSystem *map;
+    StatisticsRecordTools* srt;
+    simtime_t lastDroveAt;
+    // fixme chage to the correct class
+    ASMTimer asmtimer;
+    // path process
+    bool hasRouted;
+    // statistics members
+    bool hasInitialized;
+    double statistic_road_enterTime;
+    double statistic_start_time;
+    int statistic_road_enterVehicleNum;
+    int statistic_junction_enterVehicleNum;
+    string last_road_id;
 };
 
 #endif

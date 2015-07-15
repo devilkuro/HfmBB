@@ -21,18 +21,42 @@
 #include "TraCIConstants.h"
 
 /**
- * TODO - Generated class
+ *
  */
-class GlobalMobilityLaunchd: public TraCIScenarioManagerLaunchd {
+class GlobalMobilityLaunchd : public TraCIScenarioManagerLaunchd {
 public:
     virtual ~GlobalMobilityLaunchd();
 
 public:
+    enum GMLLaneChangeMode {
+        GML_NO_STRATEGIC = 0x00,
+        GML_ALLOW_STRATEGIC = 0x01,
+        GML_FORCE_STRATEGIC = 0x02,
+        GML_NO_COOPERATIVE = 0x00 << 2,
+        GML_ALLOW_COOPERATIVE = 0x01 << 2,
+        GML_FORCE_COOPERATIVE = 0x02 << 2,
+        GML_NO_SPEED_GAIN = 0x00 << 4,
+        GML_ALLOW_SPEED_GAIN = 0x01 << 4,
+        GML_FORCE_SPEED_GAIN = 0x02 << 4,
+        GML_NO_DRIVE_ON_RIGHT = 0x00 << 6,
+        GML_ALLOW_DRIVE_ON_RIGHT = 0x01 << 6,
+        GML_FORCE_DRIVE_ON_RIGHT = 0x02 << 6,
+        GML_EXT_TRACI_IGNORE_OTHERS = 0x00 << 8,
+        GML_EXT_TRACI_AVOID_COLLISIONS = 0x01 << 8,
+        GML_EXT_TRACI_ONLY_BY_SPEED = 0x10 << 8,
+        GML_EXT_TRACI_NATURAL = 0x11 << 8,
+        GML_ALLOW_ALL = GML_ALLOW_STRATEGIC | GML_ALLOW_COOPERATIVE | GML_ALLOW_SPEED_GAIN | GML_ALLOW_DRIVE_ON_RIGHT,
+        GML_DISALLOW_ALL = GML_NO_STRATEGIC|GML_NO_COOPERATIVE|GML_NO_SPEED_GAIN|GML_NO_DRIVE_ON_RIGHT
+    };
+public:
+    uint32_t getActiveVehicleCount();
     std::list<std::string> commandGetLaneLinksIds(std::string laneId);
     void commandAddRoute(std::string routeId, std::list<std::string> route);
-    void commandChangeRouteByEdgeList(std::string nodeId, std::list<std::string> route);
+    void commandSetRouteByEdgeList(std::string nodeId, std::list<std::string> route);
+    void commandSetLaneChangeMode(std::string nodeId, uint32_t bitset);
 protected:
-    std::list<std::string> laneLinksGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId);
+    std::list<std::string> laneLinksGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId,
+            uint8_t responseId);
 };
 class GlobalMobilityLaunchdAccess {
 public:

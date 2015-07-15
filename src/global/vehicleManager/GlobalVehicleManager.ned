@@ -13,30 +13,13 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __SMARTCITYFLOWRESERVED_TESTAPPDEMO_H_
-#define __SMARTCITYFLOWRESERVED_TESTAPPDEMO_H_
+package smartcity.flowreserved.global.vehicleManager;
 
-#include "BaseWaveApplLayer.h"
-#include "mobility/traci/TraCIMobility.h"
-
-/**
- *
- */
-class TestAppDemo : public BaseWaveApplLayer {
-public:
-    virtual void initialize(int stage);
-
-protected:
-    TraCIMobility* traci;
-    AnnotationManager* annotations;
-    simtime_t lastDroveAt;
-    bool sentMessage;
-
-protected:
-    virtual void onBeacon(WaveShortMessage* wsm);
-    virtual void onData(WaveShortMessage* wsm);
-    void sendMessage(std::string blockedRoadId);
-    virtual void handlePositionUpdate(cObject* obj);
-};
-
-#endif
+//
+// TODO auto-generated module
+//
+simple GlobalVehicleManager
+{
+    parameters:
+        @class(GlobalVehicleManager);
+}

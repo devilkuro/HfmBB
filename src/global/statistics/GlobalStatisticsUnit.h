@@ -18,14 +18,35 @@ public:
     GlobalStatisticsUnit(int size);
     virtual ~GlobalStatisticsUnit();
 public:
-    double getData(int index) const;
+    enum UnitType {
+        UNIT_TYPE_ERROR = -1,
+        UNIT_TYPE_INT = 0,
+        UNIT_TYPE_UINT,
+        UNIT_TYPE_DOUBLE,
+        UNIT_TYPE_STRING
+    };
+    struct DataUnit {
+        UnitType type;
+        union {
+            int intData;
+            unsigned uintData;
+            double douData;
+        };
+        string strData;
+        string toString();
+    };
+public:
+    int getDataType(int index);
     void setData(double data, int index);
+    void setData(int data, int index);
+    void setData(unsigned int data, int index);
+    void setData(string data, int index);
     int getSize() const;
     string toString();
 
 private:
     int size;       // read only, it must be set at initialize phase.
-    double *data;   // statistics data
+    DataUnit *data;   // statistics data
 };
 
 #endif /* GLOBALSTATISTICSUNIT_H_ */

@@ -29,25 +29,36 @@ void GlobalMobilityLaunchd::commandAddRoute(std::string routeId, std::list<std::
     uint8_t variableType = TYPE_STRINGLIST;
     int32_t count = route.size();
     TraCIBuffer buf = TraCIBuffer();
-    buf<<variableId<<routeId<<variableType<<count;
-    for(std::list<std::string>::iterator it = route.begin();it!=route.end();it++){
-        buf<<(*it);
+    buf << variableId << routeId << variableType << count;
+    for(std::list<std::string>::iterator it = route.begin(); it != route.end(); it++){
+        buf << (*it);
     }
-    TraCIBuffer buf0 = queryTraCI(CMD_SET_ROUTE_VARIABLE,buf);
+    TraCIBuffer buf0 = queryTraCI(CMD_SET_ROUTE_VARIABLE, buf);
     ASSERT(buf0.eof());
 }
 
-void GlobalMobilityLaunchd::commandChangeRouteByEdgeList(std::string nodeId, std::list<std::string> route) {
+void GlobalMobilityLaunchd::commandSetRouteByEdgeList(std::string nodeId, std::list<std::string> route) {
     uint8_t variableId = VAR_ROUTE;
     uint8_t variableType = TYPE_STRINGLIST;
     int32_t count = route.size();
     TraCIBuffer buf = TraCIBuffer();
-    buf<<variableId<<nodeId<<variableType<<count;
-    for(std::list<std::string>::iterator it = route.begin();it!=route.end();it++){
-        buf<<(*it);
+    buf << variableId << nodeId << variableType << count;
+    for(std::list<std::string>::iterator it = route.begin(); it != route.end(); it++){
+        buf << (*it);
     }
-    TraCIBuffer buf0 = queryTraCI(CMD_SET_VEHICLE_VARIABLE,buf);
+    TraCIBuffer buf0 = queryTraCI(CMD_SET_VEHICLE_VARIABLE, buf);
     ASSERT(buf0.eof());
+}
+
+uint32_t GlobalMobilityLaunchd::getActiveVehicleCount() {
+    return activeVehicleCount;
+}
+
+void GlobalMobilityLaunchd::commandSetLaneChangeMode(std::string nodeId, uint32_t bitset) {
+    uint8_t variableId = VAR_LANECHANGE_MODE;
+    uint8_t variableType = TYPE_INTEGER;
+    TraCIBuffer buf = queryTraCI(CMD_SET_VEHICLE_VARIABLE, TraCIBuffer() << variableId << nodeId << variableType << bitset);
+    ASSERT(buf.eof());
 }
 
 std::list<std::string> GlobalMobilityLaunchd::laneLinksGetStringList(uint8_t commandId, std::string objectId,
@@ -59,7 +70,7 @@ std::list<std::string> GlobalMobilityLaunchd::laneLinksGetStringList(uint8_t com
 
     uint8_t cmdLength;
     buf >> cmdLength;
-    if (cmdLength == 0) {
+    if(cmdLength == 0){
         uint32_t cmdLengthX;
         buf >> cmdLengthX;
     }
@@ -82,7 +93,7 @@ std::list<std::string> GlobalMobilityLaunchd::laneLinksGetStringList(uint8_t com
     ASSERT(numType == TYPE_INTEGER);
     uint32_t linkNumber;
     buf >> linkNumber;
-    for (uint32_t i = 0; i < linkNumber; i++) {
+    for(uint32_t i = 0; i < linkNumber; i++){
         // external id
         // consecutive not internal lane
         {

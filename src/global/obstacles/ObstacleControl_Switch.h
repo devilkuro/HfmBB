@@ -20,7 +20,7 @@
 #include "ObstacleControl.h"
 
 /**
- * TODO - Generated class
+ *
  */
 class ObstacleControl_Switch : public ObstacleControl
 {

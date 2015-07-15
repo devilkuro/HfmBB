@@ -1,0 +1,2 @@
+netgenerate -c fanjing.ngcfg.xml
+D:\2013102110015\omnetpp-veins\SmartCityFlowReserved\simulations>netgenerate -c fanjing.ngcfg.xml --no-turnarounds --no-turnarounds.tls --save-configuration fanjing.ngcfg.xml
