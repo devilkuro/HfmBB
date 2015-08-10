@@ -51,7 +51,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                 // modify roundID
                 intMap["roundID"]++;
                 int num = (intMap["roundID"] - 2 + 15) / (3 * 5);
-                int lenInt = (intMap["roundID"] - 1 + 1) % 5;
+                int lenInt = num == 0 ? 0 : (intMap["roundID"] - 2 + 1) % 5;
                 int speedInt = ((intMap["roundID"] - 1) / 5) % 3;
                 srt->dblMap["roundID"] = intMap["roundID"];
                 srt->dblMap["num"] = num;
@@ -74,10 +74,10 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                     // caculate the car number: for each number there 15 kinds: Speed:[S/N/F] & fisrt car length:L01~L04,L00(L05==L00);
                     // when the roundID == 1, there no other car in the map system.
                     // when the roundID == 2, L01 insert befrore target car
-                    int num = (intMap["roundID"] - 2 + 15) / (3 * 5);
-                    int lenInt = (intMap["roundID"] - 1 + 1) % 5;
+                    int num = srt->dblMap["num"];
+                    int lenInt = srt->dblMap["lenInt"];
                     string lenStr = "L0" + getMapSystem()->int2str(lenInt);
-                    int speedInt = ((intMap["roundID"] - 1) / 5) % 3;
+                    int speedInt = srt->dblMap["speedInt"];
                     string speedStr = "";
                     switch(speedInt){
                         case 0:
