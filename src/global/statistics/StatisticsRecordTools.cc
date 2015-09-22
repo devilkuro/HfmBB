@@ -177,7 +177,7 @@ void StatisticsRecordTools::output(string name, string dir, string field,
                 fs
                         << it->first
                                 + (titleMap[it->first] == "" ? "" :
-                                        (":" + titleMap[it->first])) << ","
+                                        (":" + titleMap[it->first])) << "\t"
                         << (*lit)->toString() << std::endl;
             }
         }

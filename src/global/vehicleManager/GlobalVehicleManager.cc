@@ -50,9 +50,9 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                 std::cout << intMap["roundID"] << std::endl;
                 // modify roundID
                 intMap["roundID"]++;
-                int num = (intMap["roundID"] - 2 + 15) / (3 * 5);
-                int lenInt = num == 0 ? 0 : (intMap["roundID"] - 2 + 1) % 5;
-                int speedInt = ((intMap["roundID"] - 1) / 5) % 3;
+                int num = (intMap["roundID"] - 4 + 15) / (3 * 5); // round = 4, num =1
+                int lenInt = ((intMap["roundID"] - 1)/3) % 5;   // round = 4, lenInt=1
+                int speedInt = (intMap["roundID"] - 1) % 3; // round = 4, speedInt = 0
                 srt->dblMap["roundID"] = intMap["roundID"];
                 srt->dblMap["num"] = num;
                 srt->dblMap["lenInt"] = lenInt;
@@ -150,7 +150,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                         intMap["turnID"]++;
                         intMap["carSID"]++;
                         string vtype = "";
-                        vtype = vtype + "L00" + "F";
+                        vtype = vtype + "L00" + "N";
                         string vid = "T" + getMapSystem()->int2str(intMap["carSID"]) + vtype;
                         if(!getMapSystem()->addOneVehicle(vid, vtype, "2/0to2/2", 0, 10, 0, 1)){
                             std::cout << "adding car failed:" << vid << "," << vtype << std::endl;

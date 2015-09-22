@@ -71,7 +71,7 @@ string StatisticsRecordUnit::toString() {
     stringstream ss;
     for(int i = 0; i < size; i++){
         if(i != 0)
-            ss << ",";
+            ss << "\t";
         ss << data[i].toString();
     }
     return ss.str();
