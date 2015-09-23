@@ -70,5 +70,10 @@ private:
     void addOneVehicle(VehicleType type);   // add a car of a certain type
     void addVehicles(VehicleType type, int num); // add several cars of a certain type
 };
-
+class GlobalVehicleManagerAccess {
+public:
+    GlobalVehicleManager* get() {
+        return FindModule<GlobalVehicleManager*>::findGlobalModule();
+    }
+};
 #endif

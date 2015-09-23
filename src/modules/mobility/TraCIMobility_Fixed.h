@@ -22,6 +22,7 @@
 #include "string"
 #include "StatisticsRecordTools.h"
 #include "ASMTimer.h"
+#include "GlobalVehicleManager.h"
 
 using Fanjing::StatisticsRecordTools;
 /**
@@ -44,6 +45,13 @@ public:
         ASSERT(map);
         return map;
     }
+    virtual GlobalVehicleManager* getVehicleManager() const {
+        if(!vehicleManager){
+            vehicleManager = GlobalVehicleManagerAccess().get();
+        }
+        ASSERT(vehicleManager);
+        return vehicleManager;
+    }
 protected:
     // set lane change mode of this node
     void disableLaneChange();
@@ -51,8 +59,11 @@ protected:
 
     // get lane position of this vehicle
     double getLanePosition();
+
+
 protected:
     mutable GlobalMapSystem *map;
+    mutable GlobalVehicleManager *vehicleManager;
     StatisticsRecordTools* srt;
     simtime_t lastDroveAt;
     // fixme chage to the correct class
@@ -66,6 +77,13 @@ protected:
     int statistic_road_enterVehicleNum;
     int statistic_junction_enterVehicleNum;
     string last_road_id;
+
+private:
+    void processAfterRouting();
+    void statisticAtFinish();
+    void processAtRouting();
+    void processWhenChangeRoad();
+    void processWhenNextPosition();
 };
 
 #endif
