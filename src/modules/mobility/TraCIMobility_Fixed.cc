@@ -108,6 +108,7 @@ void TraCIMobility_Fixed::processAfterRouting() {
 
 void TraCIMobility_Fixed::statisticAtFinish() {
     // statisticAtFinish
+    // 2015-10-6
 }
 
 void TraCIMobility_Fixed::processAtRouting() {
