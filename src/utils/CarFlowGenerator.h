@@ -15,13 +15,52 @@
 
 #ifndef CARFLOWGENERATOR_H_
 #define CARFLOWGENERATOR_H_
+#include <string>
+#include <list>
+#include <iostream>
+#include "tinyxml2.h"
+
+using namespace std;
+using namespace tinyxml2;
 
 class CarFlowGenerator {
+public:
+    enum RouteType {
+        CFG_ROUTETYPE_OD = 0, // normal route: from origin to destination
+        CFG_ROUTETYPE_LOOP,   // cyclic route: A-..-B-..-..-X(-..-A-..)
+        CFG_ROUTETYPE_LAST_TYPE
+    };
 public:
     CarFlowGenerator();
     virtual ~CarFlowGenerator();
 
+    bool addODCar(string id, string origin, string destination, double time, string vtype);
+    bool addLoopCar(string id, list<string> loop, double time, string vtype);
 
+    list<string> getAllCars();
+    string getRouteTypeOfCar(string id);
+    string getOriginOfODCar(string id);
+    string getDestinationOfODCar(string id);
+    list<string> getLoopOfLoopCar(string id);
+    string getCarTypeOFCar(string id);
+    double getDepartTimeOfCar(string id);
+
+    list<string> switchRouteToRoadList(string route);
+    string switchRoadListToRoute(list<string> roadlist);
+
+
+    bool setXMLPath(string path);
+    void clear(bool save = false);
+    void save();
+protected:
+    XMLElement* root;
+    XMLDocument* doc;
+    string path;
+    bool notSaved;
+
+    XMLElement* seekChildElementByAttribute(string name, string value);
+    list<string> splitStringToWordsList(string str);
+    void finish();
 };
 
 #endif /* CARFLOWGENERATOR_H_ */
