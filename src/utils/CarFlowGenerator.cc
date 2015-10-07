@@ -16,12 +16,11 @@
 #include "CarFlowGenerator.h"
 
 namespace Fanjing {
-
 CarFlowGenerator::CarFlowGenerator() {
     // TODO Auto-generated constructor stub
     doc = NULL;
     root = NULL;
-    path = "";
+    carXMLPath = "";
     notSaved = false;
     precisionOfTime = 1;
 }
@@ -34,15 +33,15 @@ bool CarFlowGenerator::setXMLPath(string path) {
     if(doc == NULL){
         return loadXML(path);;
     }
-    this->path = path;
+    this->carXMLPath = path;
     notSaved = true;
     return true;
 }
 
 bool CarFlowGenerator::loadXML(string path) {
     // todo
-    if (this->path == "") {
-        this->path = path;
+    if(this->carXMLPath == ""){
+        this->carXMLPath = path;
     }
     if(doc == NULL){
         doc = new XMLDocument();
@@ -89,7 +88,7 @@ bool CarFlowGenerator::addODCar(string id, string origin, string destination,
     XMLElement* e = seekChildElementByAttribute("id", id);
     if(e){
         // the id is already here.
-        if(!e->Attribute("type", "CFG_ROUTETYPE_OD")){
+        if(!e->Attribute("type", "SMTCARINFO_ROUTETYPE_OD")){
             root->DeleteChild(e);
             e = doc->NewElement("car");
             root->LinkEndChild(e);
@@ -101,10 +100,11 @@ bool CarFlowGenerator::addODCar(string id, string origin, string destination,
         beNewCar = true;
     }
     e->SetAttribute("id", id.c_str());
-    e->SetAttribute("type", "CFG_ROUTETYPE_OD");
+    e->SetAttribute("type", "SMTCARINFO_ROUTETYPE_OD");
     e->SetAttribute("origin", origin.c_str());
     e->SetAttribute("destination", destination.c_str());
-    e->SetAttribute("time", StringHelper::dbl2str(time,precisionOfTime).c_str());
+    e->SetAttribute("time",
+            StringHelper::dbl2str(time, precisionOfTime).c_str());
     e->SetAttribute("vtype", vtype.c_str());
     return beNewCar;
 }
@@ -117,7 +117,7 @@ bool CarFlowGenerator::addLoopCar(string id, list<string> loop, double time,
     XMLElement* e = seekChildElementByAttribute("id", id);
     if(e){
         // the id is already here.
-        if(!e->Attribute("type", "CFG_ROUTETYPE_LOOP")){
+        if(!e->Attribute("type", "SMTCARINFO_ROUTETYPE_LOOP")){
             root->DeleteChild(e);
             e = doc->NewElement("car");
             root->LinkEndChild(e);
@@ -129,53 +129,27 @@ bool CarFlowGenerator::addLoopCar(string id, list<string> loop, double time,
         beNewCar = true;
     }
     e->SetAttribute("id", id.c_str());
-    e->SetAttribute("type", "CFG_ROUTETYPE_LOOP");
+    e->SetAttribute("type", "SMTCARINFO_ROUTETYPE_LOOP");
     e->SetAttribute("loop", route.c_str());
-    e->SetAttribute("time", StringHelper::dbl2str(time,precisionOfTime).c_str());
+    e->SetAttribute("time",
+            StringHelper::dbl2str(time, precisionOfTime).c_str());
     e->SetAttribute("vtype", vtype.c_str());
     return beNewCar;
 }
 
 string CarFlowGenerator::getOriginOfODCar(string id) {
     XMLElement* e = seekChildElementByAttribute("id", id);
-    if(e != NULL){
-        if(e->Attribute("type", "CFG_ROUTETYPE_OD")){
-            if(e->Attribute("origin")){
-                return e->Attribute("origin");
-            }
-        }
-    }
-    return "";
+    return getOriginOfODCar(e);
 }
 
 string CarFlowGenerator::getDestinationOfODCar(string id) {
     XMLElement* e = seekChildElementByAttribute("id", id);
-    if(e != NULL){
-        if(e->Attribute("type", "CFG_ROUTETYPE_OD")){
-            if(e->Attribute("destination")){
-                return e->Attribute("destination");
-            }
-        }
-    }
-    return "";
+    return getDestinationOfODCar(e);
 }
 
 list<string> CarFlowGenerator::getLoopOfLoopCar(string id) {
-    list<string> result;
     XMLElement* e = seekChildElementByAttribute("id", id);
-    if(e != NULL){
-        if(e->Attribute("type", "CFG_ROUTETYPE_LOOP")){
-            if(e->Attribute("loop")){
-                string route = e->Attribute("loop");
-                if(route != ""){
-                    return switchRouteToRoadList(route);
-                }else{
-                    cout << "empty route:" << route << endl;
-                }
-            }
-        }
-    }
-    return result;
+    return getLoopOfLoopCar(e);
 }
 
 XMLElement* CarFlowGenerator::seekChildElementByAttribute(string name,
@@ -216,26 +190,17 @@ list<string> CarFlowGenerator::splitStringToWordsList(string str) {
 
 string CarFlowGenerator::getRouteTypeOfCar(string id) {
     XMLElement* e = seekChildElementByAttribute("id", id);
-    if(e != NULL){
-        return e->Attribute("type") == NULL ? "" : e->Attribute("type");
-    }
-    return "";
+    return getRouteTypeOfCar(e);
 }
 
 string CarFlowGenerator::getCarTypeOFCar(string id) {
     XMLElement* e = seekChildElementByAttribute("id", id);
-    if(e != NULL){
-        return e->Attribute("vtype") == NULL ? "" : e->Attribute("vtype");
-    }
-    return "";
+    return getCarTypeOFCar(e);
 }
 
 double CarFlowGenerator::getDepartTimeOfCar(string id) {
     XMLElement* e = seekChildElementByAttribute("id", id);
-    if(e != NULL){
-        return e->Attribute("time") == NULL ? 0 : e->DoubleAttribute("time");
-    }
-    return 0;
+    return getDepartTimeOfCar(e);
 }
 
 list<string> CarFlowGenerator::getAllCars() {
@@ -262,10 +227,38 @@ void CarFlowGenerator::save(string path) {
         loadXML(path);
     }
     if(path == ""){
-        path = this->path;
+        path = this->carXMLPath;
     }
     doc->SaveFile(path.c_str());
     notSaved = false;
+}
+
+SMTCarInfo CarFlowGenerator::getCar(string id) {
+    // todo
+    SMTCarInfo car;
+    XMLElement* e = seekChildElementByAttribute("id", id);
+    if(e != NULL){
+        string vtype = getCarTypeOFCar(e);
+        string rtype = getRouteTypeOfCar(e);
+        car.id = id;
+        car.vtype = vtype;
+        car.time = getDepartTimeOfCar(e);
+        // read the default info of the vtype
+        if(SMTCarInfo().hasInitialized()){
+            car = SMTCarInfo().getDefaultVeicleTypeInfo(vtype);
+        }
+        if(vtype == "SMTCARINFO_ROUTETYPE_OD"){
+            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_OD;
+            car.origin = getOriginOfODCar(e);
+            car.destination = getDestinationOfODCar(e);
+        }else if(vtype == "SMTCARINFO_ROUTETYPE_LOOP"){
+            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_LOOP;
+            car.loop = switchRoadListToRoute(getLoopOfLoopCar(e));
+        }else{
+            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_LAST_TYPE;
+        }
+    }
+    return car;
 }
 
 void CarFlowGenerator::finish() {
@@ -282,5 +275,66 @@ void CarFlowGenerator::finish() {
 void CarFlowGenerator::setPrecisionOfTime(int precision) {
     this->precisionOfTime = precision;
 }
+
+string CarFlowGenerator::getRouteTypeOfCar(XMLElement* e) {
+    if(e != NULL){
+        return e->Attribute("type") == NULL ? "" : e->Attribute("type");
+    }
+    return "";
+}
+
+string CarFlowGenerator::getOriginOfODCar(XMLElement* e) {
+    if(e != NULL){
+        if(e->Attribute("type", "SMTCARINFO_ROUTETYPE_OD")){
+            if(e->Attribute("origin")){
+                return e->Attribute("origin");
+            }
+        }
+    }
+    return "";
+}
+
+string CarFlowGenerator::getDestinationOfODCar(XMLElement* e) {
+    if(e != NULL){
+        if(e->Attribute("type", "SMTCARINFO_ROUTETYPE_OD")){
+            if(e->Attribute("destination")){
+                return e->Attribute("destination");
+            }
+        }
+    }
+    return "";
+}
+
+list<string> CarFlowGenerator::getLoopOfLoopCar(XMLElement* e) {
+    list<string> result;
+    if(e != NULL){
+        if(e->Attribute("type", "SMTCARINFO_ROUTETYPE_LOOP")){
+            if(e->Attribute("loop")){
+                string route = e->Attribute("loop");
+                if(route != ""){
+                    return switchRouteToRoadList(route);
+                }else{
+                    cout << "empty route:" << route << endl;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+string CarFlowGenerator::getCarTypeOFCar(XMLElement* e) {
+    if(e != NULL){
+        return e->Attribute("vtype") == NULL ? "" : e->Attribute("vtype");
+    }
+    return "";
+}
+
+double CarFlowGenerator::getDepartTimeOfCar(XMLElement* e) {
+    if(e != NULL){
+        return e->Attribute("time") == NULL ? 0 : e->DoubleAttribute("time");
+    }
+    return 0;
+}
+
 } /* namespace Fanjing */
 

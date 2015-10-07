@@ -36,6 +36,7 @@ public:
     bool addLoopCar(string id, list<string> loop, double time, string vtype);
 
     list<string> getAllCars();
+    SMTCarInfo getCar(string id);
     string getRouteTypeOfCar(string id);
     string getOriginOfODCar(string id);
     string getDestinationOfODCar(string id);
@@ -56,7 +57,7 @@ public:
 protected:
     XMLElement* root;
     XMLDocument* doc;
-    string path;
+    string carXMLPath;
     bool notSaved;
 
     int precisionOfTime;
@@ -64,9 +65,14 @@ protected:
     XMLElement* seekChildElementByAttribute(string name, string value);
     list<string> splitStringToWordsList(string str);
     void finish();
-};
 
-class CarInfo{
+    // xml related functions
+    string getRouteTypeOfCar(XMLElement* e);
+    string getOriginOfODCar(XMLElement* e);
+    string getDestinationOfODCar(XMLElement* e);
+    list<string> getLoopOfLoopCar(XMLElement* e);
+    string getCarTypeOFCar(XMLElement* e);
+    double getDepartTimeOfCar(XMLElement* e);
 
 };
 

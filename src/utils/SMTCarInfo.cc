@@ -64,11 +64,16 @@ void SMTCarInfo::loadVehicleTypeXML(string path) {
     doc->Clear();
 }
 
-SMTCarInfo SMTCarInfo::getDefaultVeicleTypeInfo(string id) {
-    if(vTypeMap.find(id) != vTypeMap.end()){
-        return vTypeMap[id];
+SMTCarInfo SMTCarInfo::getDefaultVeicleTypeInfo(string vTypeId) {
+    if(vTypeMap.find(vTypeId) != vTypeMap.end()){
+        return vTypeMap[vTypeId];
     }
     return SMTCarInfo();
+}
+
+bool SMTCarInfo::hasInitialized() {
+    // todo this is a simple method
+    return vTypeMap.size()>0;
 }
 
 list<string> SMTCarInfo::getDefaultVeicleTypeList() {
@@ -81,3 +86,4 @@ list<string> SMTCarInfo::getDefaultVeicleTypeList() {
 }
 
 } /* namespace Fanjing */
+
