@@ -26,9 +26,6 @@ void TraCIMobility_Fixed::preInitialize(std::string external_id, const Coord& po
     map = NULL;
     last_road_id = "";  // in the preInitialize function, the car has not been on certain road already.
     srt = StatisticsRecordTools::request();
-    srt->dblMap["t50mTime"] = 0;
-    srt->dblMap["t100mTime"] = 0;
-    srt->dblMap["t150mTime"] = 0;
 }
 
 void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_id, double speed, double angle,

@@ -265,6 +265,7 @@ void GlobalMapSystem::getLanesAndEdges() {
 }
 
 void GlobalMapSystem::connectLanesAndEdges() {
+    // if noconnect is false, connect lanes and edges
     if(!noconnect){
         for(map<string, Lane*>::iterator it_lane = laneMap.begin(); it_lane != laneMap.end(); it_lane++){
             // get the name list of this lane's links
@@ -276,6 +277,7 @@ void GlobalMapSystem::connectLanesAndEdges() {
                     it_lane->second->linkNumber++;
                     // connect links' edge to the lane's edge
                     if(it_lane->second->edge->links.insert(laneMap[*it_link]->edge).second){
+                        // if insert a new lane, recalculate the edge length
                         it_lane->second->edge->length = (it_lane->second->edge->length
                                 * it_lane->second->edge->linkNumber + it_lane->second->length)
                                 / (it_lane->second->edge->linkNumber + 1);
