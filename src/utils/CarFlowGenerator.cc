@@ -15,12 +15,15 @@
 
 #include "CarFlowGenerator.h"
 
+namespace Fanjing {
+
 CarFlowGenerator::CarFlowGenerator() {
     // TODO Auto-generated constructor stub
     doc = NULL;
     root = NULL;
     path = "";
     notSaved = false;
+    precisionOfTime = 1;
 }
 
 CarFlowGenerator::~CarFlowGenerator() {
@@ -28,9 +31,22 @@ CarFlowGenerator::~CarFlowGenerator() {
 }
 
 bool CarFlowGenerator::setXMLPath(string path) {
-    // todo
+    if(doc == NULL){
+        return loadXML(path);;
+    }
     this->path = path;
-    doc = new XMLDocument();
+    notSaved = true;
+    return true;
+}
+
+bool CarFlowGenerator::loadXML(string path) {
+    // todo
+    if (this->path == "") {
+        this->path = path;
+    }
+    if(doc == NULL){
+        doc = new XMLDocument();
+    }
     XMLError e = doc->LoadFile(path.c_str());
     if(e == XML_ERROR_FILE_NOT_FOUND){
         XMLDeclaration* dec = doc->NewDeclaration();
@@ -88,7 +104,7 @@ bool CarFlowGenerator::addODCar(string id, string origin, string destination,
     e->SetAttribute("type", "CFG_ROUTETYPE_OD");
     e->SetAttribute("origin", origin.c_str());
     e->SetAttribute("destination", destination.c_str());
-    e->SetAttribute("time", time);
+    e->SetAttribute("time", StringHelper::dbl2str(time,precisionOfTime).c_str());
     e->SetAttribute("vtype", vtype.c_str());
     return beNewCar;
 }
@@ -115,7 +131,7 @@ bool CarFlowGenerator::addLoopCar(string id, list<string> loop, double time,
     e->SetAttribute("id", id.c_str());
     e->SetAttribute("type", "CFG_ROUTETYPE_LOOP");
     e->SetAttribute("loop", route.c_str());
-    e->SetAttribute("time", time);
+    e->SetAttribute("time", StringHelper::dbl2str(time,precisionOfTime).c_str());
     e->SetAttribute("vtype", vtype.c_str());
     return beNewCar;
 }
@@ -241,8 +257,14 @@ void CarFlowGenerator::clear(bool save) {
     }
 }
 
-void CarFlowGenerator::save() {
-    cout<<doc->SaveFile(path.c_str())<<endl;
+void CarFlowGenerator::save(string path) {
+    if(doc == NULL){
+        loadXML(path);
+    }
+    if(path == ""){
+        path = this->path;
+    }
+    doc->SaveFile(path.c_str());
     notSaved = false;
 }
 
@@ -256,3 +278,9 @@ void CarFlowGenerator::finish() {
         root = NULL;
     }
 }
+
+void CarFlowGenerator::setPrecisionOfTime(int precision) {
+    this->precisionOfTime = precision;
+}
+} /* namespace Fanjing */
+

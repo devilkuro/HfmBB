@@ -24,8 +24,7 @@ public:
     static double str2dbl(string s);
     static double char2dbl(char* s);
     static string int2str(int i);
-    static string dbl2str(double d);
-
+    static string dbl2str(double d, int precision = -1);
 };
 
 } /* namespace Fanjing */

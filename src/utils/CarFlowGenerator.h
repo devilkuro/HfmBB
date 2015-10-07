@@ -19,17 +19,15 @@
 #include <list>
 #include <iostream>
 #include "tinyxml2.h"
+#include "SMTCarInfo.h"
+#include "StringHelper.h"
+
+namespace Fanjing {
 
 using namespace std;
 using namespace tinyxml2;
 
 class CarFlowGenerator {
-public:
-    enum RouteType {
-        CFG_ROUTETYPE_OD = 0, // normal route: from origin to destination
-        CFG_ROUTETYPE_LOOP,   // cyclic route: A-..-B-..-..-X(-..-A-..)
-        CFG_ROUTETYPE_LAST_TYPE
-    };
 public:
     CarFlowGenerator();
     virtual ~CarFlowGenerator();
@@ -48,19 +46,29 @@ public:
     list<string> switchRouteToRoadList(string route);
     string switchRoadListToRoute(list<string> roadlist);
 
-
     bool setXMLPath(string path);
+    bool loadXML(string path);
     void clear(bool save = false);
-    void save();
+    void save(string path = "");
+
+    // other
+    void setPrecisionOfTime(int precision);
 protected:
     XMLElement* root;
     XMLDocument* doc;
     string path;
     bool notSaved;
 
+    int precisionOfTime;
+
     XMLElement* seekChildElementByAttribute(string name, string value);
     list<string> splitStringToWordsList(string str);
     void finish();
 };
 
+class CarInfo{
+
+};
+
+} /* namespace Fanjing */
 #endif /* CARFLOWGENERATOR_H_ */
