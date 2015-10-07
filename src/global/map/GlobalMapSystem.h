@@ -162,17 +162,17 @@ protected:
 
     // map generating process
     virtual int generateMap(int stage);
-    void getLanesAndEdges();
-    void getNodes(); // get junctions
-    void connectLanesAndEdges();
-    void drawMap();
-    void reduceMap();
-    void optimizeMap();
-    void outputMap();
-    void weightEdges(); // set the area weight for each edge.
+    virtual void getLanesAndEdges();
+    virtual void getNodes(); // get junctions
+    virtual void connectLanesAndEdges();
+    virtual void drawMap();
+    virtual void reduceMap();
+    virtual void optimizeMap();
+    virtual void outputMap();
+    virtual void weightEdges(); // set the area weight for each edge.
 
     // non-public APIs
-    list<string> getNextLanes(Lane* lane);
+    virtual list<string> getNextLanes(Lane* lane);
 
 protected:
     mutable GlobalMobilityLaunchd* manager;
