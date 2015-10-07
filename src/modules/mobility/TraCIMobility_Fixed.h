@@ -60,7 +60,6 @@ protected:
     // get lane position of this vehicle
     double getLanePosition();
 
-
 protected:
     mutable GlobalMapSystem *map;
     mutable GlobalVehicleManager *vehicleManager;
@@ -78,12 +77,14 @@ protected:
     int statistic_junction_enterVehicleNum;
     string last_road_id;
 
-private:
-    void processAfterRouting();
-    void statisticAtFinish();
-    void processAtRouting();
-    void processWhenChangeRoad();
-    void processWhenNextPosition();
+protected:
+    // overload these function in different mobility
+    virtual void processAfterRouting();
+    virtual void statisticAtFinish();
+    virtual void processAtRouting();
+    virtual void processWhenChangeRoad();
+    virtual void processWhenInitializingRoad();
+    virtual void processWhenNextPosition();
 };
 
 #endif

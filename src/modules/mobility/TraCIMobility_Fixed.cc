@@ -53,18 +53,20 @@ void TraCIMobility_Fixed::nextPosition(const Coord& position, std::string road_i
     if(road_id != last_road_id){
         // statistics process
         if(!hasInitialized){
+            // when the car first appear on the map.
+            processWhenInitializingRoad();
             getMapSystem()->registerVehiclePosition(road_id);
             // switch record process trigger
             hasInitialized = true;
         }else{
+            // when road changed
+            processWhenChangeRoad();
             // change the vehicle position in map system
             getMapSystem()->changeVehiclePosition(last_road_id, road_id, simTime().dbl() - statistic_road_enterTime);
         }
         // in nextPosition the car has been on the road, then updata the last_road_id and enterTime
         statistic_road_enterTime = simTime().dbl();
         last_road_id = road_id;
-        // when road changed
-        processWhenChangeRoad();
     }
     // normal process
     processWhenNextPosition();
@@ -104,6 +106,8 @@ double TraCIMobility_Fixed::getLanePosition() {
 
 void TraCIMobility_Fixed::processAfterRouting() {
     // processAfterRouting
+    // this function will run every 0.1 second for each car after routint process!!
+    // so, do not do any complicated operations here.
 }
 
 void TraCIMobility_Fixed::statisticAtFinish() {
@@ -115,9 +119,14 @@ void TraCIMobility_Fixed::processAtRouting() {
 }
 
 void TraCIMobility_Fixed::processWhenChangeRoad() {
-    //
+    // when road changed after first appear on the map.
+}
+
+void TraCIMobility_Fixed::processWhenInitializingRoad() {
+    // when the car first appear on the map.
 }
 
 void TraCIMobility_Fixed::processWhenNextPosition() {
-    //
+    // this function will run every 0.1 second for each car!!
+    // so, do not do any complicated operations here.
 }
