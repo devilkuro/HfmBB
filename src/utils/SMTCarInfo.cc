@@ -44,21 +44,23 @@ void SMTCarInfo::loadVehicleTypeXML(string path) {
     XMLError e = doc->LoadFile(path.c_str());
     if(e == XML_SUCCESS){
         XMLElement* root = doc->FirstChildElement("routes");
-        XMLElement* e = root->FirstChildElement("vType");
-        SMTCarInfo car;
-        while(e){
-            if(NULL != e->Attribute("id")){
-                car.id = e->Attribute("id");
-                car.accel = e->DoubleAttribute("accel");
-                car.decel = e->DoubleAttribute("decel");
-                car.sigma = e->DoubleAttribute("sigma");
-                car.length = e->DoubleAttribute("length");
-                car.minGap = e->DoubleAttribute("minGap");
-                car.maxSpeed = e->DoubleAttribute("maxSpeed");
-                car.color = e->Attribute("color");
-                vTypeMap[e->Attribute("id")] = car;
+        if (root!=NULL) {
+            XMLElement* e = root->FirstChildElement("vType");
+            SMTCarInfo car;
+            while(e){
+                if(NULL != e->Attribute("id")){
+                    car.id = e->Attribute("id");
+                    car.accel = e->DoubleAttribute("accel");
+                    car.decel = e->DoubleAttribute("decel");
+                    car.sigma = e->DoubleAttribute("sigma");
+                    car.length = e->DoubleAttribute("length");
+                    car.minGap = e->DoubleAttribute("minGap");
+                    car.maxSpeed = e->DoubleAttribute("maxSpeed");
+                    car.color = e->Attribute("color");
+                    vTypeMap[e->Attribute("id")] = car;
+                }
+                e = e->NextSiblingElement("vType");
             }
-            e = e->NextSiblingElement("vType");
         }
     }
     doc->Clear();

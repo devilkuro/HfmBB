@@ -50,6 +50,9 @@ GlobalMapSystem::~GlobalMapSystem() {
     for(map<string, Edge*>::iterator it = edgeMap.begin(); it != edgeMap.end(); it++){
         delete (it->second);
     }
+    for(map<string, Node*>::iterator it = nodeMap.begin(); it != nodeMap.end(); it++){
+        delete (it->second);
+    }
     for(map<string, MapEdge*>::iterator it = cacheBackupEdges.begin(); it != cacheBackupEdges.end(); it++){
         for(list<MapRoute*>::iterator it_inner = it->second->cacheRoutes.begin();
                 it_inner != it->second->cacheRoutes.end(); it_inner++){
@@ -410,7 +413,8 @@ bool GlobalMapSystem::isInitializedFinished() {
 
 bool GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, string routeId, simtime_t emitTime_st,
         double emitPosition, double emitSpeed, int8_t emitLane) {
-    string vid = vehicleId == "" ? "DefaultNode" + int2str(lastHostNo++) : vehicleId;
+    string vid = vehicleId == "" ? "DefaultNode" + int2str(lastHostNo) : vehicleId;
+    lastHostNo++; // increase the lastHostNo to avoid name conflict.
     string vtype = vehicleTypeId == "" ? "vtype0" : vehicleTypeId;
     // TODO change getRandomEdge to get edge from a certain area
     string start = routeId;

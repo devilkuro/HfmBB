@@ -19,6 +19,7 @@
 #include <omnetpp.h>
 #include "GlobalMapSystem.h"
 #include "StatisticsRecordTools.h"
+#include "SMTCarInfo.h"
 using std::string;
 using Fanjing::StatisticsRecordTools;
 
@@ -47,7 +48,7 @@ protected:
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
 
-private:
+protected:
     unsigned int targetNum;
     std::map<string, int> intMap;
     std::map<string, cMessage*> msgMap;
@@ -67,8 +68,24 @@ private:
     // functions to add vehicles
     // the mobility module must get its vehicle type by using function - getVehiclesType()
     // if else that the vehicles will be marked as normal vehicle
-    void addOneVehicle(VehicleType type);   // add a car of a certain type
-    void addVehicles(VehicleType type, int num); // add several cars of a certain type
+    virtual void addOneVehicle(VehicleType type);   // add a car of a certain type
+    virtual void addVehicles(VehicleType type, int num); // add several cars of a certain type
+
+    // generating car flow and related
+    int carNumLimit;
+    string carFlowXMLPath;
+    bool generateNewXMLFile;
+    double maxCarFlowRate;
+    double minCarFlowRate;
+    double carSpawnJudgeInterval;
+    double carSpawnPeriod;
+    double carSpawnOffset;
+    // cfg class related
+    string carVTypeXMLPath;
+    virtual void generateCarFlowFile();
+
+    // tools functions
+    string getRouXMLFromLaunchConfig(string launchFilePath);
 };
 class GlobalVehicleManagerAccess {
 public:

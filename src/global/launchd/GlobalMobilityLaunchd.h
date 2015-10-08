@@ -49,6 +49,8 @@ public:
         GML_DISALLOW_ALL = GML_NO_STRATEGIC|GML_NO_COOPERATIVE|GML_NO_SPEED_GAIN|GML_NO_DRIVE_ON_RIGHT
     };
 public:
+    // xml related
+    std::string getLaunchConfigXMLPath();
     uint32_t getActiveVehicleCount();
     std::list<std::string> commandGetLaneLinksIds(std::string laneId);
     void commandAddRoute(std::string routeId, std::list<std::string> route);
