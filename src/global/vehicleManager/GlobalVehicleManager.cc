@@ -39,9 +39,11 @@ void GlobalVehicleManager::initialize() {
 
     carVTypeXMLPath = getRouXMLFromLaunchConfig(strLaunchConfig);
     Fanjing::SMTCarInfo::loadVehicleTypeXML(carVTypeXMLPath);
+    if(generateNewXMLFile||carFlowXMLPath==""){
+        generateCarFlowFile();
+    }
     srt = StatisticsRecordTools::request();
     scheduleAt(simTime() + 0.1, testMsg);
-
 }
 
 void GlobalVehicleManager::handleMessage(cMessage *msg) {
@@ -124,23 +126,5 @@ void GlobalVehicleManager::generateCarFlowFile() {
 }
 
 string GlobalVehicleManager::getRouXMLFromLaunchConfig(string launchFilePath) {
-    tinyxml2::XMLDocument* doc = new tinyxml2::XMLDocument();
-    if(doc != NULL){
-        doc->LoadFile(launchFilePath.c_str());
-        tinyxml2::XMLElement* root = doc->FirstChildElement("launch");
-        if(root != NULL){
-            tinyxml2::XMLElement* e = root->FirstChildElement("copy");
-            while(e){
-                if(e->Attribute("file") != NULL){
-                    std::string file = e->Attribute("file");
-                    // if the file is end with "rou.xml", it is the RouXML file.
-                    if(file.rfind("rou.xml") == file.length() - 7){
-                        return file;
-                    }
-                }
-                e = e->NextSiblingElement("copy");
-            }
-        }
-    }
-    return "";
+    GlobalMobilityLaunchd::getRouXMLFromLaunchConfig(launchFilePath);
 }

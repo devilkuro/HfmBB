@@ -73,6 +73,7 @@ protected:
 
     // generating car flow and related
     int carNumLimit;
+    double carSpawnTimeLimit;
     string carFlowXMLPath;
     bool generateNewXMLFile;
     double maxCarFlowRate;

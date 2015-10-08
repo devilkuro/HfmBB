@@ -51,6 +51,10 @@ public:
 public:
     // xml related
     std::string getLaunchConfigXMLPath();
+    static std::string getRouXMLFromLaunchConfig(std::string launchFilePath);
+    static std::string getXXXXMLFromLaunchConfig(std::string launchFilePath, std::string endStr);
+
+
     uint32_t getActiveVehicleCount();
     std::list<std::string> commandGetLaneLinksIds(std::string laneId);
     void commandAddRoute(std::string routeId, std::list<std::string> route);

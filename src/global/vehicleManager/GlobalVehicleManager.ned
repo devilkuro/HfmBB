@@ -22,8 +22,7 @@ simple GlobalVehicleManager
 {
     parameters:
         @class(GlobalVehicleManager);
-        
-        int carNumLimit = default(2000);	// the max number of generated cars
+
         string carFlowXMLPath = default("");	// the file of the car 
         string carVTypeXMLPath = default("");	// the file includes vehicle types
         bool generateNewXMLFile = default(true);	// if true, will generate new xml file at initializing phase.
@@ -37,4 +36,7 @@ simple GlobalVehicleManager
         double carSpawnPeriod @unit(s) = default(2h);	// since the distribution of the car generating rate is sine distribution this value may be twice of the rush hours.
         double carSpawnOffset @unit(s) = default(15min);	// the actual spwan time of each car can before or after the set time within this value.
         // carSpawnOffset may move into the generator and bind to each car.
+
+        int carNumLimit = default(2000);	// the max number of generated cars
+        double carSpawnTimeLimit @unit(s) = this.carSpawnPeriod*3;	// the max time from starting generating cars to ending it.
 }

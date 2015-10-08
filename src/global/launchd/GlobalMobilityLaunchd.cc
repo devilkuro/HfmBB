@@ -66,6 +66,32 @@ std::string GlobalMobilityLaunchd::getLaunchConfigXMLPath() {
     return hasPar("launchConfig") ? par("launchConfig").str().substr(14, par("launchConfig").str().find(':') - 14) : "";
 }
 
+std::string GlobalMobilityLaunchd::getRouXMLFromLaunchConfig(std::string launchFilePath) {
+    return getXXXXMLFromLaunchConfig(launchFilePath,"rou.xml");
+}
+
+std::string GlobalMobilityLaunchd::getXXXXMLFromLaunchConfig(std::string launchFilePath, std::string endStr) {
+    tinyxml2::XMLDocument* doc = new tinyxml2::XMLDocument();
+    if(doc != NULL){
+        doc->LoadFile(launchFilePath.c_str());
+        tinyxml2::XMLElement* root = doc->FirstChildElement("launch");
+        if(root != NULL){
+            tinyxml2::XMLElement* e = root->FirstChildElement("copy");
+            while(e){
+                if(e->Attribute("file") != NULL){
+                    std::string file = e->Attribute("file");
+                    // if the file is end with "rou.xml", it is the RouXML file.
+                    if(file.rfind(endStr) == file.length() - std::string(endStr).length()){
+                        return file;
+                    }
+                }
+                e = e->NextSiblingElement("copy");
+            }
+        }
+    }
+    return "";
+}
+
 std::list<std::string> GlobalMobilityLaunchd::laneLinksGetStringList(uint8_t commandId, std::string objectId,
         uint8_t variableId, uint8_t responseId) {
     uint8_t resultTypeId = TYPE_COMPOUND;
