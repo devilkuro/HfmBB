@@ -12,6 +12,7 @@
 #include <map>
 #include <list>
 #include "tinyxml2.h"
+#include "StringHelper.h"
 
 namespace Fanjing {
 
@@ -37,6 +38,8 @@ public:
     static SMTCarInfo getDefaultVeicleTypeInfo(string vTypeId);
     // load vehicle type xml first
     static list<string> getDefaultVeicleTypeList();
+
+    string toString();
 public:
     string id;
     RouteType type;

@@ -44,7 +44,7 @@ void SMTCarInfo::loadVehicleTypeXML(string path) {
     XMLError e = doc->LoadFile(path.c_str());
     if(e == XML_SUCCESS){
         XMLElement* root = doc->FirstChildElement("routes");
-        if (root!=NULL) {
+        if(root != NULL){
             XMLElement* e = root->FirstChildElement("vType");
             SMTCarInfo car;
             while(e){
@@ -75,7 +75,7 @@ SMTCarInfo SMTCarInfo::getDefaultVeicleTypeInfo(string vTypeId) {
 
 bool SMTCarInfo::hasInitialized() {
     // todo this is a simple method
-    return vTypeMap.size()>0;
+    return vTypeMap.size() > 0;
 }
 
 list<string> SMTCarInfo::getDefaultVeicleTypeList() {
@@ -85,6 +85,26 @@ list<string> SMTCarInfo::getDefaultVeicleTypeList() {
         result.push_back(it->first);
     }
     return result;
+}
+string SMTCarInfo::toString() {
+    string str = "";
+    str += "car id :" + id + ", ";
+    str +=
+            "type :" + (string)(type == SMTCARINFO_ROUTETYPE_OD ? "SMTCARINFO_ROUTETYPE_OD" :
+            (type == SMTCARINFO_ROUTETYPE_LOOP ? "SMTCARINFO_ROUTETYPE_LOOP" :
+                    "null")) + ", ";
+    str += "origin :" + origin + ", ";
+    str += "destination :" + destination + ", ";
+    str += "loop :" + loop + ", ";
+    str += "time :" + StringHelper::dbl2str(time) + ", ";
+    str += "vtype :" + vtype + ", ";
+    str += "accel :" + StringHelper::dbl2str(accel)  + ", ";
+    str += "decel :" + StringHelper::dbl2str(decel)  + ", ";
+    str += "sigma :" + StringHelper::dbl2str(sigma)  + ", ";
+    str += "minGap :" + StringHelper::dbl2str(minGap)  + ", ";
+    str += "maxSpeed :" + StringHelper::dbl2str(maxSpeed)  + ", ";
+    str += "color :" + color + ", ";
+    return str;
 }
 
 } /* namespace Fanjing */

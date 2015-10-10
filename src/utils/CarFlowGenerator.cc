@@ -20,6 +20,7 @@ CarFlowGenerator::CarFlowGenerator() {
     // TODO Auto-generated constructor stub
     doc = NULL;
     root = NULL;
+    curCarElement = NULL;
     carXMLPath = "";
     notSaved = false;
     precisionOfTime = 1;
@@ -56,7 +57,7 @@ bool CarFlowGenerator::loadXML(string path) {
         return false;
     }else{
         root = doc->FirstChildElement("Cars");
-        if(!root){
+        if(root == NULL){
             root = doc->NewElement("Cars");
             doc->LinkEndChild(root);
             notSaved = true;
@@ -85,7 +86,7 @@ bool CarFlowGenerator::addODCar(string id, string origin, string destination,
         double time, string vtype) {
     notSaved = true;
     bool beNewCar = false;
-    XMLElement* e = seekChildElementByAttribute("id", id);
+    XMLElement* e = seekCarByAttribute("id", id);
     if(e){
         // the id is already here.
         if(!e->Attribute("type", "SMTCARINFO_ROUTETYPE_OD")){
@@ -114,7 +115,7 @@ bool CarFlowGenerator::addLoopCar(string id, list<string> loop, double time,
     notSaved = true;
     bool beNewCar = false;
     string route = switchRoadListToRoute(loop);
-    XMLElement* e = seekChildElementByAttribute("id", id);
+    XMLElement* e = seekCarByAttribute("id", id);
     if(e){
         // the id is already here.
         if(!e->Attribute("type", "SMTCARINFO_ROUTETYPE_LOOP")){
@@ -138,22 +139,21 @@ bool CarFlowGenerator::addLoopCar(string id, list<string> loop, double time,
 }
 
 string CarFlowGenerator::getOriginOfODCar(string id) {
-    XMLElement* e = seekChildElementByAttribute("id", id);
+    XMLElement* e = seekCarByAttribute("id", id);
     return getOriginOfODCar(e);
 }
 
 string CarFlowGenerator::getDestinationOfODCar(string id) {
-    XMLElement* e = seekChildElementByAttribute("id", id);
+    XMLElement* e = seekCarByAttribute("id", id);
     return getDestinationOfODCar(e);
 }
 
 list<string> CarFlowGenerator::getLoopOfLoopCar(string id) {
-    XMLElement* e = seekChildElementByAttribute("id", id);
+    XMLElement* e = seekCarByAttribute("id", id);
     return getLoopOfLoopCar(e);
 }
 
-XMLElement* CarFlowGenerator::seekChildElementByAttribute(string name,
-        string value) {
+XMLElement* CarFlowGenerator::seekCarByAttribute(string name, string value) {
     XMLElement* e = root->FirstChildElement("car");
     while(e){
         if(NULL != e->Attribute(name.c_str(), value.c_str())){
@@ -189,17 +189,17 @@ list<string> CarFlowGenerator::splitStringToWordsList(string str) {
 }
 
 string CarFlowGenerator::getRouteTypeOfCar(string id) {
-    XMLElement* e = seekChildElementByAttribute("id", id);
+    XMLElement* e = seekCarByAttribute("id", id);
     return getRouteTypeOfCar(e);
 }
 
 string CarFlowGenerator::getCarTypeOFCar(string id) {
-    XMLElement* e = seekChildElementByAttribute("id", id);
+    XMLElement* e = seekCarByAttribute("id", id);
     return getCarTypeOFCar(e);
 }
 
 double CarFlowGenerator::getDepartTimeOfCar(string id) {
-    XMLElement* e = seekChildElementByAttribute("id", id);
+    XMLElement* e = seekCarByAttribute("id", id);
     return getDepartTimeOfCar(e);
 }
 
@@ -235,30 +235,8 @@ void CarFlowGenerator::save(string path) {
 
 SMTCarInfo CarFlowGenerator::getCar(string id) {
     // todo
-    SMTCarInfo car;
-    XMLElement* e = seekChildElementByAttribute("id", id);
-    if(e != NULL){
-        string vtype = getCarTypeOFCar(e);
-        string rtype = getRouteTypeOfCar(e);
-        car.id = id;
-        car.vtype = vtype;
-        car.time = getDepartTimeOfCar(e);
-        // read the default info of the vtype
-        if(SMTCarInfo().hasInitialized()){
-            car = SMTCarInfo().getDefaultVeicleTypeInfo(vtype);
-        }
-        if(vtype == "SMTCARINFO_ROUTETYPE_OD"){
-            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_OD;
-            car.origin = getOriginOfODCar(e);
-            car.destination = getDestinationOfODCar(e);
-        }else if(vtype == "SMTCARINFO_ROUTETYPE_LOOP"){
-            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_LOOP;
-            car.loop = switchRoadListToRoute(getLoopOfLoopCar(e));
-        }else{
-            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_LAST_TYPE;
-        }
-    }
-    return car;
+    XMLElement* e = seekCarByAttribute("id", id);
+    return getCar(e);
 }
 
 void CarFlowGenerator::finish() {
@@ -325,6 +303,71 @@ list<string> CarFlowGenerator::getLoopOfLoopCar(XMLElement* e) {
 string CarFlowGenerator::getCarTypeOFCar(XMLElement* e) {
     if(e != NULL){
         return e->Attribute("vtype") == NULL ? "" : e->Attribute("vtype");
+    }
+    return "";
+}
+
+SMTCarInfo CarFlowGenerator::getCar(XMLElement* e) {
+    SMTCarInfo car;
+    if(e != NULL){
+        string vtype = getCarTypeOFCar(e);
+        string rtype = getRouteTypeOfCar(e);
+        // set the vType related parameters first
+        if(SMTCarInfo::hasInitialized()){
+            car = SMTCarInfo::getDefaultVeicleTypeInfo(vtype);
+        }
+        car.id = getIdOfCar(e);
+        car.vtype = vtype;
+        car.time = getDepartTimeOfCar(e);
+        // read the default info of the vtype
+        if(rtype == "SMTCARINFO_ROUTETYPE_OD"){
+            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_OD;
+            car.origin = getOriginOfODCar(e);
+            car.destination = getDestinationOfODCar(e);
+        }else if(rtype == "SMTCARINFO_ROUTETYPE_LOOP"){
+            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_LOOP;
+            car.loop = switchRoadListToRoute(getLoopOfLoopCar(e));
+        }else{
+            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_LAST_TYPE;
+        }
+    }
+    return car;
+}
+
+SMTCarInfo CarFlowGenerator::getFirstCar() {
+    SMTCarInfo car;
+    if(root != NULL){
+        curCarElement = root->FirstChildElement("car");
+        return getCar(curCarElement);
+    }
+    return car;
+}
+
+void CarFlowGenerator::setCurrentCar(string id) {
+    curCarElement = seekCarByAttribute("id", id);
+}
+
+SMTCarInfo CarFlowGenerator::getCurrentCar() {
+    return getCar(curCarElement);
+}
+
+SMTCarInfo CarFlowGenerator::getNextCar() {
+    if(curCarElement != NULL){
+        curCarElement = curCarElement->NextSiblingElement("car");
+    }
+    return getCurrentCar();
+}
+
+SMTCarInfo CarFlowGenerator::getPreviousCar() {
+    if(curCarElement != NULL){
+        curCarElement = curCarElement->PreviousSiblingElement("car");
+    }
+    return getCurrentCar();
+}
+
+string CarFlowGenerator::getIdOfCar(XMLElement* e) {
+    if(e != NULL){
+        return e->Attribute("id") == NULL ? "" : e->Attribute("id");
     }
     return "";
 }
