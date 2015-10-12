@@ -22,7 +22,7 @@
 #include "SMTCarInfo.h"
 using std::string;
 using Fanjing::StatisticsRecordTools;
-
+using Fanjing::SMTCarInfo;
 /**
  * TODO - Generated class
  */
@@ -60,6 +60,10 @@ protected:
     std::map<int, int> targetVehicleNumPerType;   // the target vehicles number of each vehicle type
     std::map<int, int> vehicleNumPerType;   // the vehicles number of each vehicle type
 
+    // car map
+    std::map<string, SMTCarInfo> carIdMap;  // store car instance
+    std::map<double, SMTCarInfo*> carDepartTimeMap; // store car reference
+
     // functions
     GlobalMapSystem* getMapSystem();
 
@@ -86,7 +90,8 @@ protected:
     virtual void generateCarFlowFile();
 
     // tools functions
-    string getRouXMLFromLaunchConfig(string launchFilePath);
+    // if do not provide lauchFilePath then use the current launch config
+    string getRouXMLFromLaunchConfig(string launchFilePath = "");
 };
 class GlobalVehicleManagerAccess {
 public:

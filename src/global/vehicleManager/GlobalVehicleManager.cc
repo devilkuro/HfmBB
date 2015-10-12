@@ -37,11 +37,12 @@ void GlobalVehicleManager::initialize() {
     // initialize the vtype infomation in class SMTCarInfo
     std::string strLaunchConfig = GlobalMobilityLaunchdAccess().get()->getLaunchConfigXMLPath();
 
-    carVTypeXMLPath = getRouXMLFromLaunchConfig(strLaunchConfig);
-    Fanjing::SMTCarInfo::loadVehicleTypeXML(carVTypeXMLPath);
-    if(generateNewXMLFile||carFlowXMLPath==""){
-        generateCarFlowFile();
+    carVTypeXMLPath = hasPar("carVTypeXMLPath") ? par("carVTypeXMLPath") : "";
+    if(carVTypeXMLPath == ""){
+        carVTypeXMLPath = getRouXMLFromLaunchConfig(strLaunchConfig);
     }
+    Fanjing::SMTCarInfo::loadVehicleTypeXML(carVTypeXMLPath);
+
     srt = StatisticsRecordTools::request();
     scheduleAt(simTime() + 0.1, testMsg);
 }
@@ -51,6 +52,15 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
     if(msg == testMsg){
         // generate cars here
         if(getMapSystem()->isInitializedFinished()){
+            // generate car flow
+            if(generateNewXMLFile || carFlowXMLPath == ""){
+                // start generating process
+                generateNewXMLFile = false;
+                string launchConfigFile = getRouXMLFromLaunchConfig();
+                carFlowXMLPath = launchConfigFile.replace(launchConfigFile.length()-7,7,"cfg.xml");
+                cout<<carFlowXMLPath<<endl;
+            }
+            // load car flow
             // todo
             cout << (Fanjing::SMTCarInfo::hasInitialized() ? "true" : "false") << endl;
             if(Fanjing::SMTCarInfo::getDefaultVeicleTypeList().size() > 0){
@@ -58,6 +68,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                         << Fanjing::SMTCarInfo::getDefaultVeicleTypeInfo(
                                 *Fanjing::SMTCarInfo::getDefaultVeicleTypeList().begin()).id << endl;
             }
+            generateCarFlowFile();
             cout << GlobalMobilityLaunchdAccess().get()->getLaunchConfigXMLPath() << endl;
             endSimulation();
         }else{
@@ -102,6 +113,7 @@ GlobalVehicleManager::GlobalVehicleManager() :
 
     // generating car flow and related
     carNumLimit = 2000;
+    carSpawnTimeLimit = 7200 * 3;
     carFlowXMLPath = "";
     carVTypeXMLPath = "";
     generateNewXMLFile = true;
@@ -123,8 +135,33 @@ void GlobalVehicleManager::addVehicles(VehicleType type, int num) {
 
 void GlobalVehicleManager::generateCarFlowFile() {
     // TODO generate the car flow file.
+    vector<string> vecStartPoint;
+    vector<string> vecEndPoint;
+    list<string> roadList = getMapSystem()->getAllEdges();
+    string road = "";
+    string target = "2/2";
+    for(list<string>::iterator it = roadList.begin(); it != roadList.end(); it++){
+        road = *it;
+        if((road).substr(road.length() - target.length()) == target){
+            vecStartPoint.push_back(road);
+            cout << road << endl;
+        }
+    }
+    road = "";
+    target = "4/2";
+    for(list<string>::iterator it = roadList.begin(); it != roadList.end(); it++){
+        road = *it;
+        if((road).substr(0, target.length()) == target){
+            vecEndPoint.push_back(road);
+            cout << road << endl;
+        }
+    }
 }
 
 string GlobalVehicleManager::getRouXMLFromLaunchConfig(string launchFilePath) {
-    GlobalMobilityLaunchd::getRouXMLFromLaunchConfig(launchFilePath);
+    if (launchFilePath == "") {
+        return GlobalMobilityLaunchdAccess().get()->getRouXML();
+    }else{
+        return GlobalMobilityLaunchd::getRouXMLFromLaunchConfig(launchFilePath);
+    }
 }

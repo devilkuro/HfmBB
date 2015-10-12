@@ -67,7 +67,10 @@ std::string GlobalMobilityLaunchd::getLaunchConfigXMLPath() {
 }
 
 std::string GlobalMobilityLaunchd::getRouXMLFromLaunchConfig(std::string launchFilePath) {
-    return getXXXXMLFromLaunchConfig(launchFilePath,"rou.xml");
+    return getXXXXMLFromLaunchConfig(launchFilePath, "rou.xml");
+}
+std::string GlobalMobilityLaunchd::getRouXML() {
+    return getXXXXMLFromLaunchConfig(getLaunchConfigXMLPath(), "rou.xml");
 }
 
 std::string GlobalMobilityLaunchd::getXXXXMLFromLaunchConfig(std::string launchFilePath, std::string endStr) {
@@ -89,6 +92,7 @@ std::string GlobalMobilityLaunchd::getXXXXMLFromLaunchConfig(std::string launchF
             }
         }
     }
+    doc->Clear();
     return "";
 }
 

@@ -19,6 +19,7 @@
 #include <omnetpp.h>
 #include "TraCIScenarioManagerLaunchd.h"
 #include "TraCIConstants.h"
+#include "tinyxml2.h"
 
 /**
  *
@@ -51,6 +52,7 @@ public:
 public:
     // xml related
     std::string getLaunchConfigXMLPath();
+    std::string getRouXML();
     static std::string getRouXMLFromLaunchConfig(std::string launchFilePath);
     static std::string getXXXXMLFromLaunchConfig(std::string launchFilePath, std::string endStr);
 
