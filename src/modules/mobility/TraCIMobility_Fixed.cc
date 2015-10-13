@@ -127,3 +127,18 @@ void TraCIMobility_Fixed::processWhenNextPosition() {
     // this function will run every 0.1 second for each car!!
     // so, do not do any complicated operations here.
 }
+
+TraCIMobility_Fixed::TraCIMobility_Fixed() {
+    map = NULL;
+    vehicleManager = NULL;
+    srt = NULL;
+    lastDroveAt = 0;
+    hasRouted = false;
+    hasInitialized = false;
+    statistic_road_enterTime = 0;
+    statistic_start_time = 0;
+    statistic_road_enterVehicleNum = 0;
+    statistic_junction_enterVehicleNum = 0;
+    last_road_id = "";
+
+}

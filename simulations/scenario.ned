@@ -20,4 +20,5 @@ package smartcity.flowreserved.simulations;
 
 network scenario extends Highway
 {
+   
 }

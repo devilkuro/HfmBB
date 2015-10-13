@@ -49,7 +49,7 @@ void SMTCarInfo::loadVehicleTypeXML(string path) {
             SMTCarInfo car;
             while(e){
                 if(NULL != e->Attribute("id")){
-                    car.id = e->Attribute("id");
+                    car.vtype = e->Attribute("id");
                     car.accel = e->DoubleAttribute("accel");
                     car.decel = e->DoubleAttribute("decel");
                     car.sigma = e->DoubleAttribute("sigma");

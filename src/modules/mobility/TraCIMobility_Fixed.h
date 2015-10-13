@@ -31,6 +31,8 @@ using Fanjing::StatisticsRecordTools;
 //using std::string;
 class TraCIMobility_Fixed : public TraCIMobility {
 public:
+    TraCIMobility_Fixed();
+public:
     virtual void initialize(int);
     virtual void finish();
     virtual void preInitialize(std::string external_id, const Coord& position, std::string road_id = "", double speed =
@@ -79,11 +81,20 @@ protected:
 
 protected:
     // overload these function in different mobility
+    // processAfterRouting
+    // this function will run every 0.1 second for each car if routed in routing process!!
+    // so, do not do any complicated operations here.
     virtual void processAfterRouting();
+    // statisticAtFinish
     virtual void statisticAtFinish();
+    // initialize the route in routing process
     virtual void processAtRouting();
+    // when road changed from one road to another, not the first time appearing on the map.
     virtual void processWhenChangeRoad();
+    // when the car first appear on the map.
     virtual void processWhenInitializingRoad();
+    // this function will run every 0.1 second for each car!!
+    // so, do not do any complicated operations here.
     virtual void processWhenNextPosition();
 };
 

@@ -15,6 +15,7 @@
 
 #include "SMTMobility.h"
 
+Define_Module(SMTMobility)
 SMTMobility::SMTMobility() {
     // TODO Auto-generated constructor stub
 
@@ -32,6 +33,25 @@ void SMTMobility::statisticAtFinish() {
 }
 
 void SMTMobility::processAtRouting() {
+    if(external_id == "car00"){
+        commandSetSpeed(0);
+    }else{
+        carInfo = getVehicleManager()->getCarInfo(external_id);
+        string start = "2/2";
+        string end = "2/4";
+        list<string> route;
+        route.push_back(carInfo.origin);
+
+        if(carInfo.origin.substr(carInfo.origin.length() - end.length()) == end){
+            // end to end
+            route.push_back("2/4to2/2");
+        }else{
+            // end to start
+            route.push_back("2/2to2/4");
+        }
+        route.push_back(carInfo.destination);
+        changeRoute(route);
+    }
 }
 
 void SMTMobility::processWhenChangeRoad() {
@@ -41,4 +61,8 @@ void SMTMobility::processWhenInitializingRoad() {
 }
 
 void SMTMobility::processWhenNextPosition() {
+}
+
+void SMTMobility::changeRoute(list<string> route) {
+    getMapSystem()->setVehicleRouteByEdgeList(external_id, route);
 }

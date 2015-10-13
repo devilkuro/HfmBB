@@ -13,14 +13,13 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "SMTMapSystem.h"
-Define_Module(SMTMapSystem)
-SMTMapSystem::SMTMapSystem() {
-    // TODO Auto-generated constructor stub
+package smartcity.flowreserved.global.map;
 
+//
+// TODO auto-generated module
+//
+simple SMTMapSystem extends GlobalMapSystem
+{
+    parameters:
+        @class(SMTMapSystem);
 }
-
-SMTMapSystem::~SMTMapSystem() {
-    // TODO Auto-generated destructor stub
-}
-

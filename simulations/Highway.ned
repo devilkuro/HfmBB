@@ -24,7 +24,7 @@ import org.mixim.base.connectionManager.ConnectionManager;
 import org.mixim.base.modules.BaseWorldUtility;
 import smartcity.flowreserved.global.obstacles.ObstacleControl_Switch;
 import smartcity.flowreserved.global.annotations.AnnotationManager_Colorful;
-import smartcity.flowreserved.global.map.GlobalMapSystem;
+import smartcity.flowreserved.global.map.SMTMapSystem;
 import smartcity.flowreserved.global.launchd.GlobalMobilityLaunchd;
 import smartcity.flowreserved.global.statistics.GlobalStatistics;
 import smartcity.flowreserved.global.vehicleManager.GlobalVehicleManager;
@@ -58,7 +58,7 @@ module Highway
             parameters:
                 @display("p=512,128");
         }
-        map: GlobalMapSystem {
+        map: SMTMapSystem {
             @display("p=200,50");
         }
         gs: GlobalStatistics {

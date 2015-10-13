@@ -187,7 +187,7 @@ list<string> GlobalMapSystem::getRandomRoute(string from, double length) {
         if(tempEdge->routes.size() == 0){
             break;
         }
-        int r = rand() % tempEdge->routes.size();
+        int r = intrand(tempEdge->routes.size());
         len += tempEdge->routes[r]->length;
         route.insert(route.end(), tempEdge->routes[r]->edges.begin(), tempEdge->routes[r]->edges.end());
         // set tempEdge to next hop
@@ -226,7 +226,7 @@ string GlobalMapSystem::dou2str(double i) {
 string GlobalMapSystem::getRandomEdgeFromCache() {
     // rewrite at 2014-8-22
     // replace cacheBackupEdges with cacheEdgeArray to improve the performance
-    string edge = cacheEdgeArray[rand() % cacheEdgeArray.size()]->edge->name;
+    string edge = cacheEdgeArray[intrand(cacheEdgeArray.size())]->edge->name;
     if(debug){
         debugEV << "random edge from cache: " << edge << endl;
     }
@@ -383,6 +383,7 @@ void GlobalMapSystem::reduceMap() {
 }
 
 void GlobalMapSystem::optimizeMap() {
+    // todo DO NOTHING NOW
 }
 
 list<string> GlobalMapSystem::getShortestRoute(string fromEdge, string toEdge) {
@@ -546,6 +547,10 @@ double GlobalMapSystem::getAvgTravelTimeByEdge(string edge) {
 
 uint32_t GlobalMapSystem::getActiveVehicleCount() {
     return getManager()->getActiveVehicleCount();
+}
+
+int GlobalMapSystem::getLaneNumber(string edge) {
+    return edgeMap[edge]->laneNumber;
 }
 
 string GlobalMapSystem::rgb2color(int r, int g, int b) {

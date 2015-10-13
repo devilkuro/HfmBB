@@ -20,9 +20,11 @@
 #include "GlobalMapSystem.h"
 #include "StatisticsRecordTools.h"
 #include "SMTCarInfo.h"
+#include "CarFlowGenerator.h"
 using std::string;
 using Fanjing::StatisticsRecordTools;
 using Fanjing::SMTCarInfo;
+using Fanjing::CarFlowGenerator;
 /**
  * TODO - Generated class
  */
@@ -42,7 +44,8 @@ public:
         // add new vehicle type above if any.
         GVM_VEHICLETYPE_NUMEND_MARK // means the number of the vehicle type
     };
-
+public:
+    virtual SMTCarInfo getCarInfo(string id);
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
@@ -61,8 +64,9 @@ protected:
     std::map<int, int> vehicleNumPerType;   // the vehicles number of each vehicle type
 
     // car map
-    std::map<string, SMTCarInfo> carIdMap;  // store car instance
-    std::map<double, SMTCarInfo*> carDepartTimeMap; // store car reference
+    std::map<string, SMTCarInfo> carMapByID;  // store car instance
+    std::map<double, string> carIdMapByDepartTime; //
+    std::map<double, string>::iterator itCarIdMapByDepartTime;
 
     // functions
     GlobalMapSystem* getMapSystem();
@@ -72,7 +76,7 @@ protected:
     // functions to add vehicles
     // the mobility module must get its vehicle type by using function - getVehiclesType()
     // if else that the vehicles will be marked as normal vehicle
-    virtual void addOneVehicle(VehicleType type);   // add a car of a certain type
+    virtual void addOneVehicle(SMTCarInfo car);   // add a car of a certain type
     virtual void addVehicles(VehicleType type, int num); // add several cars of a certain type
 
     // generating car flow and related
@@ -85,13 +89,24 @@ protected:
     double carSpawnJudgeInterval;
     double carSpawnPeriod;
     double carSpawnOffset;
+    bool useCarSpawnOffset;
+    double carSpawnStartTime;
+    double reverseCarFlowRate;
     // cfg class related
     string carVTypeXMLPath;
+    CarFlowGenerator carFlowHelper;
     virtual void generateCarFlowFile();
+    virtual void loadCarFlowFile();
 
+    //
     // tools functions
     // if do not provide lauchFilePath then use the current launch config
     string getRouXMLFromLaunchConfig(string launchFilePath = "");
+
+private:
+    double SinFuncFixed(double t, double period, double up, double down);
+    string getStartPoint(string road);
+    string getEndPoint(string road);
 };
 class GlobalVehicleManagerAccess {
 public:

@@ -17,6 +17,8 @@
 #define SMTMOBILITY_H_
 
 #include "TraCIMobility_Fixed.h"
+#include "SMTMapSystem.h"
+#include "SMTCarInfo.h"
 
 class SMTMobility : public TraCIMobility_Fixed {
 public:
@@ -24,14 +26,33 @@ public:
     virtual ~SMTMobility();
 
 protected:
+    SMTCarInfo carInfo;
     // overload these function in different mobility
+    // processAfterRouting
+    // this function will run every 0.1 second for each car if routed in routing process!!
+    // so, do not do any complicated operations here.
     virtual void processAfterRouting();
+    // statisticAtFinish
     virtual void statisticAtFinish();
+    // initialize the route in routing process
     virtual void processAtRouting();
+    // when road changed from one road to another, not the first time appearing on the map.
     virtual void processWhenChangeRoad();
+    // when the car first appear on the map.
     virtual void processWhenInitializingRoad();
+    // this function will run every 0.1 second for each car!!
+    // so, do not do any complicated operations here.
     virtual void processWhenNextPosition();
 
+    virtual SMTMapSystem* getMapSystem() const {
+        if(!map){
+            map = SMTMapSystemAccess().get();
+        }
+        ASSERT(map);
+        return (SMTMapSystem*)map;
+    }
+
+    void changeRoute(list<string> route);
 };
 
 #endif /* SMTMOBILITY_H_ */

@@ -26,4 +26,10 @@ public:
 
 };
 
+class SMTMapSystemAccess {
+public:
+    SMTMapSystem* get() {
+        return FindModule<SMTMapSystem*>::findGlobalModule();
+    }
+};
 #endif /* SMTMAPSYSTEM_H_ */

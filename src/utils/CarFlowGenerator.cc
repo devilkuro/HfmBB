@@ -30,6 +30,7 @@ CarFlowGenerator::~CarFlowGenerator() {
     finish();
 }
 
+// use to change path
 bool CarFlowGenerator::setXMLPath(string path) {
     if(doc == NULL){
         return loadXML(path);;
@@ -39,6 +40,7 @@ bool CarFlowGenerator::setXMLPath(string path) {
     return true;
 }
 
+// load xml file
 bool CarFlowGenerator::loadXML(string path) {
     // todo
     if(this->carXMLPath == ""){
@@ -219,6 +221,7 @@ void CarFlowGenerator::clear(bool save) {
     doc->Clear();
     if(save){
         this->save();
+        loadXML(carXMLPath);
     }
 }
 

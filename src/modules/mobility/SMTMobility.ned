@@ -13,14 +13,15 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "SMTMapSystem.h"
-Define_Module(SMTMapSystem)
-SMTMapSystem::SMTMapSystem() {
-    // TODO Auto-generated constructor stub
+package smartcity.flowreserved.modules.mobility;
+import org.mixim.base.modules.BaseMobility;
 
+//
+// TODO auto-generated module
+//
+simple SMTMobility extends TraCIMobility_Fixed
+{
+    parameters:
+		@class(SMTMobility);
+        @display("i=block/cogwheel");
 }
-
-SMTMapSystem::~SMTMapSystem() {
-    // TODO Auto-generated destructor stub
-}
-
