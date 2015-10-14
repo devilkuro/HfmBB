@@ -199,7 +199,7 @@ public:
     string dou2str(double i);
     string double2color(double d);
     string rgb2color(int r, int g, int b);
-private:
+protected:
     // used in path-finding
     vector<MapEdge*> cacheEdgeArray;
     map<string, MapEdge*> cacheBackupEdges;

@@ -19,9 +19,9 @@
 #include <map>
 #include <string>
 #include "SMTCarInfo.h"
-
+#include "tinyxml2.h"
 using namespace std;
-
+using namespace tinyxml2;
 namespace Fanjing {
 
 /*
@@ -30,26 +30,38 @@ namespace Fanjing {
 
 class SMTCarInfoQueue {
 public:
-    SMTCarInfoQueue();
+    SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength);
     virtual ~SMTCarInfoQueue();
 
+    string laneName;
+    double laneLength;
+    double laneOutLength;
     // insert a car and return its predicted out time
     // neighborFrozenSpace is the length of the overtake disallowed space
     // usually equals to the minimum one of the neighbors' queue length.
     // neighborFrozenSpace = 0 means car can freely overtake others
     double insertCar(SMTCarInfo car, double time, double neighborFrozenSpace = 0);
     // release the old and invalid car
+    // not necessary at now... or forever...
     void setCurrentTime(double time);
     // release the old car and invalid resource
     // then return the predicted out time
     double releaseCar(string id, double time);
     // allow or disallow the overtake action
+    static void saveResults(string filename);
+    static void releaseXML();
+    void setCycleInfo(double period, double allowTime, double offset);
+
     inline static void setOvertakeMode(bool allow) {
         overtakeAllowed = allow;
     }
-
+    inline static void setUpdateInterval(double interval){
+        updateInterval = interval;
+    }
 protected:
+    SMTCarInfoQueue();
     static bool overtakeAllowed;
+    static double updateInterval;
     // car time manage related
     map<string, SMTCarInfo> carMapById;
     map<double, list<string>> carMapByEnterTime;
@@ -58,6 +70,8 @@ protected:
     map<string, double> enterTimeMapById;
     map<string, double> queueTimeMapById;
     map<string, double> outTimeMapById;
+    // the time car start to get out the queue area
+    map<string, double> outQueueTimeMapById;
 
     map<double, list<string>>::iterator itCarMapByEnterTime;
     list<string>::iterator litCarMapByEnterTime;
@@ -68,11 +82,15 @@ protected:
 
     double allowedInterval;
     double cyclePeriod;
-    double offset;
+    double cycleOffset;
 
     string roadName;
     string nextRoadName;
 
+    // statistic related
+    static XMLDocument* doc;
+    XMLElement* root;
+    XMLElement* element;
     // utils functions
     // set the enter time of a car and update both carMapByEnterTime and enterTimeMapById
     void setEnterTimeOfCar(string id, double time);
@@ -85,6 +103,8 @@ protected:
     // set the pair map
     void setThePairMap(map<double, list<string>> &carListMapByTime, map<string, double>&timeMapByCar, string id,
             double time);
+    // get car info by id
+    SMTCarInfo getCarInfoById(string id);
     // get the car id of the car of which enter time is before the given time
     string getFirstCarIdByEnterTime(double time);
     string getNextCarIdByEnterTime();
@@ -100,8 +120,14 @@ protected:
             map<double, list<string>>::iterator &it, list<string>::iterator &lit, double time);
     string getNextCarIdByCertainTime(map<double, list<string>> &carListMapByCertainTime,
             map<double, list<string>>::iterator &it, list<string>::iterator &lit);
+
+    void removeCar(string id);
     // fix the out time by considering the allowed time
     double getFixedOutTime(double time);
+    // caculate the reach time
+    double getTheReachTime(SMTCarInfo car, double length, double startTime, bool considerAccel, bool considerDecel);
+private:
+    void init();
 };
 
 } /* namespace Fanjing */
