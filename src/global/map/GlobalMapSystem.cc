@@ -337,7 +337,10 @@ void GlobalMapSystem::reduceMap() {
                 Edge* curEdge = *it;
                 mapRoute->length = 0;
                 // if an edge has only one link out, it's a secondary edge.
-                while(curEdge->linkNumber == 1){
+                // change primary edge define:
+                // now, the edges not start with ':' are primary edges
+                // while(curEdge->linkNumber == 1){
+                while(curEdge->name[0]==':'){
                     // add secondary edge into a certain route
                     mapRoute->length += curEdge->length;
                     mapRoute->edges.push_back(curEdge->name);

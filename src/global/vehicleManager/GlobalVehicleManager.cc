@@ -30,6 +30,8 @@ GlobalVehicleManager::GlobalVehicleManager() :
     generateNewXMLFile = true;
     maxCarFlowRate = 0.6;
     minCarFlowRate = 0;
+    maxFreeCarFlowRate = 0.2;
+    minFreeCarFlowRate = 0.1;
     carSpawnJudgeInterval = 1;
     carSpawnPeriod = 7200;
     carSpawnOffset = 900;
@@ -54,7 +56,9 @@ void GlobalVehicleManager::initialize() {
     generateNewXMLFile = hasPar("generateNewXMLFile") ? par("generateNewXMLFile") : true;
 
     maxCarFlowRate = hasPar("maxCarFlowRate") ? par("maxCarFlowRate") : 0.6;
-    minCarFlowRate = hasPar("minCarFlowRate") ? par("minCarFlowRate") : 0;
+    minCarFlowRate = hasPar("minCarFlowRate") ? par("minCarFlowRate") : 0.0;
+    maxFreeCarFlowRate = hasPar("maxFreeCarFlowRate") ? par("maxFreeCarFlowRate") : 0.2;
+    minFreeCarFlowRate = hasPar("minFreeCarFlowRate") ? par("minFreeCarFlowRate") : 0.1;
     carSpawnJudgeInterval = hasPar("carSpawnJudgeInterval") ? par("carSpawnJudgeInterval") : 1;
     carSpawnPeriod = hasPar("carSpawnPeriod") ? par("carSpawnPeriod") : 7200;
     carSpawnOffset = hasPar("carSpawnOffset") ? par("carSpawnOffset") : 900;
@@ -193,30 +197,46 @@ void GlobalVehicleManager::generateCarFlowFile() {
     for(list<string>::iterator it = roadList.begin(); it != roadList.end(); it++){
         road = *it;
         // end to start and not start from end
-        if(road.substr(road.length() - start.length()) == start && road.substr(0, end.length()) != end){
-            vecInStartPoint.push_back(road);
-            cout << road << endl;
-        }
-        // end to end and not start from start
-        if(road.substr(road.length() - end.length()) == end && road.substr(0, start.length()) != start){
-            vecOutStartPoint.push_back(road);
-            cout << road << endl;
-        }
-        // start from end and not end to start
-        if(road.substr(0, end.length()) == end && road.substr(road.length() - start.length()) != start){
-            vecOutEndPoint.push_back(road);
-            cout << road << endl;
-        }
-        // start from start and not end to end
-        if(road.substr(0, start.length()) == start && road.substr(road.length() - end.length()) != end){
-            vecInEndPoint.push_back(road);
-            cout << road << endl;
+        string head = getStartPoint(road);
+        string tail = getEndPoint(road);
+        if(head == start){
+            if(tail != end){
+                vecOutStartPoint.push_back(road);
+                vecOutPoint.push_back(road);
+                // the reverse road is the in point
+                vecInStartPoint.push_back(tail + "to" + head);
+                vecInPoint.push_back(tail + "to" + head);
+            }
         }
     }
+    for(list<string>::iterator it = roadList.begin(); it != roadList.end(); it++){
+        road = *it;
+        // end to start and not start from end
+        string head = getStartPoint(road);
+        string tail = getEndPoint(road);
+        if(head == end){
+            if(tail != start){
+                vecOutEndPoint.push_back(road);
+                vecOutPoint.push_back(road);
+                // the reverse road is the in point
+                vecInEndPoint.push_back(tail + "to" + head);
+                vecInPoint.push_back(tail + "to" + head);
+            }
+        }
+    }
+    // after this
     cout << vecInStartPoint.size() << endl;
+    // vecInStartPoint      1,2,3->start
     cout << vecOutStartPoint.size() << endl;
-    cout << vecOutEndPoint.size() << endl;
+    // vecOutStartPoint     start->1,2,3
     cout << vecInEndPoint.size() << endl;
+    // vecInEndPoint        1,2,3->end
+    cout << vecOutEndPoint.size() << endl;
+    // vecOutEndPoint       end->1,2,3
+    cout << vecInPoint.size() << endl;
+    // vecInPoint           1,2,3->start,1,2,3->end
+    cout << vecOutPoint.size() << endl;
+    // vecOutPoint          start->1,2,3,end->1,2,3
     // generate vtype vector
     list<string> listVType = SMTCarInfo::getDefaultVeicleTypeList();
     vector<string> vecVType = vector<string>(listVType.begin(), listVType.end());
@@ -237,18 +257,24 @@ void GlobalVehicleManager::generateCarFlowFile() {
             maxSpawnProbabilityForOneJudge = (reverseCarFlowRate * (maxCarFlowRate - minCarFlowRate) + minCarFlowRate)
                     * carSpawnJudgeInterval;
         }
-        // from start to end
+        // from start to any
         for(unsigned int j = 0; j < vecInStartPoint.size(); j++){
             if(dblrand()
                     < SinFuncFixed(time - carSpawnStartTime, carSpawnPeriod, maxSpawnProbabilityForOneJudge,
                             minSpawnProbabilityForOneJudge)){
                 string carid = prefix + Fanjing::StringHelper::int2str(carNum++);
                 string origin = vecInStartPoint[j];
-                string destination = vecOutEndPoint[intrand(vecOutEndPoint.size())];
+                int reverseRoad = j;
+                int rnd = intrand(vecOutPoint.size() - 1);
+                // remove the possible to choose the reverse road of the origin.
+                if(rnd == reverseRoad){
+                    rnd = vecOutPoint.size() - 1;
+                }
+                string destination = vecOutPoint[rnd];
                 string vType = vecVType[intrand(vecVType.size())];
                 carFlowHelper.addODCar(prefix + Fanjing::StringHelper::int2str(carNum), origin, destination, time,
                         vType);
-                if(carNum > carNumLimit){
+                if(carNumLimit > 0 && carNum > carNumLimit){
                     i = maxJudgeTimes;
                 }
             }
@@ -265,45 +291,83 @@ void GlobalVehicleManager::generateCarFlowFile() {
                     < SinFuncFixed(time - carSpawnStartTime, carSpawnPeriod, maxSpawnProbabilityForOneJudge,
                             minSpawnProbabilityForOneJudge)){
                 string carid = prefix + Fanjing::StringHelper::int2str(carNum++);
-                string origin = vecOutStartPoint[j];
-                string destination = vecInEndPoint[intrand(vecInEndPoint.size())];
+                string origin = vecInEndPoint[j];
+                int reverseRoad = j + vecOutStartPoint.size();
+                int rnd = intrand(vecOutPoint.size() - 1);
+                // remove the possible to choose the reverse road of the origin.
+                if(rnd == reverseRoad){
+                    rnd = vecOutPoint.size() - 1;
+                }
+                string destination = vecOutPoint[rnd];
                 string vType = vecVType[intrand(vecVType.size())];
                 carFlowHelper.addODCar(prefix + Fanjing::StringHelper::int2str(carNum), origin, destination, time,
                         vType);
-                if(carNum > carNumLimit){
+                if(carNumLimit > 0 && carNum > carNumLimit){
+                    i = maxJudgeTimes;
+                }
+            }
+        }
+
+        maxSpawnProbabilityForOneJudge = maxFreeCarFlowRate * carSpawnJudgeInterval;
+        minSpawnProbabilityForOneJudge = minFreeCarFlowRate * carSpawnJudgeInterval;
+        // free flow from anyIn to anyOut
+        for(unsigned int j = 0; j < vecInPoint.size(); j++){
+            if(dblrand()
+                    < SinFuncFixed(time - carSpawnStartTime, carSpawnPeriod, maxSpawnProbabilityForOneJudge,
+                            minSpawnProbabilityForOneJudge)){
+                string carid = prefix + Fanjing::StringHelper::int2str(carNum++);
+                string origin = vecInPoint[j];
+                int reverse = j;
+                int rnd = intrand(vecOutPoint.size() - 1);
+                // remove the possible to choose the reverse road of the origin.
+                if(rnd == reverse){
+                    rnd = vecOutPoint.size() - 1;
+                }
+                string destination = vecOutPoint[rnd];
+                string vType = vecVType[intrand(vecVType.size())];
+                carFlowHelper.addODCar(prefix + Fanjing::StringHelper::int2str(carNum), origin, destination, time,
+                        vType);
+                if(carNumLimit > 0 && carNum > carNumLimit){
                     i = maxJudgeTimes;
                 }
             }
         }
         // out put the process infomation
         if((i & 1023) == 1023){
-            cout << "process: " << "t: " << (int) 100 * time / carSpawnTimeLimit << "%, car: "
-                    << 100 * carNum / carNumLimit << "%" << endl;
+            cout << "process: " << "time:" << time << ", t: " << (int) 100 *  (time-carSpawnStartTime) / carSpawnTimeLimit << "%";
+            if(carNumLimit > 0){
+                cout << " car: " << 100 * carNum / carNumLimit << "%";
+            }
+            cout << endl;
         }
         time += carSpawnJudgeInterval;
     }
-    cout << "finished: " << "t: " << (int) 100 * time / carSpawnTimeLimit << "%, car: " << 100 * carNum / carNumLimit
-            << "%" << endl;
+    cout << "process: " << "time:" << time << ", t: " << (int) 100 * (time-carSpawnStartTime) / carSpawnTimeLimit << "%";
+    if(carNumLimit > 0){
+        cout << " car: " << 100 * carNum / carNumLimit << "%";
+    }
+    cout << endl;
     cout << "carSpawnTimeLimit: " << carSpawnTimeLimit << ", carNumLimit: " << carNumLimit << endl;
     carFlowHelper.save();
 }
 
-
 string GlobalVehicleManager::getStartPoint(string road) {
     string result = "";
-    if(road.find("to")!=string::npos){
-        result = road.substr(0,road.find("to"));
+    string to = "to";
+    if(road.find(to) != string::npos){
+        result = road.substr(0, road.find(to));
     }
     return result;
 }
 
 string GlobalVehicleManager::getEndPoint(string road) {
     string result = "";
-    if(road.find("to")!=string::npos){
-        if (road.find("_"==string::npos)) {
-            result = road.substr(road.find("to"));
+    string to = "to";
+    if(road.find(to) != string::npos){
+        if(road.find("_") != string::npos){
+            result = road.substr(road.find(to) + to.length(), road.find("_") - road.find(to));
         }else{
-            result = road.substr(road.find("to"),road.find("_")-road.find("to"));
+            result = road.substr(road.find(to) + to.length());
         }
     }
     return result;

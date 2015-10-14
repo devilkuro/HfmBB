@@ -46,6 +46,8 @@ public:
     };
 public:
     virtual SMTCarInfo getCarInfo(string id);
+    static string getStartPoint(string road);
+    static string getEndPoint(string road);
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
@@ -86,6 +88,8 @@ protected:
     bool generateNewXMLFile;
     double maxCarFlowRate;
     double minCarFlowRate;
+    double maxFreeCarFlowRate;
+    double minFreeCarFlowRate;
     double carSpawnJudgeInterval;
     double carSpawnPeriod;
     double carSpawnOffset;
@@ -103,10 +107,9 @@ protected:
     // if do not provide lauchFilePath then use the current launch config
     string getRouXMLFromLaunchConfig(string launchFilePath = "");
 
+
 private:
     double SinFuncFixed(double t, double period, double up, double down);
-    string getStartPoint(string road);
-    string getEndPoint(string road);
 };
 class GlobalVehicleManagerAccess {
 public:

@@ -32,6 +32,8 @@ simple GlobalVehicleManager
         // the max throughput can be calculate by the average speed divided by safe distance.
         // So it uses 12mps/5m*(1/4)=0.6 cars per second here
         double minCarFlowRate = default(0);
+        double maxFreeCarFlowRate = default(0.2);
+        double minFreeCarFlowRate = default(0.1);
         double carSpawnJudgeInterval @unit(s) = default(1s);	// the judge interval to decide to spawn one car or not (for each possible spawn position)
         double carSpawnPeriod @unit(s) = default(2h);	// since the distribution of the car generating rate is sine distribution this value may be twice of the rush hours.
         double carSpawnOffset @unit(s) = default(15min);	// the actual spwan time of each car can before or after the set time within this value.
@@ -39,6 +41,6 @@ simple GlobalVehicleManager
 		bool useCarSpawnOffset = default(true);
 		double carSpawnStartTime @unit(s) = default(16min);	// the target car flow will generate after this time (in xml file).
         double carSpawnTimeLimit @unit(s) = default(carSpawnPeriod*3);	// the max time from starting generating cars to ending it.
-        int carNumLimit = default(10*(minCarFlowRate+maxCarFlowRate)*0.5*carSpawnTimeLimit/1s);	// the max number of generated cars (default 3 spawn points)
+        int carNumLimit = default(carSpawnPeriod/1s);	// the max number of generated cars (default 3 spawn points)
         double reverseCarFlowRate = default(0.5);
 }

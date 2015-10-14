@@ -39,15 +39,22 @@ void SMTMobility::processAtRouting() {
         carInfo = getVehicleManager()->getCarInfo(external_id);
         string start = "2/2";
         string end = "2/4";
+        string to = "to";
+        string head = GlobalVehicleManager::getEndPoint(carInfo.origin);
+        string tail = GlobalVehicleManager::getStartPoint(carInfo.destination);
         list<string> route;
         route.push_back(carInfo.origin);
-
-        if(carInfo.origin.substr(carInfo.origin.length() - end.length()) == end){
+        if(head == start){
             // end to end
-            route.push_back("2/4to2/2");
-        }else{
+            if(tail == end){
+                route.push_back(start + to + end);
+            }
+        }
+        if(head == end){
             // end to start
-            route.push_back("2/2to2/4");
+            if(tail == start){
+                route.push_back(end + to + start);
+            }
         }
         route.push_back(carInfo.destination);
         changeRoute(route);
