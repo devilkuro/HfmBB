@@ -87,53 +87,150 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
         // while there are some still in this lane
         // and if those car have already enter the queue area when this car entered this lane
         // add its gap and length into the queue length
-        if(queueTimeMapById[otherId] < time){
+        if(queueTimeMapById[otherId] <= time){
             SMTCarInfo otherCar = getCarInfoById(otherId);
             queueLength += otherCar.minGap + otherCar.length;
             otherId = getNextCarIdByOutTime();
         }
     }
     // 2nd. judge the length of queue considering the cars have not entered the queue yet
-
     otherId = getFirstCarIdByQueueTime(time);
+    double preCarQueueTime = time;
     // there still have some cars not entered the queue
     while(otherId != ""){
-        // if the car has already entered this lane
-        if(enterTimeMapById[otherId] < time){
-            SMTCarInfo otherCar = getCarInfoById(otherId);
-            if(overtakeAllowed){
-                // 2nd(optional). overtake judgement process
-                // process only if overtake process is enabled
-                // if overtake is enable, the car befor this car may not increase its queue length
-                // otherwise, all cars before this car will be added into the queue length.
+        // if the car has not reach queue area yet
+        SMTCarInfo otherCar = getCarInfoById(otherId);
+        if(overtakeAllowed){
+            // 2nd(optional). overtake judgement process
+            // process only if overtake process is enabled
+            // if overtake is enable, the car befor this car may not increase its queue length
+            // otherwise, all cars before this car will be added into the queue length.
 
-                // calculate the problem of distance
+            // calculate the problem of distance
+            if(carMapByEnterTime[otherId] <= carMapByEnterTime[car.id]){
+                // if the other car enter this lane first
                 // assume current car can overtake other car
                 // then when the current car reach the queue area
                 // the other car should not reach the length + gap of both cars
-                // before the queue area
-                double overtakeLengthForOtherCar = laneLength - queueLength - car.minGap - car.length;
                 // caculate the distance from the start to the queue area if overtake successfully
-                double overtakeLengtheForCurrentCar = laneLength - queueLength;
+                // this distance equals to the overtake allowed distance
+                double overtakeLengtheForCurrentCar =
+                        laneLength - queueLength > neighborFrozenSpace ? queueLength : neighborFrozenSpace;
+                // before the queue area
+                double overtakeLengthForOtherCar = overtakeLengtheForCurrentCar - car.minGap - car.length;
                 // caculate the time of the current car reach the queue area if overtake successfully
                 double reachTimeForCurrentCar = getTheReachTime(car, overtakeLengtheForCurrentCar, time, false, true);
                 double reachTimeForOtherCar = getTheReachTime(otherCar, overtakeLengthForOtherCar,
                         enterTimeMapById[otherId], false, true);
-                // compare two time
-                if(reachTimeForCurrentCar > reachTimeForOtherCar){
-                    // if current car reach later, other car get to the queue before current car
-                    queueLength += otherCar.minGap + otherCar.length;
+                // decide overtake or not
+                bool beOvertake = reachTimeForCurrentCar < reachTimeForOtherCar;
+                // compare two time and decide overtake or not
+                // and if overtake, the car enter queue area later needs to be updated
+                if(beOvertake){
+                    // if overtake happens, the time that current car enter the queue become seated.
+                    // since the rest existing car enter queue later than current car.
+                    // and if overtake, the car enter queue area later needs to be updated after caculated current car
+                    // set the queue time
+                    reachTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
+                    // make sure the current queue time not earlier than the previous one.
+                    if (reachTimeForCurrentCar>preCarQueueTime) {
+                        setQueueTimeOfCar(car.id, reachTimeForCurrentCar);
+                    }else{
+                        setQueueTimeOfCar(car.id,preCarQueueTime);
+                    }
+                    // set the other car's queue time after current car
+                    // set the same time after current will make other car in later position than current car
+                    // and even more, the new queue time for other will become earlier than its old one
+                    // and the queue time of current will be more earlier than the other's old one
+                    // so this operation will not break the original order of the queue time
+                    reachTimeForOtherCar = getTheReachTime(otherCar, laneLength - queueLength - car.minGap - car.length,
+                            enterTimeMapById[otherId], false, true);
+                    // make sure the current queue time not earlier than the previous one.
+                    if (reachTimeForOtherCar>preCarQueueTime) {
+                        setQueueTimeOfCar(car.id, reachTimeForOtherCar);
+                    }else{
+                        setQueueTimeOfCar(car.id,preCarQueueTime);
+                    }
+                    break;
                 }else{
-                    // the information of other cars which are overtaked by current car needs to be updated
+                    // if current car reach later, other car get to the queue before current car
+                    // and then judge next car reach the queue area
+                    queueLength += otherCar.minGap + otherCar.length;
+                    preCarQueueTime = queueTimeMapById[otherId];
+                    otherId = getNextCarIdByQueueTime();
+                    if(otherId == ""){
+                        // there no other cars, the current car's queue time is seated.
+                        reachTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
+                        // make sure the current queue time not earlier than the previous one.
+                        if (reachTimeForCurrentCar>preCarQueueTime) {
+                            setQueueTimeOfCar(car.id, reachTimeForCurrentCar);
+                        }else{
+                            setQueueTimeOfCar(car.id,preCarQueueTime);
+                        }
+                    }
                 }
             }else{
-                // if overtake process is disabled
-                // then all cars before this car will be added into the queue length.
-                queueLength += otherCar.minGap + otherCar.length;
+                // if the other car enter this lane later
+                // assume other car can overtake current car
+                // then the same as the above
+                double overtakeLengthForOtherCar =
+                        laneLength - queueLength > neighborFrozenSpace ? queueLength : neighborFrozenSpace;
+                double overtakeLengtheForCurrentCar = overtakeLengthForOtherCar - car.minGap - car.length;
+                // caculate the time of the current car reach the queue area if overtake successfully
+                double reachTimeForCurrentCar = getTheReachTime(car, overtakeLengtheForCurrentCar, time, false, true);
+                double reachTimeForOtherCar = getTheReachTime(otherCar, overtakeLengthForOtherCar,
+                        enterTimeMapById[otherId], false, true);
+                // decide overtake or not
+                // if other car reach before then it overtake current car
+                bool beOvertake = reachTimeForOtherCar < reachTimeForCurrentCar;
+                // compare two time and decide overtake or not
+                // and if overtake, nothing change, continue to judge next car
+                if(beOvertake){
+                    // if current car reach first, the other car get to the queue before current car
+                    // in this situation, the queue time of other car do not change
+                    // and then judge next car reach the queue area
+                    queueLength += otherCar.minGap + otherCar.length;
+                    preCarQueueTime = queueTimeMapById[otherId];
+                    otherId = getNextCarIdByQueueTime();
+                    if(otherId == ""){
+                        // there no other cars, the current car's queue time is seated.
+                        reachTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
+                        // make sure the current queue time not earlier than the previous one.
+                        if (reachTimeForCurrentCar>preCarQueueTime) {
+                            setQueueTimeOfCar(car.id, reachTimeForCurrentCar);
+                        }else{
+                            setQueueTimeOfCar(car.id,preCarQueueTime);
+                        }
+                    }
+                }else{
+                    // if overtake not happens, the time that current car enter the queue become seated.
+                    // since the rest existing car enter queue later than current car.
+                    // and if not overtake
+                    // the car enter queue area later needs to be updated after caculated current car
+                    // set the queue time
+                    reachTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
+                    // set the other later cars' queue time after current car, if they were before current one
+                    // get car list that needs to be modified
+                    list<string> modifiedCarList;
+
+
+                    setQueueTimeOfCar(car.id, reachTimeForCurrentCar);
+                    while(){
+                    if(queueTimeMapById[otherId] <= reachTimeForCurrentCar){
+                        setQueueTimeOfCar(otherId, reachTimeForCurrentCar);
+                    }
+                    }
+                    break;
+                }
             }
+        }else{
+            // if overtake process is disabled
+            // then all cars before this car will be added into the queue length.
+            queueLength += otherCar.minGap + otherCar.length;
         }
-        // calculate the overtake length
-        double overtakeLength = queueLength;
+        // caculate the time when current car reach the queue area.
+        double reachQueueTime = getTheReachTime(car, laneLength - queueLength, time, false, true);
+        setQueueTimeOfCar(car.id, reachQueueTime);
 
     }
 }
