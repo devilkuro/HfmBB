@@ -92,6 +92,8 @@ protected:
     XMLElement* root;
     XMLElement* element;
     // utils functions
+    // update the car with id = id and the cars affected it
+    void updateCarAfter(string id);
     // set the enter time of a car and update both carMapByEnterTime and enterTimeMapById
     void setEnterTimeOfCar(string id, double time);
     // similar to the above function
@@ -108,19 +110,23 @@ protected:
     // get the car id of the car of which enter time is before the given time
     string getFirstCarIdByEnterTime(double time);
     string getNextCarIdByEnterTime();
+    string getPreviousCarIdByEnterTime();
     // get the car id of the car of which queue time is before the given time
     string getFirstCarIdByQueueTime(double time);
     string getNextCarIdByQueueTime();
+    string getPreviousCarIdByQueueTime();
     // get the car id of the car of which queue time is before the given time
     string getFirstCarIdByOutTime(double time);
     string getNextCarIdByOutTime();
+    string getPreviousCarIdByOutTime();
 
     // get the car by time
     string getFirstCarIdByCertainTime(map<double, list<string>> &carListMapByCertainTime,
             map<double, list<string>>::iterator &it, list<string>::iterator &lit, double time);
     string getNextCarIdByCertainTime(map<double, list<string>> &carListMapByCertainTime,
             map<double, list<string>>::iterator &it, list<string>::iterator &lit);
-
+    string getPreviousCarIdByCertainTime(map<double, list<string>> &carListMapByCertainTime,
+            map<double, list<string>>::iterator &it, list<string>::iterator &lit);
     void removeCar(string id);
     // fix the out time by considering the allowed time
     double getFixedOutTime(double time);

@@ -95,12 +95,13 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
     }
     // 2nd. judge the length of queue considering the cars have not entered the queue yet
     otherId = getFirstCarIdByQueueTime(time);
-    double preCarQueueTime = time;
+    double preCarQueueTime;
+    string preQueueCarId;   // the car before current after current enter queue area.
     // there still have some cars not entered the queue
-    while(otherId != ""){
-        // if the car has not reach queue area yet
-        SMTCarInfo otherCar = getCarInfoById(otherId);
-        if(overtakeAllowed){
+    if(overtakeAllowed){
+        while(otherId != ""){
+            // if the car has not reach queue area yet
+            SMTCarInfo otherCar = getCarInfoById(otherId);
             // 2nd(optional). overtake judgement process
             // process only if overtake process is enabled
             // if overtake is enable, the car befor this car may not increase its queue length
@@ -133,10 +134,10 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
                     // set the queue time
                     reachTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
                     // make sure the current queue time not earlier than the previous one.
-                    if (reachTimeForCurrentCar>preCarQueueTime) {
+                    if(reachTimeForCurrentCar > preCarQueueTime){
                         setQueueTimeOfCar(car.id, reachTimeForCurrentCar);
                     }else{
-                        setQueueTimeOfCar(car.id,preCarQueueTime);
+                        setQueueTimeOfCar(car.id, preCarQueueTime);
                     }
                     // set the other car's queue time after current car
                     // set the same time after current will make other car in later position than current car
@@ -146,10 +147,10 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
                     reachTimeForOtherCar = getTheReachTime(otherCar, laneLength - queueLength - car.minGap - car.length,
                             enterTimeMapById[otherId], false, true);
                     // make sure the current queue time not earlier than the previous one.
-                    if (reachTimeForOtherCar>preCarQueueTime) {
+                    if(reachTimeForOtherCar > preCarQueueTime){
                         setQueueTimeOfCar(car.id, reachTimeForOtherCar);
                     }else{
-                        setQueueTimeOfCar(car.id,preCarQueueTime);
+                        setQueueTimeOfCar(car.id, preCarQueueTime);
                     }
                     break;
                 }else{
@@ -159,13 +160,14 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
                     preCarQueueTime = queueTimeMapById[otherId];
                     otherId = getNextCarIdByQueueTime();
                     if(otherId == ""){
+                        // fixme !! resort the time map, important... the overtak process can not work proper
                         // there no other cars, the current car's queue time is seated.
                         reachTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
                         // make sure the current queue time not earlier than the previous one.
-                        if (reachTimeForCurrentCar>preCarQueueTime) {
+                        if(reachTimeForCurrentCar > preCarQueueTime){
                             setQueueTimeOfCar(car.id, reachTimeForCurrentCar);
                         }else{
-                            setQueueTimeOfCar(car.id,preCarQueueTime);
+                            setQueueTimeOfCar(car.id, preCarQueueTime);
                         }
                     }
                 }
@@ -192,14 +194,17 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
                     queueLength += otherCar.minGap + otherCar.length;
                     preCarQueueTime = queueTimeMapById[otherId];
                     otherId = getNextCarIdByQueueTime();
-                    if(otherId == ""){
-                        // there no other cars, the current car's queue time is seated.
-                        reachTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
-                        // make sure the current queue time not earlier than the previous one.
-                        if (reachTimeForCurrentCar>preCarQueueTime) {
-                            setQueueTimeOfCar(car.id, reachTimeForCurrentCar);
-                        }else{
-                            setQueueTimeOfCar(car.id,preCarQueueTime);
+                    {
+                        // fixme !! resort the time map, important... the overtak process can not work proper
+                        if(otherId == ""){
+                            // there no other cars, the current car's queue time is seated.
+                            reachTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
+                            // make sure the current queue time not earlier than the previous one.
+                            if(reachTimeForCurrentCar > preCarQueueTime){
+                                setQueueTimeOfCar(car.id, reachTimeForCurrentCar);
+                            }else{
+                                setQueueTimeOfCar(car.id, preCarQueueTime);
+                            }
                         }
                     }
                 }else{
@@ -211,28 +216,58 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
                     reachTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
                     // set the other later cars' queue time after current car, if they were before current one
                     // get car list that needs to be modified
+                    // fixme !! resort the time map, important... the overtak process can not work proper
                     list<string> modifiedCarList;
-
-
+                    // list<string>::it
                     setQueueTimeOfCar(car.id, reachTimeForCurrentCar);
-                    while(){
-                    if(queueTimeMapById[otherId] <= reachTimeForCurrentCar){
-                        setQueueTimeOfCar(otherId, reachTimeForCurrentCar);
-                    }
+                    while(otherId != ""){
+                        if(queueTimeMapById[otherId] <= reachTimeForCurrentCar){
+                            setQueueTimeOfCar(otherId, reachTimeForCurrentCar);
+                            //otherId =
+                        }else{
+                            break;
+                        }
                     }
                     break;
                 }
             }
-        }else{
-            // if overtake process is disabled
-            // then all cars before this car will be added into the queue length.
-            queueLength += otherCar.minGap + otherCar.length;
         }
-        // caculate the time when current car reach the queue area.
-        double reachQueueTime = getTheReachTime(car, laneLength - queueLength, time, false, true);
-        setQueueTimeOfCar(car.id, reachQueueTime);
 
+    }else{
+        // if overtake process is disabled
+        // then all cars before this car will be added into the queue length.
+
+        // get the previous car entering this lane
+        string preEnterCarId = getFirstCarIdByEnterTime(time);\
+        string nextToPreEnterCarId = getNextCarIdByEnterTime();
+        // if the next one of the preEnterCarId is later than current car, find next.
+        // actually, this time can only equal or bigger than time, if equal, find next.
+        while(enterTimeMapById[nextToPreEnterCarId] <= time){
+            // find next
+            preEnterCarId = nextToPreEnterCarId;
+            nextToPreEnterCarId = getNextCarIdByEnterTime();
+        }
+        while(otherId != nextToPreEnterCarId){
+            // if the car has not reach queue area yet
+            // when overtake disabled, the last other car is the car enter next to the pre enter.
+            SMTCarInfo otherCar = getCarInfoById(otherId);
+            // if other car enter this lane before current car, increase queue length
+            queueLength += otherCar.minGap + otherCar.length;
+            otherId = getNextCarIdByQueueTime();
+        }
+        // cacluate the reach queue time if no other car affecting it
+        double reachQueueTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
+        if(queueTimeMapById[preEnterCarId] > reachQueueTimeForCurrentCar){
+            // current car is obstruct by previous car
+            reachQueueTimeForCurrentCar = queueTimeMapById[preEnterCarId];
+        }
+        setQueueTimeOfCar(car.id, reachQueueTimeForCurrentCar);
     }
+    // 3rd. caculate the out time
+
+    // 4th. update the affected cars
+
+
 }
 double SMTCarInfoQueue::getTheReachTime(SMTCarInfo car, double length, double startTime, bool considerAccel,
         bool considerDecel) {
@@ -371,10 +406,21 @@ string SMTCarInfoQueue::getNextCarIdByOutTime() {
     return getNextCarIdByCertainTime(carMapByOutTime, itcarMapByOutTime, litcarMapByOutTime);
 }
 
+string SMTCarInfoQueue::getPreviousCarIdByEnterTime() {
+    return getPreviousCarIdByCertainTime(carMapByEnterTime, itCarMapByEnterTime, litCarMapByEnterTime);
+}
+
+string SMTCarInfoQueue::getPreviousCarIdByQueueTime() {
+    return getPreviousCarIdByCertainTime(carMapByQueueTime, itcarMapByQueueTime, litcarMapByQueueTime);
+}
+
+string SMTCarInfoQueue::getPreviousCarIdByOutTime() {
+    return getPreviousCarIdByCertainTime(carMapByOutTime, itcarMapByOutTime, litcarMapByOutTime);
+}
 string SMTCarInfoQueue::getFirstCarIdByCertainTime(map<double, list<string> >& carListMapByCertainTime,
         map<double, list<string> >::iterator& it, list<string>::iterator& lit, double time) {
-// todo
-// get first time node (include given time)
+    // todo
+    // get first time node (include given time)
     it = carListMapByCertainTime.lower_bound(time);
     lit = it->second.begin();
     if(lit != it->second.begin()){
@@ -383,6 +429,24 @@ string SMTCarInfoQueue::getFirstCarIdByCertainTime(map<double, list<string> >& c
     return "";
 }
 
+string SMTCarInfoQueue::getPreviousCarIdByCertainTime(map<double, list<string> >& carListMapByCertainTime,
+        map<double, list<string> >::iterator& it, list<string>::iterator& lit) {
+    if(lit != it->second.begin()){
+        // if the list has more objects before, get previous
+        lit--;
+        return *lit;
+    }else if(it != carListMapByCertainTime.begin()){
+        // if the list has no object any more , get cars in previous time list and return the last car
+        it--;
+        lit = it->second.end();
+        if(lit != it->second.begin()){
+            lit--;
+            return *lit;
+        }
+    }
+    // if the list has no more object and no car after the time return blank string
+    return "";
+}
 string SMTCarInfoQueue::getNextCarIdByCertainTime(map<double, list<string> >& carListMapByCertainTime,
         map<double, list<string> >::iterator& it, list<string>::iterator& lit) {
     if(lit != it->second.end()){
