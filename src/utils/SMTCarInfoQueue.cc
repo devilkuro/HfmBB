@@ -108,7 +108,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
             // otherwise, all cars before this car will be added into the queue length.
 
             // calculate the problem of distance
-            if(carMapByEnterTime[otherId] <= carMapByEnterTime[car.id]){
+            if(enterTimeMapById[otherId] <= enterTimeMapById[car.id]){
                 // if the other car enter this lane first
                 // assume current car can overtake other car
                 // then when the current car reach the queue area
@@ -238,7 +238,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
         // then all cars before this car will be added into the queue length.
 
         // get the previous car entering this lane
-        string preEnterCarId = getFirstCarIdByEnterTime(time);\
+        string preEnterCarId = getFirstCarIdByEnterTime(time);
         string nextToPreEnterCarId = getNextCarIdByEnterTime();
         // if the next one of the preEnterCarId is later than current car, find next.
         // actually, this time can only equal or bigger than time, if equal, find next.
@@ -263,11 +263,22 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
         }
         setQueueTimeOfCar(car.id, reachQueueTimeForCurrentCar);
     }
-    // 3rd. caculate the out time
-
-    // 4th. update the affected cars
-
-
+    // 3rd. update the affected cars
+    // todo
+    // 4th. caculate the time current car start to level the queue.
+    // before this setp, the queue time should be updated.
+    double startOutQueueTime = queueTimeMapById[car.id];
+    if(startOutQueueTime < outQueueTimeMapById[preQueueCarId] + updateInterval){
+        startOutQueueTime = outQueueTimeMapById[preQueueCarId] + updateInterval;
+    }
+    double outTimeWithoutAffected = getTheReachTime(car, queueLength, startOutQueueTime, true, false);
+    // calculate the out time affected by previous cars
+    if(outTimeWithoutAffected<outTimeMapById[preQueueCarId]+updateInterval){
+        outTimeWithoutAffected = outTimeMapById[preQueueCarId]+updateInterval;
+    }
+    outTimeMapById[car.id] = outTimeWithoutAffected;
+    // 5th. return the finial out time
+    return outTimeMapById[car.id];
 }
 double SMTCarInfoQueue::getTheReachTime(SMTCarInfo car, double length, double startTime, bool considerAccel,
         bool considerDecel) {
@@ -365,7 +376,7 @@ void SMTCarInfoQueue::setOutTimeOfCar(string id, double time) {
     setThePairMap(carMapByOutTime, outTimeMapById, id, time);
 }
 
-void SMTCarInfoQueue::setThePairMap(map<double, list<string>> &carListMapByTime, map<string, double>&timeMapByCar,
+void SMTCarInfoQueue::setThePairMap(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar,
         string id, double time) {
 // set the pair map
     if(timeMapByCar.find(id) == timeMapByCar.end()){

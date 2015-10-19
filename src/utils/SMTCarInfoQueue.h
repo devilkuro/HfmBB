@@ -64,20 +64,20 @@ protected:
     static double updateInterval;
     // car time manage related
     map<string, SMTCarInfo> carMapById;
-    map<double, list<string>> carMapByEnterTime;
-    map<double, list<string>> carMapByQueueTime;
-    map<double, list<string>> carMapByOutTime;
+    map<double, list<string> > carMapByEnterTime;
+    map<double, list<string> > carMapByQueueTime;
+    map<double, list<string> > carMapByOutTime;
     map<string, double> enterTimeMapById;
     map<string, double> queueTimeMapById;
     map<string, double> outTimeMapById;
     // the time car start to get out the queue area
     map<string, double> outQueueTimeMapById;
 
-    map<double, list<string>>::iterator itCarMapByEnterTime;
+    map<double, list<string> >::iterator itCarMapByEnterTime;
     list<string>::iterator litCarMapByEnterTime;
-    map<double, list<string>>::iterator itcarMapByQueueTime;
+    map<double, list<string> >::iterator itcarMapByQueueTime;
     list<string>::iterator litcarMapByQueueTime;
-    map<double, list<string>>::iterator itcarMapByOutTime;
+    map<double, list<string> >::iterator itcarMapByOutTime;
     list<string>::iterator litcarMapByOutTime;
 
     double allowedInterval;
@@ -103,7 +103,7 @@ protected:
     // set the enter time of a car and update both carMapByOutTime and outTimeMapById
     void setOutTimeOfCar(string id, double time);
     // set the pair map
-    void setThePairMap(map<double, list<string>> &carListMapByTime, map<string, double>&timeMapByCar, string id,
+    void setThePairMap(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar, string id,
             double time);
     // get car info by id
     SMTCarInfo getCarInfoById(string id);
@@ -121,12 +121,12 @@ protected:
     string getPreviousCarIdByOutTime();
 
     // get the car by time
-    string getFirstCarIdByCertainTime(map<double, list<string>> &carListMapByCertainTime,
-            map<double, list<string>>::iterator &it, list<string>::iterator &lit, double time);
-    string getNextCarIdByCertainTime(map<double, list<string>> &carListMapByCertainTime,
-            map<double, list<string>>::iterator &it, list<string>::iterator &lit);
-    string getPreviousCarIdByCertainTime(map<double, list<string>> &carListMapByCertainTime,
-            map<double, list<string>>::iterator &it, list<string>::iterator &lit);
+    string getFirstCarIdByCertainTime(map<double, list<string> > &carListMapByCertainTime,
+            map<double, list<string> >::iterator &it, list<string>::iterator &lit, double time);
+    string getNextCarIdByCertainTime(map<double, list<string> > &carListMapByCertainTime,
+            map<double, list<string> >::iterator &it, list<string>::iterator &lit);
+    string getPreviousCarIdByCertainTime(map<double, list<string> > &carListMapByCertainTime,
+            map<double, list<string> >::iterator &it, list<string>::iterator &lit);
     void removeCar(string id);
     // fix the out time by considering the allowed time
     double getFixedOutTime(double time);
