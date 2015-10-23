@@ -20,6 +20,7 @@ namespace Fanjing {
 bool SMTCarInfoQueue::overtakeAllowed = false;
 double SMTCarInfoQueue::updateInterval = 0.1;
 XMLDocument* SMTCarInfoQueue::doc = NULL;
+bool SMTCarInfoQueue::XMLHasLoaded = false;
 SMTCarInfoQueue::SMTCarInfoQueue() {
     // TODO Auto-generated constructor stub
     init();
@@ -30,7 +31,10 @@ SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, dou
     laneName = lane;
     laneLength = length;
     laneOutLength = outLength;
-    doc->LoadFile(xmlpath.c_str());
+    if (!XMLHasLoaded) {
+        // load xml file only if has not
+        doc->LoadFile(xmlpath.c_str());
+    }
     root = doc->FirstChildElement("results");
     if(root == NULL){
         root = doc->NewElement("results");
@@ -56,7 +60,31 @@ void SMTCarInfoQueue::saveResults(string filename) {
 }
 
 void SMTCarInfoQueue::releaseXML() {
-    doc->Clear();
+    if (doc!=NULL) {
+        doc->Clear();
+        delete doc;
+        doc = NULL;
+    }
+}
+
+void SMTCarInfoQueue::updateCarQueueInfoAt(string id) {
+    // todo
+    // 1st. loose the queue time map
+
+    // 2nd.
+
+}
+
+void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carListMapByTime,
+        map<string, double>& timeMapByCar, string id, string otherId) {
+    // todo
+    // 1st. seek to other id
+
+}
+
+void SMTCarInfoQueue::setThePairMapAtBackOfCar(map<double, list<string> >& carListMapByTime,
+        map<string, double>& timeMapByCar, string id, string otherId) {
+    // todo
 }
 
 void SMTCarInfoQueue::init() {
@@ -263,8 +291,8 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
         }
         setQueueTimeOfCar(car.id, reachQueueTimeForCurrentCar);
     }
-    // 3rd. update the affected cars
-    // todo
+    // 3rd. update the affected cars from this car
+    updateCarQueueInfoAt(car.id);
     // 4th. caculate the time current car start to level the queue.
     // before this setp, the queue time should be updated.
     double startOutQueueTime = queueTimeMapById[car.id];
@@ -359,7 +387,7 @@ void SMTCarInfoQueue::removeCar(string id) {
     carMapByQueueTime[queueTimeMapById[id]].remove(id);
     carMapByOutTime[outTimeMapById[id]].remove(id);
     outQueueTimeMapById.erase(id);
-// fixme needs update later car or not?
+    // fixme needs update later car or not?
 }
 void SMTCarInfoQueue::setEnterTimeOfCar(string id, double time) {
 // set the enter time of a car and update both carMapByEnterTime and enterTimeMapById

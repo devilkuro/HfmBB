@@ -55,7 +55,7 @@ public:
     inline static void setOvertakeMode(bool allow) {
         overtakeAllowed = allow;
     }
-    inline static void setUpdateInterval(double interval){
+    inline static void setUpdateInterval(double interval) {
         updateInterval = interval;
     }
 protected:
@@ -89,11 +89,12 @@ protected:
 
     // statistic related
     static XMLDocument* doc;
+    static bool XMLHasLoaded;
     XMLElement* root;
     XMLElement* element;
     // utils functions
     // update the car with id = id and the cars affected it
-    void updateCarAfter(string id);
+    void updateCarQueueInfoAt(string id);
     // set the enter time of a car and update both carMapByEnterTime and enterTimeMapById
     void setEnterTimeOfCar(string id, double time);
     // similar to the above function
@@ -102,9 +103,6 @@ protected:
     // similar to the above function
     // set the enter time of a car and update both carMapByOutTime and outTimeMapById
     void setOutTimeOfCar(string id, double time);
-    // set the pair map
-    void setThePairMap(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar, string id,
-            double time);
     // get car info by id
     SMTCarInfo getCarInfoById(string id);
     // get the car id of the car of which enter time is before the given time
@@ -127,6 +125,14 @@ protected:
             map<double, list<string> >::iterator &it, list<string>::iterator &lit);
     string getPreviousCarIdByCertainTime(map<double, list<string> > &carListMapByCertainTime,
             map<double, list<string> >::iterator &it, list<string>::iterator &lit);
+
+    // set the pair map
+    void setThePairMap(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar, string id,
+            double time);
+    void setThePairMapAtFrontOfCar(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar,
+            string id, string otherId);
+    void setThePairMapAtBackOfCar(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar,
+            string id, string otherId);
     void removeCar(string id);
     // fix the out time by considering the allowed time
     double getFixedOutTime(double time);
