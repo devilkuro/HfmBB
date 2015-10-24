@@ -31,7 +31,7 @@ SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, dou
     laneName = lane;
     laneLength = length;
     laneOutLength = outLength;
-    if (!XMLHasLoaded) {
+    if(!XMLHasLoaded){
         // load xml file only if has not
         doc->LoadFile(xmlpath.c_str());
     }
@@ -60,7 +60,7 @@ void SMTCarInfoQueue::saveResults(string filename) {
 }
 
 void SMTCarInfoQueue::releaseXML() {
-    if (doc!=NULL) {
+    if(doc != NULL){
         doc->Clear();
         delete doc;
         doc = NULL;
@@ -70,9 +70,19 @@ void SMTCarInfoQueue::releaseXML() {
 void SMTCarInfoQueue::updateCarQueueInfoAt(string id) {
     // todo
     // 1st. loose the queue time map
+    double startTime = queueTimeMapById[id];
+    double timeOffset = 0;
+    list<string> cacheQueueList;
+    map<double, list<string> >::iterator itQTMap = carMapByQueueTime.lower_bound(queueTimeMapById[id]);
+    // 2nd. stack the compacted cars into cache list
+    while(itQTMap != carMapByQueueTime.end()){
+        list<string>::iterator itQTList = itQTMap->second.begin();
+        while(itQTList != itQTMap->second.end()){
 
-    // 2nd.
-
+        }
+    }
+    // 3rd. insert compacted cars back into the time map.
+    // 4th.
 }
 
 void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carListMapByTime,
@@ -85,6 +95,17 @@ void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carL
 void SMTCarInfoQueue::setThePairMapAtBackOfCar(map<double, list<string> >& carListMapByTime,
         map<string, double>& timeMapByCar, string id, string otherId) {
     // todo
+}
+
+bool SMTCarInfoQueue::isCarACanOvertakeCarB(SMTCarInfo carA, SMTCarInfo carB, double enterTimeA, double enterTimeB,
+        double freeSpace) {
+    // todo
+    // caculate the time of the current car reach the queue area if overtake successfully
+    double reachTimeForCarA = getTheReachTime(carA, freeSpace, enterTimeA, false, true);
+    double reachTimeForCarB = getTheReachTime(carB, freeSpace - carA.length, enterTimeB, false, true);
+    // decide overtake or not
+    bool beOvertake = reachTimeForCarA < reachTimeForCarB;
+    return beOvertake;
 }
 
 void SMTCarInfoQueue::init() {
@@ -301,8 +322,8 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
     }
     double outTimeWithoutAffected = getTheReachTime(car, queueLength, startOutQueueTime, true, false);
     // calculate the out time affected by previous cars
-    if(outTimeWithoutAffected<outTimeMapById[preQueueCarId]+updateInterval){
-        outTimeWithoutAffected = outTimeMapById[preQueueCarId]+updateInterval;
+    if(outTimeWithoutAffected < outTimeMapById[preQueueCarId] + updateInterval){
+        outTimeWithoutAffected = outTimeMapById[preQueueCarId] + updateInterval;
     }
     outTimeMapById[car.id] = outTimeWithoutAffected;
     // 5th. return the finial out time

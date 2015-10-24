@@ -136,6 +136,9 @@ protected:
     void removeCar(string id);
     // fix the out time by considering the allowed time
     double getFixedOutTime(double time);
+    // judge whether the car can overtake other car successfully or not
+    bool isCarACanOvertakeCarB(SMTCarInfo carA, SMTCarInfo carB, double enterTimeA, double enterTimeB,
+            double freeSpace);
     // caculate the reach time
     double getTheReachTime(SMTCarInfo car, double length, double startTime, bool considerAccel, bool considerDecel);
 private:
