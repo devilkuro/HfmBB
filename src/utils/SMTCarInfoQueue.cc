@@ -73,12 +73,19 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id) {
     double startTime = queueTimeMapById[id];
     double timeOffset = 0;
     list<string> cacheQueueList;
+    bool isFinished = false;
     map<double, list<string> >::iterator itQTMap = carMapByQueueTime.lower_bound(queueTimeMapById[id]);
     // 2nd. stack the compacted cars into cache list
-    while(itQTMap != carMapByQueueTime.end()){
+    while(!isFinished && itQTMap != carMapByQueueTime.end()){
         list<string>::iterator itQTList = itQTMap->second.begin();
-        while(itQTList != itQTMap->second.end()){
-
+        while(!isFinished && itQTList != itQTMap->second.end()){
+            if(carMapByQueueTime[*itQTList] < startTime + timeOffset){
+                timeOffset += updateInterval;
+                cacheQueueList.push_back(*itQTList);
+            }else{
+                isFinished = true;
+            }
+            itQTList++;
         }
     }
     // 3rd. insert compacted cars back into the time map.
@@ -272,6 +279,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
                     while(otherId != ""){
                         if(queueTimeMapById[otherId] <= reachTimeForCurrentCar){
                             setQueueTimeOfCar(otherId, reachTimeForCurrentCar);
+                            // fixme not finished
                             //otherId =
                         }else{
                             break;
@@ -306,9 +314,9 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
         }
         // cacluate the reach queue time if no other car affecting it
         double reachQueueTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
-        if(queueTimeMapById[preEnterCarId] > reachQueueTimeForCurrentCar){
+        if(queueTimeMapById[preEnterCarId] + updateInterval >= reachQueueTimeForCurrentCar){
             // current car is obstruct by previous car
-            reachQueueTimeForCurrentCar = queueTimeMapById[preEnterCarId];
+            reachQueueTimeForCurrentCar = queueTimeMapById[preEnterCarId]+ updateInterval ;
         }
         setQueueTimeOfCar(car.id, reachQueueTimeForCurrentCar);
     }
@@ -327,6 +335,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
     }
     outTimeMapById[car.id] = outTimeWithoutAffected;
     // 5th. return the finial out time
+    // fixme needs to be fixed by the triffic lights
     return outTimeMapById[car.id];
 }
 double SMTCarInfoQueue::getTheReachTime(SMTCarInfo car, double length, double startTime, bool considerAccel,
