@@ -62,11 +62,14 @@ protected:
     SMTCarInfoQueue();
     static bool overtakeAllowed;
     static double updateInterval;
+    static bool onlyLosseOneCar;
     // car time manage related
     map<string, SMTCarInfo> carMapById;
+    // map by time
     map<double, list<string> > carMapByEnterTime;
     map<double, list<string> > carMapByQueueTime;
     map<double, list<string> > carMapByOutTime;
+    // map by id
     map<string, double> enterTimeMapById;
     map<string, double> queueTimeMapById;
     map<string, double> outTimeMapById;
@@ -74,10 +77,11 @@ protected:
     map<string, double> outQueueTimeMapById;
 
     map<double, list<string> >::iterator itCarMapByEnterTime;
-    list<string>::iterator litCarMapByEnterTime;
     map<double, list<string> >::iterator itcarMapByQueueTime;
-    list<string>::iterator litcarMapByQueueTime;
     map<double, list<string> >::iterator itcarMapByOutTime;
+    // car map
+    list<string>::iterator litCarMapByEnterTime;
+    list<string>::iterator litcarMapByQueueTime;
     list<string>::iterator litcarMapByOutTime;
 
     double allowedInterval;

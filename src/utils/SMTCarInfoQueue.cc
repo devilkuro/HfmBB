@@ -21,6 +21,7 @@ bool SMTCarInfoQueue::overtakeAllowed = false;
 double SMTCarInfoQueue::updateInterval = 0.1;
 XMLDocument* SMTCarInfoQueue::doc = NULL;
 bool SMTCarInfoQueue::XMLHasLoaded = false;
+bool SMTCarInfoQueue::onlyLosseOneCar = true;
 SMTCarInfoQueue::SMTCarInfoQueue() {
     // TODO Auto-generated constructor stub
     init();
@@ -69,33 +70,57 @@ void SMTCarInfoQueue::releaseXML() {
 
 void SMTCarInfoQueue::updateCarQueueInfoAt(string id) {
     // todo
-    // 1st. loose the queue time map
+    // 0th. config this function
+
+    // 1st. seek to id
     double startTime = queueTimeMapById[id];
     double timeOffset = 0;
     list<string> cacheQueueList;
     bool isFinished = false;
     map<double, list<string> >::iterator itQTMap = carMapByQueueTime.lower_bound(queueTimeMapById[id]);
-    // 2nd. stack the compacted cars into cache list
-    while(!isFinished && itQTMap != carMapByQueueTime.end()){
-        list<string>::iterator itQTList = itQTMap->second.begin();
-        while(!isFinished && itQTList != itQTMap->second.end()){
-            if(carMapByQueueTime[*itQTList] < startTime + timeOffset){
-                timeOffset += updateInterval;
-                cacheQueueList.push_back(*itQTList);
-            }else{
-                isFinished = true;
-            }
+    list<string>::iterator itQTList = itQTMap->second.begin();
+    while(itQTList != itQTMap->second.end()){
+        if(*itQTList != id){
             itQTList++;
+        }else{
+            break;
+        }
+    }
+    if(itQTList == itQTMap->second.end()){
+        cout<<"Error@updateCarQueueInfoAt()"<<endl;
+    }
+    // 2nd. stack the compacted cars into cache list
+    if(onlyLosseOneCar){
+        // do nothing
+    }else{
+        while(!isFinished && itQTMap != carMapByQueueTime.end()){
+            if(itQTMap->first != startTime){
+                itQTList = itQTMap->second.begin();
+            }
+            while(!isFinished && itQTList != itQTMap->second.end()){
+                if(itQTMap->first < startTime + timeOffset){
+                    // modify the time offset
+                    timeOffset += updateInterval;
+                    cacheQueueList.push_back(*itQTList);
+                }else{
+                    isFinished = true;
+                }
+                itQTList++;
+            }
+            itQTMap++;
         }
     }
     // 3rd. insert compacted cars back into the time map.
+    // todo
     // 4th.
 }
 
 void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carListMapByTime,
         map<string, double>& timeMapByCar, string id, string otherId) {
     // todo
-    // 1st. seek to other id
+    // 1st. remove id from current time map
+    // 2nd. seek to other id and record the time
+    // 3rd. insert the id before other id and modify the related time in the id map
 
 }
 
@@ -316,7 +341,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
         double reachQueueTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
         if(queueTimeMapById[preEnterCarId] + updateInterval >= reachQueueTimeForCurrentCar){
             // current car is obstruct by previous car
-            reachQueueTimeForCurrentCar = queueTimeMapById[preEnterCarId]+ updateInterval ;
+            reachQueueTimeForCurrentCar = queueTimeMapById[preEnterCarId] + updateInterval;
         }
         setQueueTimeOfCar(car.id, reachQueueTimeForCurrentCar);
     }
