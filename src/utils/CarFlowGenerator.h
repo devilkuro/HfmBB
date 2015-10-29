@@ -78,7 +78,7 @@ protected:
     void finish();
 
     // xml related functions
-    SMTCarInfo getCar(XMLElement* e);   // todo
+    SMTCarInfo getCar(XMLElement* e);
     string getIdOfCar(XMLElement* e);
     string getRouteTypeOfCar(XMLElement* e);
     string getOriginOfODCar(XMLElement* e);

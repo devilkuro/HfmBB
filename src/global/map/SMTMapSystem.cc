@@ -16,11 +16,8 @@
 #include "SMTMapSystem.h"
 Define_Module(SMTMapSystem)
 SMTMapSystem::SMTMapSystem() {
-    // TODO Auto-generated constructor stub
-
 }
 
 SMTMapSystem::~SMTMapSystem() {
-    // TODO Auto-generated destructor stub
 }
 

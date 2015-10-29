@@ -67,7 +67,6 @@ protected:
     mutable GlobalVehicleManager *vehicleManager;
     StatisticsRecordTools* srt;
     simtime_t lastDroveAt;
-    // fixme chage to the correct class
     ASMTimer asmtimer;
     // path process
     bool hasRouted;

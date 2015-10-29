@@ -17,7 +17,6 @@
 
 namespace Fanjing {
 CarFlowGenerator::CarFlowGenerator() {
-    // TODO Auto-generated constructor stub
     doc = NULL;
     root = NULL;
     curCarElement = NULL;
@@ -42,7 +41,6 @@ bool CarFlowGenerator::setXMLPath(string path) {
 
 // load xml file
 bool CarFlowGenerator::loadXML(string path) {
-    // todo
     if(this->carXMLPath == ""){
         this->carXMLPath = path;
     }
@@ -237,7 +235,6 @@ void CarFlowGenerator::save(string path) {
 }
 
 SMTCarInfo CarFlowGenerator::getCar(string id) {
-    // todo
     XMLElement* e = seekCarByAttribute("id", id);
     return getCar(e);
 }

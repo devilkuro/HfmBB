@@ -22,8 +22,6 @@ class SMTMapSystem : public GlobalMapSystem {
 public:
     SMTMapSystem();
     virtual ~SMTMapSystem();
-
-
 };
 
 class SMTMapSystemAccess {

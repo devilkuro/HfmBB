@@ -26,7 +26,7 @@ using Fanjing::StatisticsRecordTools;
 using Fanjing::SMTCarInfo;
 using Fanjing::CarFlowGenerator;
 /**
- * TODO - Generated class
+ * 车辆管理
  */
 class GlobalVehicleManager : public cSimpleModule {
 public:

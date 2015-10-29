@@ -12,7 +12,6 @@ string SMTCarInfo::path = "";
 XMLDocument* SMTCarInfo::doc = NULL;
 map<string, SMTCarInfo> SMTCarInfo::vTypeMap;
 SMTCarInfo::SMTCarInfo() {
-    // TODO Auto-generated constructor stub
     id = "";
     type = SMTCARINFO_ROUTETYPE_LAST_TYPE;
     origin = "";
@@ -32,7 +31,7 @@ SMTCarInfo::SMTCarInfo() {
 }
 
 SMTCarInfo::~SMTCarInfo() {
-    // TODO Auto-generated destructor stub
+    // FIXME 静态变量doc需要clear().
 }
 
 void SMTCarInfo::loadVehicleTypeXML(string path) {
@@ -74,14 +73,20 @@ SMTCarInfo SMTCarInfo::getDefaultVeicleTypeInfo(string vTypeId) {
 }
 
 bool SMTCarInfo::hasInitialized() {
-    // todo this is a simple method
+    // FIXME this is a simple method
     return vTypeMap.size() > 0;
+}
+
+void SMTCarInfo::release() {
+    if(doc != NULL){
+        doc->Clear();
+        doc = NULL;
+    }
 }
 
 list<string> SMTCarInfo::getDefaultVeicleTypeList() {
     list<string> result;
-    for(map<string, SMTCarInfo>::iterator it = vTypeMap.begin();
-            it != vTypeMap.end(); it++){
+    for(map<string, SMTCarInfo>::iterator it = vTypeMap.begin(); it != vTypeMap.end(); it++){
         result.push_back(it->first);
     }
     return result;
@@ -89,23 +94,22 @@ list<string> SMTCarInfo::getDefaultVeicleTypeList() {
 string SMTCarInfo::toString() {
     string str = "";
     str += "car id :" + id + ", ";
-    str +=
-            "type :" + (string)(type == SMTCARINFO_ROUTETYPE_OD ? "SMTCARINFO_ROUTETYPE_OD" :
-            (type == SMTCARINFO_ROUTETYPE_LOOP ? "SMTCARINFO_ROUTETYPE_LOOP" :
-                    "null")) + ", ";
+    str += "type :"
+            + (string) (
+                    type == SMTCARINFO_ROUTETYPE_OD ? "SMTCARINFO_ROUTETYPE_OD" :
+                            (type == SMTCARINFO_ROUTETYPE_LOOP ? "SMTCARINFO_ROUTETYPE_LOOP" : "null")) + ", ";
     str += "origin :" + origin + ", ";
     str += "destination :" + destination + ", ";
     str += "loop :" + loop + ", ";
     str += "time :" + StringHelper::dbl2str(time) + ", ";
     str += "vtype :" + vtype + ", ";
-    str += "accel :" + StringHelper::dbl2str(accel)  + ", ";
-    str += "decel :" + StringHelper::dbl2str(decel)  + ", ";
-    str += "sigma :" + StringHelper::dbl2str(sigma)  + ", ";
-    str += "minGap :" + StringHelper::dbl2str(minGap)  + ", ";
-    str += "maxSpeed :" + StringHelper::dbl2str(maxSpeed)  + ", ";
+    str += "accel :" + StringHelper::dbl2str(accel) + ", ";
+    str += "decel :" + StringHelper::dbl2str(decel) + ", ";
+    str += "sigma :" + StringHelper::dbl2str(sigma) + ", ";
+    str += "minGap :" + StringHelper::dbl2str(minGap) + ", ";
+    str += "maxSpeed :" + StringHelper::dbl2str(maxSpeed) + ", ";
     str += "color :" + color + ", ";
     return str;
 }
 
 } /* namespace Fanjing */
-

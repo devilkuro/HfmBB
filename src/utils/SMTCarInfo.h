@@ -34,6 +34,7 @@ public:
     virtual ~SMTCarInfo();
     static bool hasInitialized();
     static void loadVehicleTypeXML(string path);
+    static void release();
     // return car with route type SMTCARINFO_ROUTETYPE_LAST_TYPE, if no car own this type id
     static SMTCarInfo getDefaultVeicleTypeInfo(string vTypeId);
     // load vehicle type xml first

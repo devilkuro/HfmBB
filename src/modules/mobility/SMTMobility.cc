@@ -17,12 +17,10 @@
 
 Define_Module(SMTMobility)
 SMTMobility::SMTMobility() {
-    // TODO Auto-generated constructor stub
 
 }
 
 SMTMobility::~SMTMobility() {
-    // TODO Auto-generated destructor stub
 
 }
 

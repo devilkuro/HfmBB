@@ -81,7 +81,7 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
         }
     }else if(msg == updateMsg){
         ASSERT(mapSystemInitialized);
-        // TODO add vehicles here.
+        // TOxxDO add vehicles here.
         // vehicle manager has been move into class GlobalvehicleManager.
         // updateVehicleList();
     }else{
@@ -157,13 +157,13 @@ void GlobalMapSystem::finish() {
 }
 
 double GlobalMapSystem::getTravelTime(string edge, double time, double speed) {
-    // TODO calculate travel time here
+    // FIXME calculate travel time here
     double travelTime = (*(edgeMap[edge]->lanes.begin()))->length / speed;
     return travelTime;
 }
 
 list<string> GlobalMapSystem::getFastestRoute(string fromEdge, string toEdge) {
-    // TODO add path function here
+    // FIXME add path function here
     list<string> route;
     route.push_back(fromEdge);
     route.push_back(toEdge);
@@ -386,11 +386,11 @@ void GlobalMapSystem::reduceMap() {
 }
 
 void GlobalMapSystem::optimizeMap() {
-    // todo DO NOTHING NOW
+    // toxxdo DO NOTHING NOW
 }
 
 list<string> GlobalMapSystem::getShortestRoute(string fromEdge, string toEdge) {
-    // TODO needs to add shortest path algorithm
+    // FIXME needs to add shortest path algorithm
     list<string> route;
 
     return route;
@@ -420,7 +420,8 @@ bool GlobalMapSystem::addOneVehicle(string vehicleId, string vehicleTypeId, stri
     string vid = vehicleId == "" ? "DefaultNode" + int2str(lastHostNo) : vehicleId;
     lastHostNo++; // increase the lastHostNo to avoid name conflict.
     string vtype = vehicleTypeId == "" ? "vtype0" : vehicleTypeId;
-    // TODO change getRandomEdge to get edge from a certain area
+    // change getRandomEdge to get edge from a certain area
+    // IMPORTANT upside function has been moved into vehicle manager system.
     string start = routeId;
     if(routeId == ""){
         start = getRandomEdgeFromCache();
@@ -441,12 +442,12 @@ void GlobalMapSystem::setVehicleRouteByEdgeList(string id, list<std::string> rou
 }
 
 void GlobalMapSystem::weightEdges() {
-    // TODO
+    // 废弃，已由车辆队列系统接替
 }
 
 bool GlobalMapSystem::addVehicles(int num, string vehicleId, string vehicleTypeId, string routeId,
         simtime_t emitTime_st, double emitPosition, double emitSpeed, int8_t emitLane) {
-    // TODO
+    // 废弃，已由车辆管理系统接替
     bool result = true;
     for(int i = 0; i < num; i++){
         if(!addOneVehicle(vehicleId, vehicleTypeId, routeId, emitTime_st, emitPosition, emitSpeed, emitLane)){
@@ -575,12 +576,12 @@ string GlobalMapSystem::rgb2color(int r, int g, int b) {
 }
 
 int GlobalMapSystem::MapRoute::getVehicleNum() {
-    // TODO getVehicleNum from a MapRoute
+    // 废弃,未实现
     return 0;
 }
 
 double GlobalMapSystem::MapEdgeWight::getOutTime(double enterTime) {
-    // TODO
+    // 废弃，已由车辆队列系统接替
     return 0;
 }
 
