@@ -77,10 +77,13 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id) {
     //      b. 判定后方跟随车辆
     //      c. 更新后方跟随车辆
     // 2. 各步骤的大致内容
-    //      a:  修改当前节点进入队列时间,该时间应晚于队列区前方车辆至少updateInterval时间距离
+    //      a: 修改当前节点进入队列时间,该时间应晚于队列区前方车辆至少updateInterval时间距离
     //      b:  1. 后方车辆需要满足一下要求才需要继续更新
-    //              a. 后方车辆必须位于当前车辆此时队列区时间后方
+    //              a  后方车辆必须位于当前车辆此时队列区时间后方
     //              b. 当前车辆离开道路时后方车辆必须已经进入当前道路,并且已到达队列区域
+    //              c. 在当前车辆后方的车辆中，设最早进入道路车辆为P,P抵达队列区的时间为t
+    //                  则只有早于t进入道路的车辆正才有可能在超车之后成为当前车辆后方的车辆
+    //
     //              todo
     // 0th. config this function
     double startTime = queueTimeMapById[id];
