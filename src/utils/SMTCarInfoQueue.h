@@ -66,14 +66,21 @@ protected:
     // car time manage related
     map<string, SMTCarInfo> carMapById;
     // map by time
+    // 由时间点进行索引的车辆列表
     map<double, list<string> > carMapByEnterTime;
     map<double, list<string> > carMapByQueueTime;
     map<double, list<string> > carMapByOutTime;
     // map by id
+    // 通过车辆id进行索引的个状态时间
     map<string, double> enterTimeMapById;
     map<string, double> queueTimeMapById;
     map<string, double> outTimeMapById;
     // the time car start to get out the queue area
+    // 车辆启动并开始离开队列区的时间
+    // 该时间取决于前方车辆启动的时间
+    // 若前方没有车辆,则取决于控制信号下一个允许通行的时间
+    // 若前方没有车辆,且控制信号允许则等于该车进入队列区的时间
+    // 最后一种情况需要进行额外处理（因为少了加速减速的过程）
     map<string, double> outQueueTimeMapById;
 
     map<double, list<string> >::iterator itCarMapByEnterTime;

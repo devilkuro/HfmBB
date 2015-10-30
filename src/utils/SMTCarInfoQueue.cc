@@ -69,64 +69,69 @@ void SMTCarInfoQueue::releaseXML() {
 }
 
 void SMTCarInfoQueue::updateCarQueueInfoAt(string id) {
-    // todo
-    // 说明:
-    // 1. 更新操作需要完成以下操作
-    //      a. 更新当前节点进入队列区的时间
-    //          a+. 更新当前节点的驶离信息(因为当前节点的状态与后方车辆无关,可以在此时确定)
-    //      b. 判定后方跟随车辆
-    //      c. 更新后方跟随车辆
-    // 2. 各步骤的大致内容
-    //      a: 修改当前节点进入队列时间,该时间应晚于队列区前方车辆至少updateInterval时间距离
-    //      b:  1. 后方车辆需要满足一下要求才需要继续更新
-    //              a  后方车辆必须位于当前车辆此时队列区时间后方
-    //              b. 当前车辆离开道路时后方车辆必须已经进入当前道路,并且已到达队列区域
-    //              c. 在当前车辆后方的车辆中，设最早进入道路车辆为P,P抵达队列区的时间为t
-    //                  则只有早于t进入道路的车辆正才有可能在超车之后成为当前车辆后方的车辆
-    //
-    //              todo
-    // 0th. config this function
-    double startTime = queueTimeMapById[id];
-    double timeOffset = 0;
-    list<string> cacheQueueList;
-    // 1st. seek to id
-    bool isFinished = false;
-    map<double, list<string> >::iterator itQTMap = carMapByQueueTime.lower_bound(queueTimeMapById[id]);
-    list<string>::iterator itQTList = itQTMap->second.begin();
-    while(itQTList != itQTMap->second.end()){
-        if(*itQTList != id){
-            itQTList++;
-        }else{
-            break;
-        }
-    }
-    if(itQTList == itQTMap->second.end()){
-        cout<<"Error@updateCarQueueInfoAt()::ID_MISSING"<<endl;
-    }
-    // 2nd. stack the compacted cars into cache list
-    if(onlyLosseOneCar){
-        // do nothing
-    }else{
-        while(!isFinished && itQTMap != carMapByQueueTime.end()){
-            if(itQTMap->first != startTime){
-                itQTList = itQTMap->second.begin();
-            }
-            while(!isFinished && itQTList != itQTMap->second.end()){
-                if(itQTMap->first < startTime + timeOffset){
-                    // modify the time offset
-                    timeOffset += updateInterval;
-                    cacheQueueList.push_back(*itQTList);
-                }else{
-                    isFinished = true;
-                }
+    if (overtakeAllowed) {
+        // todo
+        // 说明:
+        // 1. 更新操作需要完成以下操作
+        //      a. 更新当前节点进入队列区的时间
+        //          a+. 更新当前节点的驶离信息(因为当前节点的状态与后方车辆无关,可以在此时确定)
+        //      b. 判定后方跟随车辆
+        //      c. 更新后方跟随车辆
+        // 2. 各步骤的大致内容
+        //      a: 修改当前节点进入队列时间,该时间应晚于队列区前方车辆至少updateInterval时间距离
+        //      b:  1. 后方车辆需要满足一下要求才需要继续更新
+        //              a  后方车辆必须位于当前车辆此时队列区时间后方
+        //              b. 当前车辆离开道路时后方车辆必须已经进入当前道路,并且已到达队列区域
+        //              c. 在当前车辆后方的车辆中，设最早进入道路车辆为P,P抵达队列区的时间为t
+        //                  则只有早于t进入道路的车辆正才有可能在超车之后成为当前车辆后方的车辆
+        //
+        //              todo
+        // 0th. config this function
+        double startTime = queueTimeMapById[id];
+        double timeOffset = 0;
+        list<string> cacheQueueList;
+        // 1st. seek to id
+        bool isFinished = false;
+        map<double, list<string> >::iterator itQTMap = carMapByQueueTime.lower_bound(queueTimeMapById[id]);
+        list<string>::iterator itQTList = itQTMap->second.begin();
+        while(itQTList != itQTMap->second.end()){
+            if(*itQTList != id){
                 itQTList++;
+            }else{
+                break;
             }
-            itQTMap++;
         }
+        if(itQTList == itQTMap->second.end()){
+            cout<<"Error@updateCarQueueInfoAt()::ID_MISSING"<<endl;
+        }
+        // 2nd. stack the compacted cars into cache list
+        if(onlyLosseOneCar){
+            // do nothing
+        }else{
+            while(!isFinished && itQTMap != carMapByQueueTime.end()){
+                if(itQTMap->first != startTime){
+                    itQTList = itQTMap->second.begin();
+                }
+                while(!isFinished && itQTList != itQTMap->second.end()){
+                    if(itQTMap->first < startTime + timeOffset){
+                        // modify the time offset
+                        timeOffset += updateInterval;
+                        cacheQueueList.push_back(*itQTList);
+                    }else{
+                        isFinished = true;
+                    }
+                    itQTList++;
+                }
+                itQTMap++;
+            }
+        }
+        // 3rd. insert compacted cars back into the time map.
+        // todo
+        // 4th. update the next car if necessary
+    }else{
+        // 如果不允许超车行为，则修改当前车辆进入队列区时间，更新离开状态，然后更新下一个车辆信息
+        // 1.st 若当前车辆进入队列的预测时间
     }
-    // 3rd. insert compacted cars back into the time map.
-    // todo
-    // 4th. update the next car if necessary
 }
 
 void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carListMapByTime,
