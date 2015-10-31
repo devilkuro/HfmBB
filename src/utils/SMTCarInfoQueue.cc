@@ -131,6 +131,7 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id) {
     }else{
         // 如果不允许超车行为，则修改当前车辆进入队列区时间，更新离开状态，然后更新下一个车辆信息
         // 1.st 若当前车辆进入队列的预测时间
+        // todo
     }
 }
 
