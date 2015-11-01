@@ -15,6 +15,7 @@
 
 #include <SMTCarInfoQueue.h>
 #include <cmath>
+#include <iostream>
 
 namespace Fanjing {
 bool SMTCarInfoQueue::overtakeAllowed = false;
