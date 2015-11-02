@@ -172,6 +172,11 @@ void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carL
         carListMapByTime[timeMapByCar[id]].remove(id);
     }
     // 3rd. insert the id before other id and modify the related time in the id map
+    if(litcarMapByTime == itcarMapByTime->second.end()){
+        // 判定是否存在other id，理论上肯定存在，若进入此代码，则那里出了问题
+        cout << "Error@setThePairMapAtFrontOfCar()::OTHER_ID_MISSING::2" << endl;
+        return;
+    }
     // add this car at front of other id
     carListMapByTime[time].insert(litcarMapByTime, id);
     // modify the related time
@@ -181,6 +186,41 @@ void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carL
 void SMTCarInfoQueue::setThePairMapAtBackOfCar(map<double, list<string> >& carListMapByTime,
         map<string, double>& timeMapByCar, string id, string otherId) {
     // todo 将id为id车辆插入到id为otherId的车辆的的后方
+    // 0th. config function
+        double time = -1;
+        // 1st. record the time of other id
+        if(timeMapByCar.find(otherId) == timeMapByCar.end()){
+            cout << "Error@setThePairMapAtBackOfCar()::OTHER_ID_MISSING" << endl;
+            return;
+        }else{
+            time = timeMapByCar[otherId];
+        }
+        // 1st+. seek to the other id
+        map<double, list<string> >::iterator itcarMapByTime = carListMapByTime.lower_bound(time);
+        list<string>::iterator litcarMapByTime = itcarMapByTime->second.begin();
+        while(litcarMapByTime != itcarMapByTime->second.end()){
+            if(*litcarMapByTime == otherId){
+                break;
+            }
+            litcarMapByTime++;
+        }
+        // 2nd. remove id from current time map
+        if(timeMapByCar.find(id) != timeMapByCar.end()){
+            // if the car is already here, update the related information
+            // 1st. remove the old information
+            carListMapByTime[timeMapByCar[id]].remove(id);
+        }
+        // 3rd. insert the id before other id and modify the related time in the id map
+        // add this car at back of other id
+        if(litcarMapByTime == itcarMapByTime->second.end()){
+            // 判定是否存在other id，理论上肯定存在，若进入此代码，则那里出了问题
+            cout << "Error@setThePairMapAtBackOfCar()::OTHER_ID_MISSING::2" << endl;
+            return;
+        }
+        litcarMapByTime++;
+        carListMapByTime[time].insert(litcarMapByTime, id);
+        // modify the related time
+        timeMapByCar[id] = time;
 }
 
 bool SMTCarInfoQueue::isCarACanOvertakeCarB(SMTCarInfo carA, SMTCarInfo carB, double enterTimeA, double enterTimeB,
