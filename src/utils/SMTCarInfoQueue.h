@@ -153,7 +153,10 @@ protected:
     bool isCarACanOvertakeCarB(SMTCarInfo carA, SMTCarInfo carB, double enterTimeA, double enterTimeB,
             double freeSpace);
     // caculate the reach time
+    // 计算车辆行驶指定距离需要消耗的时间,考虑或者不考虑前后加减速阶段
     double getTheReachTime(SMTCarInfo car, double length, double startTime, bool considerAccel, bool considerDecel);
+    // 将时间转换为updateInterval的整数倍
+    double getFixedTimeWithUpdateInterval(double time);
 private:
     void init();
 };
