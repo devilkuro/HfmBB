@@ -105,9 +105,9 @@ protected:
     XMLElement* element;
     // utils functions
     // update the car with id = id and the cars affected it
-    void updateCarQueueInfoAt(string id);
+    void updateCarQueueInfoAt(string id, string preId);
     // 更新车辆离开相关信息
-    void updateCarOutInfo(string id);
+    void updateCarOutInfo(string id,string preId);
     // set the enter time of a car and update both carMapByEnterTime and enterTimeMapById
     void setEnterTimeOfCar(string id, double time);
     // similar to the above function
