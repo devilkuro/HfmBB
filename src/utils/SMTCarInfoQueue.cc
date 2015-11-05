@@ -23,6 +23,28 @@ double SMTCarInfoQueue::updateInterval = 0.1;
 XMLDocument* SMTCarInfoQueue::doc = NULL;
 bool SMTCarInfoQueue::XMLHasLoaded = false;
 bool SMTCarInfoQueue::onlyLosseOneCar = true;   // 是否每次仅松散一个车辆
+
+
+SMTCarInfoQueue::TraversalHelper::TraversalHelper() {
+    carListMap = 0;
+}
+
+SMTCarInfoQueue::TraversalHelper::~TraversalHelper() {
+}
+
+string SMTCarInfoQueue::TraversalHelper::getFirstCarIdByCertainTime(map<double, list<string> >& carListMapByCertainTime,
+        double time) {
+    return "";
+}
+
+string SMTCarInfoQueue::TraversalHelper::getNextCarId(map<double, list<string> >& carListMapByCertainTime) {
+    return "";
+}
+
+string SMTCarInfoQueue::TraversalHelper::getPreviousCarId(map<double, list<string> >& carListMapByCertainTime) {
+    return "";
+}
+
 SMTCarInfoQueue::SMTCarInfoQueue() {
     // TODO Auto-generated constructor stub
     init();
@@ -92,7 +114,7 @@ void SMTCarInfoQueue::updateCarOutInfo(string id, string preId) {
     // 计算启动时的队列长度
     // 首先计算启动时间所在的通行周期的起始时间
     double startCircleTime = getStartTimeOfAllowedTime(outQueueTimeMapById[id]);
-
+    // todo
 }
 void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     // 说明:

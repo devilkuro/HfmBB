@@ -17,7 +17,7 @@
 #define __SMARTCITYFLOWRESERVED_TESTAPPDEMO_H_
 
 #include "BaseWaveApplLayer.h"
-#include "mobility/traci/TraCIMobility.h"
+#include "TraCIMobility.h"
 
 /**
  *

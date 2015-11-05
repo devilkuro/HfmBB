@@ -32,8 +32,11 @@ class SMTCarInfoQueue {
 public:
     // 用于遍历的内部类
     class TraversalHelper {
+    public:
+        TraversalHelper();
+        virtual ~TraversalHelper();
         // iterator 便利迭代器
-        map<double, list<string> > &carListMap=0;
+        map<double, list<string> > *carListMap;
         map<double, list<string> >::iterator it;
         list<string>::iterator lit;
         // get the car by time
