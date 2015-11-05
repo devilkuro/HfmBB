@@ -69,14 +69,30 @@ void SMTCarInfoQueue::releaseXML() {
     }
 }
 
-void SMTCarInfoQueue::updateCarOutInfo(string id,string preId) {
+void SMTCarInfoQueue::updateCarOutInfo(string id, string preId) {
     // todo 更新车辆离开相关信息
     // 1. 该功能需要完成的操作
     //      a. 判定车辆启动并离开队列区的时间
     //          该时间由当前车辆到达队列区时间和前方车辆开始驶离队列区时间共同影响决定
     //      b. 判定驶离队列区时当前车辆在队列区的位置
-    //          该位置由当前车辆开始驶离时间所在通行周期内通过道路的车辆长度累加确定
-    //      c.
+    //          考虑启动的问题，该位置由当前车辆开始驶离时间所在通行周期内通过道路的车辆长度累加确定
+    //      c. 判定由启动到离开的时间
+    //          通过getTheReachTime确定
+    //      d. 进行离开时间修正
+    //          通过getFixedOutTime确定
+    //          d+. 若受交通信号影响，则需要修改离开队列区时间
+    // a. 判定启动离开队列区的时间
+    // FIXME 需要处理前方没有车辆的情况
+    if(queueTimeMapById[id] >= outQueueTimeMapById[preId] + updateInterval){
+        // 若当前车辆进入队列区时，前方车辆已经启动，则认为前方车辆不会阻碍当前车辆
+        // 此时，当前开始驶离队列区时间等于其进入队列区的时间
+        outQueueTimeMapById[id] = queueTimeMapById[id];
+    }
+    // b. 判定势力队列区时的队列长度。
+    // 计算启动时的队列长度
+    // 首先计算启动时间所在的通行周期的起始时间
+    double startCircleTime = getStartTimeOfAllowedTime(outQueueTimeMapById[id]);
+
 }
 void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     // 说明:
@@ -102,13 +118,14 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     //              b. 并且，当前车辆离开道路时，后方跟随车辆必须必须能够在接下来的updateInterval时间内能够抵达道路末尾
     //                  若无法抵达道路末尾，则表示后方跟随车辆通过道路的整个行程并未受到当前车辆的阻碍
     //              c. 判断完成,对后方跟随的车辆进行更新
-
     // todo 需要重写过程
     //1. 更新当前节点进入队列区的时间
     //      a. 查找前方车辆进入队列的时间
     //      b. 若前方车辆进入队列时间与当前车辆进入队列时间差值小于updateInterval,则推迟当前车辆进入队列时间
     //          b+. 推迟过程中,若有其他车辆存在于该updateInterval时间片内,则依次向后推移
+    updateCarOutInfo(id, preId);
 
+    // FIXME 后面都是旧代码，没有用了几乎
     if(overtakeAllowed){
         // 0th. config this function
         double startTime = queueTimeMapById[id];
@@ -157,45 +174,6 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
         // 1.st 若当前车辆进入队列的预测时间
         // todo  不允许超车时队列区时间的更新
     }
-}
-
-void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carListMapByTime,
-        map<string, double>& timeMapByCar, string id, string otherId) {
-    // 将id为id车辆插入到id为otherId的车辆的前方
-    // 0th. config function
-    double time = -1;
-    // 1st. record the time of other id
-    if(timeMapByCar.find(otherId) == timeMapByCar.end()){
-        cout << "Error@setThePairMapAtFrontOfCar()::OTHER_ID_MISSING" << endl;
-        return;
-    }else{
-        time = timeMapByCar[otherId];
-    }
-    // 1st+. seek to the other id
-    map<double, list<string> >::iterator itcarMapByTime = carListMapByTime.lower_bound(time);
-    list<string>::iterator litcarMapByTime = itcarMapByTime->second.begin();
-    while(litcarMapByTime != itcarMapByTime->second.end()){
-        if(*litcarMapByTime == otherId){
-            break;
-        }
-        litcarMapByTime++;
-    }
-    // 2nd. remove id from current time map
-    if(timeMapByCar.find(id) != timeMapByCar.end()){
-        // if the car is already here, update the related information
-        // 1st. remove the old information
-        carListMapByTime[timeMapByCar[id]].remove(id);
-    }
-    // 3rd. insert the id before other id and modify the related time in the id map
-    if(litcarMapByTime == itcarMapByTime->second.end()){
-        // 判定是否存在other id，理论上肯定存在，若进入此代码，则那里出了问题
-        cout << "Error@setThePairMapAtFrontOfCar()::OTHER_ID_MISSING::2" << endl;
-        return;
-    }
-    // add this car at front of other id
-    carListMapByTime[time].insert(litcarMapByTime, id);
-    // modify the related time
-    timeMapByCar[id] = time;
 }
 
 void SMTCarInfoQueue::setThePairMapAtBackOfCar(map<double, list<string> >& carListMapByTime,
@@ -506,6 +484,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
     // fixme needs to be fixed by the triffic lights
     return outTimeMapById[car.id];
 }
+
 double SMTCarInfoQueue::getTheReachTime(SMTCarInfo car, double length, double startTime, bool considerAccel,
         bool considerDecel) {
     // if consider both accel phases
@@ -554,11 +533,11 @@ SMTCarInfo SMTCarInfoQueue::getCarInfoById(string id) {
 }
 
 void SMTCarInfoQueue::setCurrentTime(double time) {
-// not necessary at now...
+    // not necessary at now...
 }
 
 double SMTCarInfoQueue::releaseCar(string id, double time) {
-// make recording
+    // make recording
     element = doc->NewElement("result");
     element->SetAttribute("car", id.c_str());
     element->SetAttribute("enterTime", enterTimeMapById[id]);
@@ -567,7 +546,7 @@ double SMTCarInfoQueue::releaseCar(string id, double time) {
     element->SetAttribute("outTime", outTimeMapById[id]);
     element->SetAttribute("actualOutTime", time);
     root->LinkEndChild(element);
-// release the old car and return the predicted out time
+    // release the old car and return the predicted out time
     double outTime = outTimeMapById[id];
     removeCar(id);
     return outTime;
@@ -584,6 +563,9 @@ void SMTCarInfoQueue::removeCar(string id) {
     carMapByEnterTime[enterTimeMapById[id]].remove(id);
     carMapByQueueTime[queueTimeMapById[id]].remove(id);
     carMapByOutTime[outTimeMapById[id]].remove(id);
+    enterTimeMapById.erase(id);
+    queueTimeMapById.erase(id);
+    outTimeMapById.erase(id);
     outQueueTimeMapById.erase(id);
     // fixme needs update later car or not?
 }
@@ -593,7 +575,7 @@ void SMTCarInfoQueue::setEnterTimeOfCar(string id, double time) {
 }
 
 void SMTCarInfoQueue::setQueueTimeOfCar(string id, double time) {
-// set the enter time of a car and update both carMapByQueueTime and queueTimeMapById
+    // set the enter time of a car and update both carMapByQueueTime and queueTimeMapById
     setThePairMap(carMapByQueueTime, queueTimeMapById, id, time);
 }
 
@@ -604,7 +586,7 @@ void SMTCarInfoQueue::setOutTimeOfCar(string id, double time) {
 
 void SMTCarInfoQueue::setThePairMap(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar,
         string id, double time) {
-    // 此处为唯一修改timeMapByCar中相关时间的方法，因此将时间修正方法放在此处
+    // FIXME (可能）此处为唯一修改timeMapByCar中相关时间的方法，因此将时间修正方法放在此处
     // 修正时间
     time = getFixedTimeWithUpdateInterval(time);
     // set the pair map
@@ -622,44 +604,84 @@ void SMTCarInfoQueue::setThePairMap(map<double, list<string> > &carListMapByTime
     }
 }
 
+void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carListMapByTime,
+        map<string, double>& timeMapByCar, string id, string otherId) {
+    // 将id为id的车辆插入到id为otherId的车辆的前方
+    // 0th. config function
+    double time = -1;
+    // 1st. record the time of other id
+    if(timeMapByCar.find(otherId) == timeMapByCar.end()){
+        cout << "Error@setThePairMapAtFrontOfCar()::OTHER_ID_MISSING" << endl;
+        return;
+    }else{
+        time = timeMapByCar[otherId];
+    }
+    // 1st+. seek to the other id
+    map<double, list<string> >::iterator itcarMapByTime = carListMapByTime.lower_bound(time);
+    list<string>::iterator litcarMapByTime = itcarMapByTime->second.begin();
+    while(litcarMapByTime != itcarMapByTime->second.end()){
+        if(*litcarMapByTime == otherId){
+            break;
+        }
+        litcarMapByTime++;
+    }
+    // 2nd. remove id from current time map
+    if(timeMapByCar.find(id) != timeMapByCar.end()){
+        // if the car is already here, update the related information
+        // 1st. remove the old information
+        carListMapByTime[timeMapByCar[id]].remove(id);
+    }
+    // 3rd. insert the id before other id and modify the related time in the id map
+    if(litcarMapByTime == itcarMapByTime->second.end()){
+        // 判定是否存在other id，理论上肯定存在，若进入此代码，则那里出了问题
+        cout << "Error@setThePairMapAtFrontOfCar()::OTHER_ID_MISSING::2" << endl;
+        return;
+    }
+    // add this car at front of other id
+    carListMapByTime[time].insert(litcarMapByTime, id);
+    // modify the related time
+    timeMapByCar[id] = time;
+}
+
 string SMTCarInfoQueue::getFirstCarIdByEnterTime(double time) {
     return getFirstCarIdByCertainTime(carMapByEnterTime, itCarMapByEnterTime, litCarMapByEnterTime, time);
-}
-
-string SMTCarInfoQueue::getFirstCarIdByQueueTime(double time) {
-    return getFirstCarIdByCertainTime(carMapByQueueTime, itcarMapByQueueTime, litcarMapByQueueTime, time);
-}
-
-string SMTCarInfoQueue::getFirstCarIdByOutTime(double time) {
-    return getFirstCarIdByCertainTime(carMapByOutTime, itcarMapByOutTime, litcarMapByOutTime, time);
 }
 
 string SMTCarInfoQueue::getNextCarIdByEnterTime() {
     return getNextCarIdByCertainTime(carMapByEnterTime, itCarMapByEnterTime, litCarMapByEnterTime);
 }
 
-string SMTCarInfoQueue::getNextCarIdByQueueTime() {
-    return getNextCarIdByCertainTime(carMapByQueueTime, itcarMapByQueueTime, litcarMapByQueueTime);
-}
-
-string SMTCarInfoQueue::getNextCarIdByOutTime() {
-    return getNextCarIdByCertainTime(carMapByOutTime, itcarMapByOutTime, litcarMapByOutTime);
-}
-
 string SMTCarInfoQueue::getPreviousCarIdByEnterTime() {
     return getPreviousCarIdByCertainTime(carMapByEnterTime, itCarMapByEnterTime, litCarMapByEnterTime);
+}
+
+string SMTCarInfoQueue::getFirstCarIdByQueueTime(double time) {
+    return getFirstCarIdByCertainTime(carMapByQueueTime, itcarMapByQueueTime, litcarMapByQueueTime, time);
+}
+
+string SMTCarInfoQueue::getNextCarIdByQueueTime() {
+    return getNextCarIdByCertainTime(carMapByQueueTime, itcarMapByQueueTime, litcarMapByQueueTime);
 }
 
 string SMTCarInfoQueue::getPreviousCarIdByQueueTime() {
     return getPreviousCarIdByCertainTime(carMapByQueueTime, itcarMapByQueueTime, litcarMapByQueueTime);
 }
 
+string SMTCarInfoQueue::getFirstCarIdByOutTime(double time) {
+    return getFirstCarIdByCertainTime(carMapByOutTime, itcarMapByOutTime, litcarMapByOutTime, time);
+}
+
+string SMTCarInfoQueue::getNextCarIdByOutTime() {
+    return getNextCarIdByCertainTime(carMapByOutTime, itcarMapByOutTime, litcarMapByOutTime);
+}
+
 string SMTCarInfoQueue::getPreviousCarIdByOutTime() {
     return getPreviousCarIdByCertainTime(carMapByOutTime, itcarMapByOutTime, litcarMapByOutTime);
 }
+
 string SMTCarInfoQueue::getFirstCarIdByCertainTime(map<double, list<string> >& carListMapByCertainTime,
         map<double, list<string> >::iterator& it, list<string>::iterator& lit, double time) {
-    // 获取指定时间点之后的第一个车辆id
+    // 获取指定时间点之后的第一个车辆id(包含当前时间点)
     // get first time node (include given time)
     it = carListMapByCertainTime.lower_bound(time);
     lit = it->second.begin();
@@ -701,18 +723,34 @@ string SMTCarInfoQueue::getNextCarIdByCertainTime(map<double, list<string> >& ca
             return *lit;
         }
     }
-// if the list has no more object and no car after the time return blank string
+    // if the list has no more object and no car after the time return blank string
     return "";
 }
 
 // if the out time is not allowed to get out, then return the start of next allowed time
 double SMTCarInfoQueue::getFixedOutTime(double time) {
-// fixme the final solution is read the xml file, now just use the cycle period
+    // fixme the final solution is read the xml file, now just use the cycle period
+    // 先求得当前时间点对应的周期的允许通行时间的起点
     double preAllowedTime = cycleOffset + cyclePeriod * (int) ((time - cycleOffset) / cyclePeriod);
+    // 若当前时间超出了该周期的通行时间，则修正通行时间为下一个通行周期，反之不做变动
     if(time - preAllowedTime > allowedInterval){
         time = preAllowedTime + cyclePeriod;
     }
     return time;
+}
+
+double SMTCarInfoQueue::getStartTimeOfAllowedTime(double time) {
+    // 获取对应时间的通行允许时间的起点
+
+    // 先求得当前时间点对应的周期的允许通行时间的起点
+    double preAllowedTime = cycleOffset + cyclePeriod * (int) ((time - cycleOffset) / cyclePeriod);
+    if(time - preAllowedTime > allowedInterval){
+        // 若当前时间无法通行，则返回下一个通行周期的起点
+        return preAllowedTime + cyclePeriod;
+    }else{
+        // 若当前时间可以通行，则返回当前时间通行周期的起点
+        return preAllowedTime;
+    }
 }
 
 } /* namespace Fanjing */

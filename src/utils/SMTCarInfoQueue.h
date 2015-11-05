@@ -30,6 +30,18 @@ namespace Fanjing {
 
 class SMTCarInfoQueue {
 public:
+    // 用于遍历的内部类
+    class TraversalHelper {
+        // iterator 便利迭代器
+        map<double, list<string> > &carListMap=0;
+        map<double, list<string> >::iterator it;
+        list<string>::iterator lit;
+        // get the car by time
+        string getFirstCarIdByCertainTime(map<double, list<string> > &carListMapByCertainTime, double time);
+        string getNextCarId(map<double, list<string> > &carListMapByCertainTime);
+        string getPreviousCarId(map<double, list<string> > &carListMapByCertainTime);
+    };
+public:
     SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength);
     virtual ~SMTCarInfoQueue();
 
@@ -72,8 +84,16 @@ protected:
     map<double, list<string> > carMapByOutTime;
     // map by id
     // 通过车辆id进行索引的个状态时间
+    // 车辆进入道路的时间
     map<string, double> enterTimeMapById;
+    // 车辆进入队列区的时间，需要根据当前队列长度，道路长度，超车判定共同决定
+    // 当前队列长度等于
+    // 1. 进入队列区时间早于当前车辆进入道路时间
+    // 2. 驶离道路时间晚于当前车辆进入道路时间
+    // 的车辆队列长度的总和
+    // (其中2为估算终止条件，因为车辆进入队列过程中，车是会动的，实际队列长度要小于该总和)
     map<string, double> queueTimeMapById;
+    // 车辆离开道路的时间，由离开队列区时间和
     map<string, double> outTimeMapById;
     // the time car start to get out the queue area
     // 车辆启动并开始离开队列区的时间
@@ -107,7 +127,7 @@ protected:
     // update the car with id = id and the cars affected it
     void updateCarQueueInfoAt(string id, string preId);
     // 更新车辆离开相关信息
-    void updateCarOutInfo(string id,string preId);
+    void updateCarOutInfo(string id, string preId);
     // set the enter time of a car and update both carMapByEnterTime and enterTimeMapById
     void setEnterTimeOfCar(string id, double time);
     // similar to the above function
@@ -149,6 +169,10 @@ protected:
     void removeCar(string id);
     // fix the out time by considering the allowed time
     double getFixedOutTime(double time);
+    // 获取对应时间的通行允许时间的起点
+    // 若当前时间可以通行，则返回当前时间通行周期的起点
+    // 反之，则返回下一个通行周期的起点
+    double getStartTimeOfAllowedTime(double time);
     // judge whether the car can overtake other car successfully or not
     bool isCarACanOvertakeCarB(SMTCarInfo carA, SMTCarInfo carB, double enterTimeA, double enterTimeB,
             double freeSpace);
