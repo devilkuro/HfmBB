@@ -24,7 +24,6 @@ XMLDocument* SMTCarInfoQueue::doc = NULL;
 bool SMTCarInfoQueue::XMLHasLoaded = false;
 bool SMTCarInfoQueue::onlyLosseOneCar = true;   // 是否每次仅松散一个车辆
 
-
 SMTCarInfoQueue::TraversalHelper::TraversalHelper() {
     carListMap = 0;
 }
@@ -32,21 +31,55 @@ SMTCarInfoQueue::TraversalHelper::TraversalHelper() {
 SMTCarInfoQueue::TraversalHelper::~TraversalHelper() {
 }
 
-string SMTCarInfoQueue::TraversalHelper::getFirstCarIdByCertainTime(map<double, list<string> >& carListMapByCertainTime,
-        double time) {
+const string SMTCarInfoQueue::TraversalHelper::getFirstCarIdByCertainTime(
+        const map<double, list<string> > &carListMapByCertainTime, double time) {
+    // 获取指定时间点之后的第一个车辆id(包含当前时间点)
+    carListMap = &carListMapByCertainTime;
+    // get first time node (include given time)
+    it = carListMapByCertainTime.lower_bound(time);
+    lit = it->second.begin();
+    if(lit != it->second.begin()){
+        return *lit;
+    }
     return "";
 }
 
-string SMTCarInfoQueue::TraversalHelper::getNextCarId(map<double, list<string> >& carListMapByCertainTime) {
+const string SMTCarInfoQueue::TraversalHelper::getNextCarId() {
+    if(lit != it->second.end()){
+        // if the list has more objects, get next
+        lit++;
+        return *lit;
+    }else if(it != carListMap->end()){
+        // if the list has no object any more get later time list and return the first car
+        it++;
+        lit = it->second.begin();
+        if(lit != it->second.end()){
+            return *lit;
+        }
+    }
+    // if the list has no more object
     return "";
 }
 
-string SMTCarInfoQueue::TraversalHelper::getPreviousCarId(map<double, list<string> >& carListMapByCertainTime) {
+const string SMTCarInfoQueue::TraversalHelper::getPreviousCarId() {
+    if(lit != it->second.begin()){
+        // if the list has more objects before, get previous
+        lit--;
+        return *lit;
+    }else if(it != carListMap->begin()){
+        // if the list has no object any more , get cars in previous time list and return the last car
+        it--;
+        lit = it->second.end();
+        if(lit != it->second.begin()){
+            lit--;
+            return *lit;
+        }
+    }
+    // if the list has no more object
     return "";
 }
 
 SMTCarInfoQueue::SMTCarInfoQueue() {
-    // TODO Auto-generated constructor stub
     init();
 }
 
@@ -103,18 +136,28 @@ void SMTCarInfoQueue::updateCarOutInfo(string id, string preId) {
     //      d. 进行离开时间修正
     //          通过getFixedOutTime确定
     //          d+. 若受交通信号影响，则需要修改离开队列区时间
-    // a. 判定启动离开队列区的时间
-    // FIXME 需要处理前方没有车辆的情况
-    if(queueTimeMapById[id] >= outQueueTimeMapById[preId] + updateInterval){
-        // 若当前车辆进入队列区时，前方车辆已经启动，则认为前方车辆不会阻碍当前车辆
-        // 此时，当前开始驶离队列区时间等于其进入队列区的时间
+    if(preId == ""){
+        // FIXME 需要处理前方没有车辆的情况
+        // a. 判定启动离开队列区的时间
+        //      在没有前方车辆的情况下，启动离开时间等于进入队列区时间
         outQueueTimeMapById[id] = queueTimeMapById[id];
+
+    }else{
+        // a. 判定启动离开队列区的时间
+        if(queueTimeMapById[id] >= outQueueTimeMapById[preId] + updateInterval){
+            // 若当前车辆进入队列区时，前方车辆已经启动，则认为前方车辆不会阻碍当前车辆
+            // 此时，当前开始驶离队列区时间等于其进入队列区的时间
+            outQueueTimeMapById[id] = queueTimeMapById[id];
+        }
+        // b. 判定驶离队列区时的队列长度。
+        // 计算启动时的队列长度
+        // 首先计算启动时间所在的通行周期的起始时间
+        double startCircleTime = getStartTimeOfAllowedTime(outQueueTimeMapById[id]);
+        // 对当前车辆前方队列中的车辆长度进行累加,求得队列长度
+        double queueLength = 0;
+
+        // todo
     }
-    // b. 判定势力队列区时的队列长度。
-    // 计算启动时的队列长度
-    // 首先计算启动时间所在的通行周期的起始时间
-    double startCircleTime = getStartTimeOfAllowedTime(outQueueTimeMapById[id]);
-    // todo
 }
 void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     // 说明:
@@ -140,13 +183,13 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     //              b. 并且，当前车辆离开道路时，后方跟随车辆必须必须能够在接下来的updateInterval时间内能够抵达道路末尾
     //                  若无法抵达道路末尾，则表示后方跟随车辆通过道路的整个行程并未受到当前车辆的阻碍
     //              c. 判断完成,对后方跟随的车辆进行更新
-    // todo 需要重写过程
+
     //1. 更新当前节点进入队列区的时间
     //      a. 查找前方车辆进入队列的时间
     //      b. 若前方车辆进入队列时间与当前车辆进入队列时间差值小于updateInterval,则推迟当前车辆进入队列时间
     //          b+. 推迟过程中,若有其他车辆存在于该updateInterval时间片内,则依次向后推移
     updateCarOutInfo(id, preId);
-
+    // todo 需要重写过程
     // FIXME 后面都是旧代码，没有用了几乎
     if(overtakeAllowed){
         // 0th. config this function
@@ -728,7 +771,7 @@ string SMTCarInfoQueue::getPreviousCarIdByCertainTime(map<double, list<string> >
             return *lit;
         }
     }
-    // if the list has no more object and no car after the time return blank string
+    // if the list has no more object
     return "";
 }
 string SMTCarInfoQueue::getNextCarIdByCertainTime(map<double, list<string> >& carListMapByCertainTime,
@@ -745,7 +788,7 @@ string SMTCarInfoQueue::getNextCarIdByCertainTime(map<double, list<string> >& ca
             return *lit;
         }
     }
-    // if the list has no more object and no car after the time return blank string
+    // if the list has no more object
     return "";
 }
 

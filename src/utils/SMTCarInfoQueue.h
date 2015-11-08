@@ -40,9 +40,9 @@ public:
         map<double, list<string> >::iterator it;
         list<string>::iterator lit;
         // get the car by time
-        string getFirstCarIdByCertainTime(map<double, list<string> > &carListMapByCertainTime, double time);
-        string getNextCarId(map<double, list<string> > &carListMapByCertainTime);
-        string getPreviousCarId(map<double, list<string> > &carListMapByCertainTime);
+        const string getFirstCarIdByCertainTime(const map<double, list<string> > &carListMapByCertainTime, double time);
+        const string getNextCarId();
+        const string getPreviousCarId();
     };
 public:
     SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength);
