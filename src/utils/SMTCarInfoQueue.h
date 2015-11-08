@@ -40,9 +40,9 @@ public:
         map<double, list<string> >::iterator it;
         list<string>::iterator lit;
         // get the car by time
-        const string getFirstCarIdByCertainTime(const map<double, list<string> > &carListMapByCertainTime, double time);
-        const string getNextCarId();
-        const string getPreviousCarId();
+        string getFirstCarId(const map<double, list<string> > &carListMapByCertainTime, double time);
+        string getNextCarId();
+        string getPreviousCarId();
     };
 public:
     SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength);
@@ -106,14 +106,6 @@ protected:
     // 最后一种情况需要进行额外处理（因为少了加速减速的过程）
     map<string, double> outQueueTimeMapById;
 
-    map<double, list<string> >::iterator itCarMapByEnterTime;
-    map<double, list<string> >::iterator itcarMapByQueueTime;
-    map<double, list<string> >::iterator itcarMapByOutTime;
-    // car map
-    list<string>::iterator litCarMapByEnterTime;
-    list<string>::iterator litcarMapByQueueTime;
-    list<string>::iterator litcarMapByOutTime;
-
     double allowedInterval;
     double cyclePeriod;
     double cycleOffset;
@@ -141,26 +133,7 @@ protected:
     void setOutTimeOfCar(string id, double time);
     // get car info by id
     SMTCarInfo getCarInfoById(string id);
-    // get the car id of the car of which enter time is before the given time
-    string getFirstCarIdByEnterTime(double time);
-    string getNextCarIdByEnterTime();
-    string getPreviousCarIdByEnterTime();
-    // get the car id of the car of which queue time is before the given time
-    string getFirstCarIdByQueueTime(double time);
-    string getNextCarIdByQueueTime();
-    string getPreviousCarIdByQueueTime();
-    // get the car id of the car of which queue time is before the given time
-    string getFirstCarIdByOutTime(double time);
-    string getNextCarIdByOutTime();
-    string getPreviousCarIdByOutTime();
 
-    // get the car by time
-    string getFirstCarIdByCertainTime(map<double, list<string> > &carListMapByCertainTime,
-            map<double, list<string> >::iterator &it, list<string>::iterator &lit, double time);
-    string getNextCarIdByCertainTime(map<double, list<string> > &carListMapByCertainTime,
-            map<double, list<string> >::iterator &it, list<string>::iterator &lit);
-    string getPreviousCarIdByCertainTime(map<double, list<string> > &carListMapByCertainTime,
-            map<double, list<string> >::iterator &it, list<string>::iterator &lit);
 
     // set the pair map
     void setThePairMap(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar, string id,

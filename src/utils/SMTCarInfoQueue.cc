@@ -31,7 +31,7 @@ SMTCarInfoQueue::TraversalHelper::TraversalHelper() {
 SMTCarInfoQueue::TraversalHelper::~TraversalHelper() {
 }
 
-const string SMTCarInfoQueue::TraversalHelper::getFirstCarIdByCertainTime(
+string SMTCarInfoQueue::TraversalHelper::getFirstCarId(
         const map<double, list<string> > &carListMapByCertainTime, double time) {
     // 获取指定时间点之后的第一个车辆id(包含当前时间点)
     carListMap = &carListMapByCertainTime;
@@ -44,7 +44,7 @@ const string SMTCarInfoQueue::TraversalHelper::getFirstCarIdByCertainTime(
     return "";
 }
 
-const string SMTCarInfoQueue::TraversalHelper::getNextCarId() {
+string SMTCarInfoQueue::TraversalHelper::getNextCarId() {
     if(lit != it->second.end()){
         // if the list has more objects, get next
         lit++;
@@ -61,7 +61,7 @@ const string SMTCarInfoQueue::TraversalHelper::getNextCarId() {
     return "";
 }
 
-const string SMTCarInfoQueue::TraversalHelper::getPreviousCarId() {
+string SMTCarInfoQueue::TraversalHelper::getPreviousCarId() {
     if(lit != it->second.begin()){
         // if the list has more objects before, get previous
         lit--;
@@ -344,12 +344,15 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
     // 1. 插入操作需要完成以下操作:
     //      a.    // 插入操作的具体过程
     // todo 整个过程需要重新规划编写
+    TraversalHelper enterTimeHelper;
+    TraversalHelper queueTimeHelper;
+    TraversalHelper outTimeHelper;
     // 1st. set the time entering this lane
     carMapById[car.id] = car;
     setEnterTimeOfCar(car.id, time);
     // 1st. judge the length of queue and the time entering the queue
     double queueLength = 0;
-    string otherId = getFirstCarIdByOutTime(time);
+    string otherId = outTimeHelper.getFirstCarId(carMapByOutTime,time);
     while(otherId != ""){
         // while there are some still in this lane
         // and if those car have already enter the queue area when this car entered this lane
@@ -357,11 +360,11 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
         if(queueTimeMapById[otherId] <= time){
             SMTCarInfo otherCar = getCarInfoById(otherId);
             queueLength += otherCar.minGap + otherCar.length;
-            otherId = getNextCarIdByOutTime();
+            otherId = outTimeHelper.getNextCarId();
         }
     }
     // 2nd. judge the length of queue considering the cars have not entered the queue yet
-    otherId = getFirstCarIdByQueueTime(time);
+    otherId = queueTimeHelper.getFirstCarId(carMapByQueueTime,time);
     double preCarQueueTime;
     string preQueueCarId;   // the car before current after current enter queue area.
     // there still have some cars not entered the queue
@@ -425,7 +428,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
                     // and then judge next car reach the queue area
                     queueLength += otherCar.minGap + otherCar.length;
                     preCarQueueTime = queueTimeMapById[otherId];
-                    otherId = getNextCarIdByQueueTime();
+                    otherId = queueTimeHelper.getNextCarId();
                     if(otherId == ""){
                         // fixme !! resort the time map, important... the overtak process can not work proper
                         // there no other cars, the current car's queue time is seated.
@@ -460,7 +463,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
                     // and then judge next car reach the queue area
                     queueLength += otherCar.minGap + otherCar.length;
                     preCarQueueTime = queueTimeMapById[otherId];
-                    otherId = getNextCarIdByQueueTime();
+                    otherId = queueTimeHelper.getNextCarId();
                     {
                         // fixme !! resort the time map, important... the overtak process can not work proper
                         if(otherId == ""){
@@ -506,14 +509,14 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
         // then all cars before this car will be added into the queue length.
 
         // get the previous car entering this lane
-        string preEnterCarId = getFirstCarIdByEnterTime(time);
-        string nextToPreEnterCarId = getNextCarIdByEnterTime();
+        string preEnterCarId = enterTimeHelper.getFirstCarId(carMapByEnterTime,time);
+        string nextToPreEnterCarId = enterTimeHelper.getNextCarId();
         // if the next one of the preEnterCarId is later than current car, find next.
         // actually, this time can only equal or bigger than time, if equal, find next.
         while(enterTimeMapById[nextToPreEnterCarId] <= time){
             // find next
             preEnterCarId = nextToPreEnterCarId;
-            nextToPreEnterCarId = getNextCarIdByEnterTime();
+            nextToPreEnterCarId = enterTimeHelper.getNextCarId();
         }
         while(otherId != nextToPreEnterCarId){
             // if the car has not reach queue area yet
@@ -521,7 +524,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
             SMTCarInfo otherCar = getCarInfoById(otherId);
             // if other car enter this lane before current car, increase queue length
             queueLength += otherCar.minGap + otherCar.length;
-            otherId = getNextCarIdByQueueTime();
+            otherId = queueTimeHelper.getNextCarId();
         }
         // cacluate the reach queue time if no other car affecting it
         double reachQueueTimeForCurrentCar = getTheReachTime(car, laneLength - queueLength, time, false, true);
@@ -706,90 +709,6 @@ void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carL
     carListMapByTime[time].insert(litcarMapByTime, id);
     // modify the related time
     timeMapByCar[id] = time;
-}
-
-string SMTCarInfoQueue::getFirstCarIdByEnterTime(double time) {
-    return getFirstCarIdByCertainTime(carMapByEnterTime, itCarMapByEnterTime, litCarMapByEnterTime, time);
-}
-
-string SMTCarInfoQueue::getNextCarIdByEnterTime() {
-    return getNextCarIdByCertainTime(carMapByEnterTime, itCarMapByEnterTime, litCarMapByEnterTime);
-}
-
-string SMTCarInfoQueue::getPreviousCarIdByEnterTime() {
-    return getPreviousCarIdByCertainTime(carMapByEnterTime, itCarMapByEnterTime, litCarMapByEnterTime);
-}
-
-string SMTCarInfoQueue::getFirstCarIdByQueueTime(double time) {
-    return getFirstCarIdByCertainTime(carMapByQueueTime, itcarMapByQueueTime, litcarMapByQueueTime, time);
-}
-
-string SMTCarInfoQueue::getNextCarIdByQueueTime() {
-    return getNextCarIdByCertainTime(carMapByQueueTime, itcarMapByQueueTime, litcarMapByQueueTime);
-}
-
-string SMTCarInfoQueue::getPreviousCarIdByQueueTime() {
-    return getPreviousCarIdByCertainTime(carMapByQueueTime, itcarMapByQueueTime, litcarMapByQueueTime);
-}
-
-string SMTCarInfoQueue::getFirstCarIdByOutTime(double time) {
-    return getFirstCarIdByCertainTime(carMapByOutTime, itcarMapByOutTime, litcarMapByOutTime, time);
-}
-
-string SMTCarInfoQueue::getNextCarIdByOutTime() {
-    return getNextCarIdByCertainTime(carMapByOutTime, itcarMapByOutTime, litcarMapByOutTime);
-}
-
-string SMTCarInfoQueue::getPreviousCarIdByOutTime() {
-    return getPreviousCarIdByCertainTime(carMapByOutTime, itcarMapByOutTime, litcarMapByOutTime);
-}
-
-string SMTCarInfoQueue::getFirstCarIdByCertainTime(map<double, list<string> >& carListMapByCertainTime,
-        map<double, list<string> >::iterator& it, list<string>::iterator& lit, double time) {
-    // 获取指定时间点之后的第一个车辆id(包含当前时间点)
-    // get first time node (include given time)
-    it = carListMapByCertainTime.lower_bound(time);
-    lit = it->second.begin();
-    if(lit != it->second.begin()){
-        return *lit;
-    }
-    return "";
-}
-
-string SMTCarInfoQueue::getPreviousCarIdByCertainTime(map<double, list<string> >& carListMapByCertainTime,
-        map<double, list<string> >::iterator& it, list<string>::iterator& lit) {
-    if(lit != it->second.begin()){
-        // if the list has more objects before, get previous
-        lit--;
-        return *lit;
-    }else if(it != carListMapByCertainTime.begin()){
-        // if the list has no object any more , get cars in previous time list and return the last car
-        it--;
-        lit = it->second.end();
-        if(lit != it->second.begin()){
-            lit--;
-            return *lit;
-        }
-    }
-    // if the list has no more object
-    return "";
-}
-string SMTCarInfoQueue::getNextCarIdByCertainTime(map<double, list<string> >& carListMapByCertainTime,
-        map<double, list<string> >::iterator& it, list<string>::iterator& lit) {
-    if(lit != it->second.end()){
-        // if the list has more objects, get next
-        lit++;
-        return *lit;
-    }else if(it != carListMapByCertainTime.end()){
-        // if the list has no object any more get later time list and return the first car
-        it++;
-        lit = it->second.begin();
-        if(lit != it->second.end()){
-            return *lit;
-        }
-    }
-    // if the list has no more object
-    return "";
 }
 
 // if the out time is not allowed to get out, then return the start of next allowed time
