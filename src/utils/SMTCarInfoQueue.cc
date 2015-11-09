@@ -129,7 +129,7 @@ void SMTCarInfoQueue::releaseXML() {
 }
 
 void SMTCarInfoQueue::updateCarOutInfo(string id, string preId) {
-    // todo 更新车辆离开相关信息
+    // 更新车辆离开相关信息
     // 1. 该功能需要完成的操作
     //      a. 修改outQueueTimeMap
     //      b. 修改outTimeMap和对应的反向Map
@@ -312,88 +312,6 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
         // 1.st 若当前车辆进入队列的预测时间
         // todo  不允许超车时队列区时间的更新
     }
-}
-
-void SMTCarInfoQueue::setThePairMapAtBackOfCar(map<double, list<string> >& carListMapByTime,
-        map<string, double>& timeMapByCar, string id, string otherId) {
-    // 将id为id车辆插入到id为otherId的车辆的的后方
-    // 0th. config function
-    double time = -1;
-    // 1st. record the time of other id
-    if(timeMapByCar.find(otherId) == timeMapByCar.end()){
-        cout << "Error@setThePairMapAtBackOfCar()::OTHER_ID_MISSING" << endl;
-        return;
-    }else{
-        time = timeMapByCar[otherId];
-    }
-    // 1st+. seek to the other id
-    map<double, list<string> >::iterator itcarMapByTime = carListMapByTime.lower_bound(time);
-    list<string>::iterator litcarMapByTime = itcarMapByTime->second.begin();
-    while(litcarMapByTime != itcarMapByTime->second.end()){
-        if(*litcarMapByTime == otherId){
-            break;
-        }
-        litcarMapByTime++;
-    }
-    // 2nd. remove id from current time map
-    if(timeMapByCar.find(id) != timeMapByCar.end()){
-        // if the car is already here, update the related information
-        // 1st. remove the old information
-        carListMapByTime[timeMapByCar[id]].remove(id);
-    }
-    // 3rd. insert the id before other id and modify the related time in the id map
-    // add this car at back of other id
-    if(litcarMapByTime == itcarMapByTime->second.end()){
-        // 判定是否存在other id，理论上肯定存在，若进入此代码，则那里出了问题
-        cout << "Error@setThePairMapAtBackOfCar()::OTHER_ID_MISSING::2" << endl;
-        return;
-    }
-    litcarMapByTime++;
-    carListMapByTime[time].insert(litcarMapByTime, id);
-    // modify the related time
-    timeMapByCar[id] = time;
-}
-
-bool SMTCarInfoQueue::isCarACanOvertakeCarB(SMTCarInfo carA, SMTCarInfo carB, double enterTimeA, double enterTimeB,
-        double freeSpace) {
-    if(overtakeAllowed){
-        // 仅当允许超车时,进行超车判定
-        if(enterTimeA >= enterTimeB){
-            // A晚于B进入道路
-            if(freeSpace - carA.length - carB.minGap < 0){
-                // 若空间不够，则A无法超越B
-                return false;
-            }
-            // caculate the time of the current car reach the queue area if A overtake B successfully
-            double reachTimeForCarA = getTheReachTime(carA, freeSpace, enterTimeA, false, true);
-            double reachTimeForCarB = getTheReachTime(carB, freeSpace - carA.minGap - carA.length - carB.minGap,
-                    enterTimeB, false, true);
-            // decide A overtake B or not
-            bool beOvertake = reachTimeForCarA < reachTimeForCarB;
-            return beOvertake;
-        }else{
-            // A先于B进入道路
-            if(freeSpace - carA.length - carB.minGap < 0){
-                // 若空间不够，则A在B的前方
-                return true;
-            }
-            // caculate the time of the current car reach the queue area if B could overtake A successfully
-            double reachTimeForCarA = getTheReachTime(carA, freeSpace - carB.minGap - carB.length - carA.minGap,
-                    enterTimeA, false, true);
-            double reachTimeForCarB = getTheReachTime(carB, freeSpace, enterTimeB, false, true);
-            // decide B overtake A or not
-            bool beOvertake = reachTimeForCarA > reachTimeForCarB;
-            return !beOvertake;
-        }
-    }else{
-        // 在不允许超车的情况下,如果A的进入时间早于B,则A在B的前方
-        // 在A和B同时进入的情况下,默认A无法超越B
-        return enterTimeA < enterTimeB;
-    }
-}
-
-double SMTCarInfoQueue::getFixedTimeWithUpdateInterval(double time) {
-    return ((int) (time / updateInterval)) * updateInterval;
 }
 
 void SMTCarInfoQueue::init() {
@@ -675,6 +593,7 @@ SMTCarInfo SMTCarInfoQueue::getCarInfoById(string id) {
 
 void SMTCarInfoQueue::setCurrentTime(double time) {
     // not necessary at now...
+    // FIXME 用于释放资源
 }
 
 double SMTCarInfoQueue::releaseCar(string id, double time) {
@@ -700,6 +619,7 @@ void SMTCarInfoQueue::setCycleInfo(double period, double allowTime, double offse
 }
 
 void SMTCarInfoQueue::removeCar(string id) {
+    // 移除车辆的条件，需要同时满足已经离开了当前道路，并且已经经过了预测离开道路的时间
     carMapById.erase(id);
     carMapByEnterTime[enterTimeMapById[id]].remove(id);
     carMapByQueueTime[queueTimeMapById[id]].remove(id);
@@ -710,6 +630,7 @@ void SMTCarInfoQueue::removeCar(string id) {
     outQueueTimeMapById.erase(id);
     // fixme needs update later car or not?
 }
+
 void SMTCarInfoQueue::setEnterTimeOfCar(string id, double time) {
 // set the enter time of a car and update both carMapByEnterTime and enterTimeMapById
     setThePairMap(carMapByEnterTime, enterTimeMapById, id, time);
@@ -784,6 +705,46 @@ void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carL
     timeMapByCar[id] = time;
 }
 
+void SMTCarInfoQueue::setThePairMapAtBackOfCar(map<double, list<string> >& carListMapByTime,
+        map<string, double>& timeMapByCar, string id, string otherId) {
+    // 将id为id车辆插入到id为otherId的车辆的的后方
+    // 0th. config function
+    double time = -1;
+    // 1st. record the time of other id
+    if(timeMapByCar.find(otherId) == timeMapByCar.end()){
+        cout << "Error@setThePairMapAtBackOfCar()::OTHER_ID_MISSING" << endl;
+        return;
+    }else{
+        time = timeMapByCar[otherId];
+    }
+    // 1st+. seek to the other id
+    map<double, list<string> >::iterator itcarMapByTime = carListMapByTime.lower_bound(time);
+    list<string>::iterator litcarMapByTime = itcarMapByTime->second.begin();
+    while(litcarMapByTime != itcarMapByTime->second.end()){
+        if(*litcarMapByTime == otherId){
+            break;
+        }
+        litcarMapByTime++;
+    }
+    // 2nd. remove id from current time map
+    if(timeMapByCar.find(id) != timeMapByCar.end()){
+        // if the car is already here, update the related information
+        // 1st. remove the old information
+        carListMapByTime[timeMapByCar[id]].remove(id);
+    }
+    // 3rd. insert the id before other id and modify the related time in the id map
+    // add this car at back of other id
+    if(litcarMapByTime == itcarMapByTime->second.end()){
+        // 判定是否存在other id，理论上肯定存在，若进入此代码，则那里出了问题
+        cout << "Error@setThePairMapAtBackOfCar()::OTHER_ID_MISSING::2" << endl;
+        return;
+    }
+    litcarMapByTime++;
+    carListMapByTime[time].insert(litcarMapByTime, id);
+    // modify the related time
+    timeMapByCar[id] = time;
+}
+
 // if the out time is not allowed to get out, then return the start of next allowed time
 double SMTCarInfoQueue::getFixedOutTime(double time) {
     // fixme the final solution is read the xml file, now just use the cycle period
@@ -794,6 +755,44 @@ double SMTCarInfoQueue::getFixedOutTime(double time) {
         time = preAllowedTime + cyclePeriod;
     }
     return time;
+}
+
+bool SMTCarInfoQueue::isCarACanOvertakeCarB(SMTCarInfo carA, SMTCarInfo carB, double enterTimeA, double enterTimeB,
+        double freeSpace) {
+    if(overtakeAllowed){
+        // 仅当允许超车时,进行超车判定
+        if(enterTimeA >= enterTimeB){
+            // A晚于B进入道路
+            if(freeSpace - carA.length - carB.minGap < 0){
+                // 若空间不够，则A无法超越B
+                return false;
+            }
+            // caculate the time of the current car reach the queue area if A overtake B successfully
+            double reachTimeForCarA = getTheReachTime(carA, freeSpace, enterTimeA, false, true);
+            double reachTimeForCarB = getTheReachTime(carB, freeSpace - carA.minGap - carA.length - carB.minGap,
+                    enterTimeB, false, true);
+            // decide A overtake B or not
+            bool beOvertake = reachTimeForCarA < reachTimeForCarB;
+            return beOvertake;
+        }else{
+            // A先于B进入道路
+            if(freeSpace - carA.length - carB.minGap < 0){
+                // 若空间不够，则A在B的前方
+                return true;
+            }
+            // caculate the time of the current car reach the queue area if B could overtake A successfully
+            double reachTimeForCarA = getTheReachTime(carA, freeSpace - carB.minGap - carB.length - carA.minGap,
+                    enterTimeA, false, true);
+            double reachTimeForCarB = getTheReachTime(carB, freeSpace, enterTimeB, false, true);
+            // decide B overtake A or not
+            bool beOvertake = reachTimeForCarA > reachTimeForCarB;
+            return !beOvertake;
+        }
+    }else{
+        // 在不允许超车的情况下,如果A的进入时间早于B,则A在B的前方
+        // 在A和B同时进入的情况下,默认A无法超越B
+        return enterTimeA < enterTimeB;
+    }
 }
 
 double SMTCarInfoQueue::getStartTimeOfAllowedTime(double time) {
@@ -808,6 +807,10 @@ double SMTCarInfoQueue::getStartTimeOfAllowedTime(double time) {
         // 若当前时间可以通行，则返回当前时间通行周期的起点
         return preAllowedTime;
     }
+}
+
+double SMTCarInfoQueue::getFixedTimeWithUpdateInterval(double time) {
+    return ((int) (time / updateInterval)) * updateInterval;
 }
 
 } /* namespace Fanjing */

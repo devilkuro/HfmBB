@@ -45,6 +45,8 @@ public:
         string getPreviousCarId();
     };
 public:
+    // xmlpath只能设置一次，之后的设置将不改变xml文件路径
+    // 当系统终止时，需要调用saveResults方法保存结果，之后xml文件会被释放。
     SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength);
     virtual ~SMTCarInfoQueue();
 
@@ -62,11 +64,11 @@ public:
     // release the old car and invalid resource
     // then return the predicted out time
     double releaseCar(string id, double time);
-    // allow or disallow the overtake action
     static void saveResults(string filename);
     static void releaseXML();
     void setCycleInfo(double period, double allowTime, double offset);
 
+    // allow or disallow the overtake action
     inline static void setOvertakeMode(bool allow) {
         overtakeAllowed = allow;
     }
