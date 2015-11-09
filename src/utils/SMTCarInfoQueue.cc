@@ -31,15 +31,17 @@ SMTCarInfoQueue::TraversalHelper::TraversalHelper() {
 SMTCarInfoQueue::TraversalHelper::~TraversalHelper() {
 }
 
-string SMTCarInfoQueue::TraversalHelper::getFirstCarId(
-        const map<double, list<string> > &carListMapByCertainTime, double time) {
+string SMTCarInfoQueue::TraversalHelper::getFirstCarId(const map<double, list<string> > &carListMapByCertainTime,
+        double time) {
     // 获取指定时间点之后的第一个车辆id(包含当前时间点)
     carListMap = &carListMapByCertainTime;
     // get first time node (include given time)
     it = carListMapByCertainTime.lower_bound(time);
-    lit = it->second.begin();
-    if(lit != it->second.begin()){
-        return *lit;
+    if(it != carListMapByCertainTime.end()){
+        lit = it->second.begin();
+        if(lit != it->second.begin()){
+            return *lit;
+        }
     }
     return "";
 }
@@ -52,9 +54,11 @@ string SMTCarInfoQueue::TraversalHelper::getNextCarId() {
     }else if(it != carListMap->end()){
         // if the list has no object any more get later time list and return the first car
         it++;
-        lit = it->second.begin();
-        if(lit != it->second.end()){
-            return *lit;
+        if(it != carListMap->end()){
+            lit = it->second.begin();
+            if(lit != it->second.end()){
+                return *lit;
+            }
         }
     }
     // if the list has no more object
@@ -127,38 +131,104 @@ void SMTCarInfoQueue::releaseXML() {
 void SMTCarInfoQueue::updateCarOutInfo(string id, string preId) {
     // todo 更新车辆离开相关信息
     // 1. 该功能需要完成的操作
+    //      a. 修改outQueueTimeMap
+    //      b. 修改outTimeMap和对应的反向Map
+    // 2. 该功能的具体过程为
     //      a. 判定车辆启动并离开队列区的时间
     //          该时间由当前车辆到达队列区时间和前方车辆开始驶离队列区时间共同影响决定
-    //      b. 判定驶离队列区时当前车辆在队列区的位置
-    //          考虑启动的问题，该位置由当前车辆开始驶离时间所在通行周期内通过道路的车辆长度累加确定
-    //      c. 判定由启动到离开的时间
+    //          若车辆离开队列区时未受前方车辆影响，则
+    //          该车将由进入道路后，保持最高速度，直接驶离道路
+    //      b. 若车辆启动离开过程需要在队列区进行加速启动，则
+    //          1. 判定驶离队列区时当前车辆在队列区的位置
+    //              考虑启动的问题，该位置由当前车辆开始驶离时间所在通行周期内通过道路的车辆长度累加确定
+    //          2. 通过所在队列区的位置进行加速启动，并离开道路
+    //      c. 判定车辆离开的时间（不考虑交通信号）
     //          通过getTheReachTime确定
+    //          c+. 考虑是否受前方车辆影响，其离开时间不应该早于前方车辆离开路口后updateInterval时间
     //      d. 进行离开时间修正
     //          通过getFixedOutTime确定
     //          d+. 若受交通信号影响，则需要修改离开队列区时间
+    //      e. 设置outQueueTimeMap和outTimeMap
+    double outTime = 0;
+    bool isObstructed = false;
     if(preId == ""){
-        // FIXME 需要处理前方没有车辆的情况
+        // 处理前方没有车辆的情况
         // a. 判定启动离开队列区的时间
-        //      在没有前方车辆的情况下，启动离开时间等于进入队列区时间
+        // 在没有前方车辆的情况下，启动离开时间等于进入队列区时间
         outQueueTimeMapById[id] = queueTimeMapById[id];
-
+        //  c. 判定车辆离开的时间（不考虑交通信号）
+        // 在没有前方车辆的情况下，则无需考虑加速过程和前方车辆的影响，直接全速通过道路
+        outTime = getTheReachTime(carMapById[id], laneLength, enterTimeMapById[id], false, false);
     }else{
         // a. 判定启动离开队列区的时间
         if(queueTimeMapById[id] >= outQueueTimeMapById[preId] + updateInterval){
             // 若当前车辆进入队列区时，前方车辆已经启动，则认为前方车辆不会阻碍当前车辆
             // 此时，当前开始驶离队列区时间等于其进入队列区的时间
+            // 注意：实际上在此条件下有小概率会影响，即后方车辆全速，前方车辆在大于updateInterval时间前开始加速
+            // 此时存在前方车辆未完全加速时影响后方车辆，使后方车辆减速的可能性，但概率较低，予以忽略
             outQueueTimeMapById[id] = queueTimeMapById[id];
+            // c. 判定车辆离开的时间（不考虑交通信号）
+            // 由于未被阻碍，则无需考虑加速过程，直接全速通过道路，但仍需在后面判定是否受前方车辆影响
+            outTime = getTheReachTime(carMapById[id], laneLength, enterTimeMapById[id], false, false);
+        }else{
+            // 若当前车辆驶离队列区时受前方车辆影响
+            // 此时当前车辆驶离队列区时间等于前方车辆开始驶离队列区时间+updateInterval
+            outQueueTimeMapById[id] = outQueueTimeMapById[preId] + updateInterval;
+            // c. 判定车辆离开的时间（不考虑交通信号）
+            // 由于被阻碍，则需要在队列区末尾重新加速，因此需要计算队列区长度
+            // b. 判定驶离队列区时的队列长度。
+            // 计算启动时的队列长度
+            // 首先计算启动时间所在的通行周期的起始时间
+            double startCircleTime = getStartTimeOfAllowedTime(outQueueTimeMapById[id]);
+            // 对当前车辆前方队列中的车辆长度进行累加,求得队列长度
+            double queueLength = 0;
+            // 按照驶离路口时间遍历并累加队列区车辆
+            TraversalHelper outTimeHelper;
+            TraversalHelper queueTimeHelper;
+            // 获取离开路口时间在的当前通行周期的时间内的第一个车辆
+            // 注意：在该时间点之后可能没有车辆离开道路，或者取得的车辆在队列区的位置可能不在当前车辆前方,需要进行判定
+            string headCar = outTimeHelper.getFirstCarId(carMapByOutTime, startCircleTime);
+            if(headCar != ""){
+                // 若对应时间点之后存在其他车辆，则对当前队列区队列中在当前车辆的前方的车辆计算队列长度
+                // 将对应的车辆由离开路口队列映射到进入队列区时间的队列
+                string queueCar = queueTimeHelper.getFirstCarId(carMapByQueueTime, queueTimeMapById[headCar]);
+                // 遍历至对应的车辆（在正确操作之后，队列区所有车辆进入队列区时间不会重合，即以下步骤在正确操作时并不会执行）
+                while(queueCar != "" && queueCar != headCar){
+                    queueCar = queueTimeHelper.getNextCarId();
+                }
+                while(queueCar != "" && queueTimeMapById[headCar] < queueTimeMapById[id]){
+                    // 若在通行周期开始后通过路口的车辆中，存在在当前队列区队列中在当前车辆的前方的车辆，则将其加入队列区长度中
+                    queueLength += carMapById[queueCar].minGap + carMapById[queueCar].length;
+                    queueCar = queueTimeHelper.getNextCarId();
+                }
+            }else{
+                // 若在此时间后不存在车辆
+                // （即当前车辆是此时间后唯一的车辆，则该队列中没有其他车辆，以当前车辆的最小间距作为队列长度）
+            }
+            // 在前方车辆的基础上加入当前车辆的前方最小间距
+            queueLength += carMapById[id].minGap;
+            // 由于被阻碍，则需要在队列区末尾重新加速
+            outTime = getTheReachTime(carMapById[id], queueLength, outQueueTimeMapById[id], true, false);
         }
-        // b. 判定驶离队列区时的队列长度。
-        // 计算启动时的队列长度
-        // 首先计算启动时间所在的通行周期的起始时间
-        double startCircleTime = getStartTimeOfAllowedTime(outQueueTimeMapById[id]);
-        // 对当前车辆前方队列中的车辆长度进行累加,求得队列长度
-        double queueLength = 0;
-
-        // todo
+        // c. 判定车辆离开的时间
+        // （前面已经判断preId!=""，所以此时前方存在其他车辆）
+        // c+. 考虑是否受前方车辆影响，其离开时间不应该早于前方车辆离开路口后updateInterval时间
+        if(outTime < outTimeMapById[preId] + updateInterval){
+            outTime = outTimeMapById[preId] + updateInterval;
+        }
     }
+    // d. 离开时间的交通信号修正
+    // 判定是否受到交通控制信号影响
+    double fixedOutTime = getFixedOutTime(outTime);
+    if(fixedOutTime > outTime){
+        // 若受到交通控制信号影响，则需要修改驶离队列时间为下一个红绿灯允许的时间，并计算新的离开路口时间
+        outQueueTimeMapById[id] = fixedOutTime + updateInterval;
+        fixedOutTime = getTheReachTime(carMapById[id], carMapById[id].minGap, fixedOutTime, true, false);
+    }
+    // 判定完成后修改离开路口时间
+    setOutTimeOfCar(id, fixedOutTime);
 }
+
 void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     // 说明:
     // 1. 更新操作需要完成以下操作
@@ -188,6 +258,9 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     //      a. 查找前方车辆进入队列的时间
     //      b. 若前方车辆进入队列时间与当前车辆进入队列时间差值小于updateInterval,则推迟当前车辆进入队列时间
     //          b+. 推迟过程中,若有其他车辆存在于该updateInterval时间片内,则依次向后推移
+    // todo 需要在此处更新当前车辆进入队列区的时间
+    // todo
+    //  a+. 更新当前节点的驶离信息(因为当前节点的状态与后方车辆无关,可以在此时确定)
     updateCarOutInfo(id, preId);
     // todo 需要重写过程
     // FIXME 后面都是旧代码，没有用了几乎
@@ -352,7 +425,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
     setEnterTimeOfCar(car.id, time);
     // 1st. judge the length of queue and the time entering the queue
     double queueLength = 0;
-    string otherId = outTimeHelper.getFirstCarId(carMapByOutTime,time);
+    string otherId = outTimeHelper.getFirstCarId(carMapByOutTime, time);
     while(otherId != ""){
         // while there are some still in this lane
         // and if those car have already enter the queue area when this car entered this lane
@@ -364,7 +437,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
         }
     }
     // 2nd. judge the length of queue considering the cars have not entered the queue yet
-    otherId = queueTimeHelper.getFirstCarId(carMapByQueueTime,time);
+    otherId = queueTimeHelper.getFirstCarId(carMapByQueueTime, time);
     double preCarQueueTime;
     string preQueueCarId;   // the car before current after current enter queue area.
     // there still have some cars not entered the queue
@@ -509,7 +582,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
         // then all cars before this car will be added into the queue length.
 
         // get the previous car entering this lane
-        string preEnterCarId = enterTimeHelper.getFirstCarId(carMapByEnterTime,time);
+        string preEnterCarId = enterTimeHelper.getFirstCarId(carMapByEnterTime, time);
         string nextToPreEnterCarId = enterTimeHelper.getNextCarId();
         // if the next one of the preEnterCarId is later than current car, find next.
         // actually, this time can only equal or bigger than time, if equal, find next.

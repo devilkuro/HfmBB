@@ -81,7 +81,7 @@ protected:
     // car time manage related
     map<string, SMTCarInfo> carMapById;
     // map by time
-    // 由时间点进行索引的车辆列表
+    // 由时间点进行索引的车辆列表,用于通过时间反向查找遍历对应车辆
     map<double, list<string> > carMapByEnterTime;
     map<double, list<string> > carMapByQueueTime;
     map<double, list<string> > carMapByOutTime;
