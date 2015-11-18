@@ -253,13 +253,10 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     //              b. 并且，当前车辆离开道路时，后方跟随车辆必须必须能够在接下来的updateInterval时间内能够抵达道路末尾
     //                  若无法抵达道路末尾，则表示后方跟随车辆通过道路的整个行程并未受到当前车辆的阻碍
     //              c. 判断完成,对后方跟随的车辆进行更新
-
-    //1. 更新当前节点进入队列区的时间
-    //      a. 查找前方车辆进入队列的时间
-    //      b. 若前方车辆进入队列时间与当前车辆进入队列时间差值小于updateInterval,则推迟当前车辆进入队列时间
-    //          b+. 推迟过程中,若有其他车辆存在于该updateInterval时间片内,则依次向后推移
     // todo 需要在此处更新当前车辆进入队列区的时间
     // todo
+    updateCarEnterQueueInfo(id, preId);
+
     //  a+. 更新当前节点的驶离信息(因为当前节点的状态与后方车辆无关,可以在此时确定)
     updateCarOutInfo(id, preId);
     // todo 需要重写过程
@@ -312,6 +309,15 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
         // 1.st 若当前车辆进入队列的预测时间
         // todo  不允许超车时队列区时间的更新
     }
+}
+
+void SMTCarInfoQueue::updateCarEnterQueueInfo(string id, string preId) {
+    // todo updateCarQueueInfoAt函数中完成修改车辆进入道路的时间
+    //  更新当前节点进入队列区的时间
+    //      a. 查找前方车辆进入队列的时间
+    //      b. 若前方车辆进入队列时间与当前车辆进入队列时间差值小于updateInterval,则推迟当前车辆进入队列时间
+    //          b+. 推迟过程中,若有其他车辆存在于该updateInterval时间片内,则依次向后推移
+    // todo
 }
 
 void SMTCarInfoQueue::init() {

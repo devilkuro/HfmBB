@@ -55,7 +55,7 @@ public:
     double laneOutLength;
     // insert a car and return its predicted out time
     // neighborFrozenSpace is the length of the overtake disallowed space
-    // usually equals to the minimum one of the neighbors' queue length.
+    // usually equals to the minimum one of the neighbors' queue length
     // neighborFrozenSpace = 0 means car can freely overtake others
     double insertCar(SMTCarInfo car, double time, double neighborFrozenSpace = 0);
     // release the old and invalid car
@@ -123,7 +123,9 @@ protected:
     // utils functions
     // update the car with id = id and the cars affected it
     void updateCarQueueInfoAt(string id, string preId);
-    // 更新车辆离开相关信息
+    // 更新车辆进入队列的时间
+    void updateCarEnterQueueInfo(string id, string preId);
+    // 更新车辆离开相关信息(包括启动离开队列区的时间、具体离开队列区的时间)
     void updateCarOutInfo(string id, string preId);
     // set the enter time of a car and update both carMapByEnterTime and enterTimeMapById
     void setEnterTimeOfCar(string id, double time);
