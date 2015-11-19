@@ -253,11 +253,9 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     //              b. 并且，当前车辆离开道路时，后方跟随车辆必须必须能够在接下来的updateInterval时间内能够抵达道路末尾
     //                  若无法抵达道路末尾，则表示后方跟随车辆通过道路的整个行程并未受到当前车辆的阻碍
     //              c. 判断完成,对后方跟随的车辆进行更新
-    // todo 需要在此处更新当前车辆进入队列区的时间
-    // todo
+    // 1.a. 更新当前节点进入队列区的时间
     updateCarEnterQueueInfo(id, preId);
-
-    //  a+. 更新当前节点的驶离信息(因为当前节点的状态与后方车辆无关,可以在此时确定)
+    // 1.a+. 更新当前节点的驶离信息(因为当前节点的状态与后方车辆无关,可以在此时确定)
     updateCarOutInfo(id, preId);
     // todo 需要重写过程
     // FIXME 后面都是旧代码，没有用了几乎
@@ -318,6 +316,7 @@ void SMTCarInfoQueue::updateCarEnterQueueInfo(string id, string preId) {
     //      b. 若前方车辆进入队列时间与当前车辆进入队列时间差值小于updateInterval,则推迟当前车辆进入队列时间
     //          b+. 推迟过程中,若有其他车辆存在于该updateInterval时间片内,则依次向后推移
     // todo
+
 }
 
 void SMTCarInfoQueue::init() {
@@ -339,7 +338,12 @@ SMTCarInfoQueue::~SMTCarInfoQueue() {
 double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFrozenSpace) {
     // 说明:
     // 1. 插入操作需要完成以下操作:
-    //      a.    // 插入操作的具体过程
+    //      a.  判定进入队列区的顺序和初步预计的时间(即未进行松弛操作的进入队列区时间)
+    //      b.  更新队列顺序并写入初步预计进入队列区的时间
+    //          b+. 调用updateCarQueueInfoAt更新当前车辆的后续状态时间，并更新其后方的队列
+    //      c.  读取上述更新后该车势力路口的时间，并返回该车进入下一跳道路的预测时间(离开路口时间+通过路口时间)
+    // 2. 插入操作的具体过程
+    //      a.  todo
     // todo 整个过程需要重新规划编写
     TraversalHelper enterTimeHelper;
     TraversalHelper queueTimeHelper;
