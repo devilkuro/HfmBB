@@ -43,6 +43,12 @@ public:
         string getFirstCarId(const map<double, list<string> > &carListMapByCertainTime, double time);
         string getNextCarId();
         string getPreviousCarId();
+        // key 相关方法仅读取，不修改当前遍历状态(两个迭代器修改必须同步)
+        double getCurrentKey();
+        double getNextkey();
+        double getPreviousKey();
+        // 将当前车辆向后推迟至时间点,并返回被推迟车辆的列表
+        list<string> pushCurrentCarBack(double time);
     };
 public:
     // xmlpath只能设置一次，之后的设置将不改变xml文件路径
@@ -135,6 +141,8 @@ protected:
     // similar to the above function
     // set the enter time of a car and update both carMapByOutTime and outTimeMapById
     void setOutTimeOfCar(string id, double time);
+    // 将对应遍历器对应的车辆推后至某一时刻(请务必保证遍历助手对应的map为queueTimeMap)
+    void pushCarQueueTimeBack(TraversalHelper &queueTimeHelper, double time);
     // get car info by id
     SMTCarInfo getCarInfoById(string id);
 

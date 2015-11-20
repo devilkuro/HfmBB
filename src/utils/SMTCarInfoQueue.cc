@@ -254,7 +254,10 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     //                  若无法抵达道路末尾，则表示后方跟随车辆通过道路的整个行程并未受到当前车辆的阻碍
     //              c. 判断完成,对后方跟随的车辆进行更新
     // 1.a. 更新当前节点进入队列区的时间
-    updateCarEnterQueueInfo(id, preId);
+    if(preId != ""){
+        // 当前方没有车辆时不需要更新
+        updateCarEnterQueueInfo(id, preId);
+    }
     // 1.a+. 更新当前节点的驶离信息(因为当前节点的状态与后方车辆无关,可以在此时确定)
     updateCarOutInfo(id, preId);
     // todo 需要重写过程
@@ -281,6 +284,7 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
         // 2nd. stack the compacted cars into cache list
         if(onlyLosseOneCar){
             // do nothing
+            // 该功能移动至updateCarEnterQueueInfo方法
         }else{
             while(!isFinished && itQTMap != carMapByQueueTime.end()){
                 if(itQTMap->first != startTime){
@@ -301,6 +305,7 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
         }
         // 3rd. insert compacted cars back into the time map.
         // todo 松弛过于密集的车辆
+        // ↑该功能移动至updateCarEnterQueueInfo方法
         // 4th. update the next car if necessary
     }else{
         // 如果不允许超车行为，则修改当前车辆进入队列区时间，更新离开状态，然后更新下一个车辆信息
@@ -310,13 +315,69 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
 }
 
 void SMTCarInfoQueue::updateCarEnterQueueInfo(string id, string preId) {
-    // todo updateCarQueueInfoAt函数中完成修改车辆进入道路的时间
+    // 说明：
+    //      用于updateCarQueueInfoAt函数中完成修改车辆进入道路的时间
     //  更新当前节点进入队列区的时间
     //      a. 查找前方车辆进入队列的时间
     //      b. 若前方车辆进入队列时间与当前车辆进入队列时间差值小于updateInterval,则推迟当前车辆进入队列时间
     //          b+. 推迟过程中,若有其他车辆存在于该updateInterval时间片内,则依次向后推移
-    // todo
 
+    // 获取前方车辆抵达队列区时间
+    double preTime = queueTimeMapById[preId];
+    // seek to preId遍历至preId
+    TraversalHelper queueTimeHelper;
+    string otherId = queueTimeHelper.getFirstCarId(carMapByQueueTime, preTime);
+    while(otherId != "" && otherId != preId){
+        // 由于前方车辆应该都完成了松弛操作，所以理论上不会进入该循环
+        // 因此进入循环后需要打印警告信息
+        cout << "Error@updateCarEnterQueueInfo: PRE car is compressed." << endl;
+        otherId = queueTimeHelper.getNextCarId();
+    }
+    // 由preId开始进行松弛操作
+    otherId = queueTimeHelper.getNextCarId();
+    // 若前方车辆紧跟的不是id，则前面过程存在问题，打印警告信息
+    if(otherId != id){
+        cout << "Error@updateCarEnterQueueInfo: Current car is not the car after the PRE car" << endl;
+        // 尝试找到id为id的车辆
+        while(otherId != "" && otherId != id){
+            otherId = queueTimeHelper.getNextCarId();
+        }
+        // 如果没找到。。。一定哪里出了问题
+        if(otherId == ""){
+            cout << "Error@updateCarEnterQueueInfo: ID IS MISSING" << endl;
+        }
+    }
+    if(onlyLosseOneCar){
+        // 若每次只更新单个车辆，则对后方车辆进行一次位移
+        if(queueTimeMapById[id] < preTime + updateInterval){
+            // 推移当前车辆
+            pushCarQueueTimeBack(queueTimeHelper, preTime + updateInterval);
+        }
+    }else{
+        // 反之，若需要更新全部，则依次进行位移直到其后方所有车辆间距均大于updateInterval
+        while(otherId != "" && queueTimeMapById[otherId] < preTime + updateInterval){
+            // 更新第一辆车（第一轮是id，第二轮是id后方，直到otherId为空或者间隔大于updateInterval
+            pushCarQueueTimeBack(queueTimeHelper, preTime + updateInterval);
+            // 更新otherId和preTime
+            otherId = queueTimeHelper.getNextCarId();
+            preTime += updateInterval;
+        }
+    }
+}
+
+void SMTCarInfoQueue::pushCarQueueTimeBack(TraversalHelper &queueTimeHelper, double time) {
+    // 说明：
+    //      将对应遍历器对应的车辆推后至某一时刻(请务必保证遍历助手对应的map为queueTimeMap)
+    //      重设后queueTimeHelper的指针将重新指向已被移动到time时间节点的原车辆
+    // 步骤：
+    //      a. 推后车辆
+    //      b. 重设进入队列的时间
+    // a. 推后车辆
+    list<string> stack = queueTimeHelper.pushCurrentCarBack(time);
+    // b. 重设进入队列的时间
+    for(list<string>::iterator it = stack.begin(); it != stack.end(); it++){
+        queueTimeMapById[*it] = time;
+    }
 }
 
 void SMTCarInfoQueue::init() {
@@ -343,7 +404,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
     //          b+. 调用updateCarQueueInfoAt更新当前车辆的后续状态时间，并更新其后方的队列
     //      c.  读取上述更新后该车势力路口的时间，并返回该车进入下一跳道路的预测时间(离开路口时间+通过路口时间)
     // 2. 插入操作的具体过程
-    //      a.  todo
+    //      a.
     // todo 整个过程需要重新规划编写
     TraversalHelper enterTimeHelper;
     TraversalHelper queueTimeHelper;
@@ -806,8 +867,8 @@ bool SMTCarInfoQueue::isCarACanOvertakeCarB(SMTCarInfo carA, SMTCarInfo carB, do
 }
 
 double SMTCarInfoQueue::getStartTimeOfAllowedTime(double time) {
-    // 获取对应时间的通行允许时间的起点
-
+    // 说明：
+    //      获取对应时间的通行允许时间的起点
     // 先求得当前时间点对应的周期的允许通行时间的起点
     double preAllowedTime = cycleOffset + cyclePeriod * (int) ((time - cycleOffset) / cyclePeriod);
     if(time - preAllowedTime > allowedInterval){
@@ -821,6 +882,85 @@ double SMTCarInfoQueue::getStartTimeOfAllowedTime(double time) {
 
 double SMTCarInfoQueue::getFixedTimeWithUpdateInterval(double time) {
     return ((int) (time / updateInterval)) * updateInterval;
+}
+
+double SMTCarInfoQueue::TraversalHelper::getCurrentKey() {
+    if(it != carListMap->end()){
+        return it->first;
+    }else{
+        return -1.0;
+    }
+}
+
+double SMTCarInfoQueue::TraversalHelper::getNextkey() {
+    double key = -1.0;
+    if(it != carListMap->end()){
+        it++;
+        key = getCurrentKey();
+        it--;
+    }
+    return key;
+}
+
+double SMTCarInfoQueue::TraversalHelper::getPreviousKey() {
+    double key = -1.0;
+    if(it != carListMap->begin()){
+        it--;
+        key = getCurrentKey();
+        it++;
+    }
+    return key;
+}
+
+list<string> SMTCarInfoQueue::TraversalHelper::pushCurrentCarBack(double time) {
+    //说明：
+    //      该用能用于推后遍历助手当前车辆至某一时间点
+    // 算法过程：
+    //      a. 收集当前迭代器指向的车辆到时间小于time的车辆的列表
+    //      b. 将这些车辆以此插入到时间为time的节点头部
+    list<string> stack;
+    if(it != carListMap->end()){
+        //a. 收集当前迭代器指向的车辆到时间小于time的车辆的列表
+        // 如果it不是end，则lit对应的当前车辆一定是存在的，直接将其与其当前时间节点后方的车辆一起插入到stack中即可
+        stack.splice(stack.end(), it->second, lit, it->second.end());
+        // 记录被移除内容的时间点
+        double oldTime = it->first;
+        // 移动至下一时间节点(为保证it与lit的一致性，在末尾需要重设lit指针)
+        it++;
+        // 若前一个节点已被全部移除，则将对应时间节点移除
+        if(carListMap[oldTime].size() == 0){
+            carListMap->erase(oldTime);
+        }
+        // 将时间小于time的所有当前车辆后方的车辆加入stack表
+        while(it != carListMap->end() && it->first < time){
+            stack.splice(stack.end(), it->second, it->second.begin(), it->second.end());
+            // 记录被移除内容的时间点
+            oldTime = it->first;
+            // 移动至下一时间节点
+            it++;
+            // 若前一个节点已被全部移除，则将对应时间节点移除
+            if(carListMap[oldTime].size() == 0){
+                // 实际上如果执行了这个循环上面的移动操作，肯定是全被移除的
+                carListMap->erase(oldTime);
+            }
+        }
+        // b. 将这些车辆以此插入到时间为time的节点头部
+        // 处理结尾部分
+        if(it->first == time){
+            // 若存在时间为time的节点，则将stack列表合并至该节点前方
+            it->second.insert(it->second.begin(), stack.begin(), stack.end());
+        }else{
+            // 若不存在时间为time的节点，则将stack中的车辆添加到时间为time的节点上
+            carListMap[time] = stack;
+        }
+        // 同步并重设it与lit指针
+        it = carListMap->find(time);
+        lit = it->second.begin();
+    }else{
+        // 当前车辆不存在，则当前算法不应当执行，打印警告信息
+        cout << "Error@TraversalHelper::pushCurrentCarBack::MISSING CAR" << endl;
+    }
+    return stack;
 }
 
 } /* namespace Fanjing */
