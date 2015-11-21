@@ -240,11 +240,11 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     //      a: 修改当前节点进入队列时间,该时间应晚于队列区前方车辆至少updateInterval时间距离
     //      b: 判定后方跟随车辆
     //              允许超车时
-    //                  a  后方车辆必须位于当前车辆此时队列区时间后方
-    //                      因为前方的车辆已经被判定不受影响
+    //                  a  后方车辆必须位于当前车辆此时队列区时间后方,因为前方的车辆已经被判定不受影响
+    //                      即进入队列区时间应不小于当前车辆
     //                  b. 在当前车辆后方的车辆中，设最早进入道路车辆为P,P抵达队列区的时间为t
     //                      则只有早于t进入道路的车辆正才有可能在超车之后成为当前车辆后方的车辆(仅用于缩小判定范围,并不准确)
-    //                  c. 在a条件确定的范围中，以此由进入时间小到大的顺序进行判定
+    //                  c. 在a、b条件确定的范围中，以此由进入时间小到大的顺序进行判定
     //                      id[1,2,3,...,n],类似冒泡排序,若1后方m可以超越1，则m为最前方车辆，并继续判定m+1，直到n。
     //              不允许超车时
     //                  后方进入的车辆即为后方跟随车辆
@@ -253,13 +253,24 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     //              b. 并且，当前车辆离开道路时，后方跟随车辆必须必须能够在接下来的updateInterval时间内能够抵达道路末尾
     //                  若无法抵达道路末尾，则表示后方跟随车辆通过道路的整个行程并未受到当前车辆的阻碍
     //              c. 判断完成,对后方跟随的车辆进行更新
-    // 1.a. 更新当前节点进入队列区的时间
-    if(preId != ""){
-        // 当前方没有车辆时不需要更新
-        updateCarEnterQueueInfo(id, preId);
-    }
-    // 1.a+. 更新当前节点的驶离信息(因为当前节点的状态与后方车辆无关,可以在此时确定)
+    // a. 更新当前节点进入队列区的时间
+    updateCarEnterQueueInfo(id, preId);
+    // a+. 更新当前节点的驶离信息(因为当前节点的状态与后方车辆无关,可以在此时确定)
     updateCarOutInfo(id, preId);
+    // b. 判定后方跟随车辆
+    // 是否允许超车
+    if(overtakeAllowed){
+        // 若允许超车，则对后方车辆进行超车判定
+        TraversalHelper queueHelper; // 用于遍历queueTimeMap的迭代器
+        // b.a  查找位于前车辆此时队列区时间后方的车辆
+        string nextId = queueHelper.getFirstCarId(carMapByQueueTime, queueTimeMapById[id]);
+        if(nextId != id){
+            // 因为前面updateCarEnterQueueInfo中进行了松弛操作，因此这里理论上不会执行
+            cout << "Error@updateCarQueueInfoAt:: the first car should be 'id' HERE" << endl;
+        }
+
+        // TODO
+    }
     // todo 需要重写过程
     // FIXME 后面都是旧代码，没有用了几乎
     if(overtakeAllowed){
@@ -323,45 +334,50 @@ void SMTCarInfoQueue::updateCarEnterQueueInfo(string id, string preId) {
     //          b+. 推迟过程中,若有其他车辆存在于该updateInterval时间片内,则依次向后推移
 
     // 获取前方车辆抵达队列区时间
-    double preTime = queueTimeMapById[preId];
-    // seek to preId遍历至preId
-    TraversalHelper queueTimeHelper;
-    string otherId = queueTimeHelper.getFirstCarId(carMapByQueueTime, preTime);
-    while(otherId != "" && otherId != preId){
-        // 由于前方车辆应该都完成了松弛操作，所以理论上不会进入该循环
-        // 因此进入循环后需要打印警告信息
-        cout << "Error@updateCarEnterQueueInfo: PRE car is compressed." << endl;
-        otherId = queueTimeHelper.getNextCarId();
-    }
-    // 由preId开始进行松弛操作
-    otherId = queueTimeHelper.getNextCarId();
-    // 若前方车辆紧跟的不是id，则前面过程存在问题，打印警告信息
-    if(otherId != id){
-        cout << "Error@updateCarEnterQueueInfo: Current car is not the car after the PRE car" << endl;
-        // 尝试找到id为id的车辆
-        while(otherId != "" && otherId != id){
+    if(preId != ""){
+        // 仅在前方有车的情况下才需要更新进入队列的信息
+        double preTime = queueTimeMapById[preId];
+        // seek to preId遍历至preId
+        TraversalHelper queueTimeHelper;
+        string otherId = queueTimeHelper.getFirstCarId(carMapByQueueTime, preTime);
+        while(otherId != "" && otherId != preId){
+            // 由于前方车辆应该都完成了松弛操作，所以理论上不会进入该循环
+            // 因此进入循环后需要打印警告信息
+            cout << "Error@updateCarEnterQueueInfo: PRE car is compressed." << endl;
             otherId = queueTimeHelper.getNextCarId();
         }
-        // 如果没找到。。。一定哪里出了问题
-        if(otherId == ""){
-            cout << "Error@updateCarEnterQueueInfo: ID IS MISSING" << endl;
+        // 由preId开始进行松弛操作
+        otherId = queueTimeHelper.getNextCarId();
+        // 若前方车辆紧跟的不是id，则前面过程存在问题，打印警告信息
+        if(otherId != id){
+            cout << "Error@updateCarEnterQueueInfo: Current car is not the car after the PRE car" << endl;
+            // 尝试找到id为id的车辆
+            while(otherId != "" && otherId != id){
+                otherId = queueTimeHelper.getNextCarId();
+            }
+            // 如果没找到。。。一定哪里出了问题
+            if(otherId == ""){
+                cout << "Error@updateCarEnterQueueInfo: ID IS MISSING" << endl;
+            }
         }
-    }
-    if(onlyLosseOneCar){
-        // 若每次只更新单个车辆，则对后方车辆进行一次位移
-        if(queueTimeMapById[id] < preTime + updateInterval){
-            // 推移当前车辆
-            pushCarQueueTimeBack(queueTimeHelper, preTime + updateInterval);
+        if(onlyLosseOneCar){
+            // 若每次只更新单个车辆，则对后方车辆进行一次位移
+            if(queueTimeMapById[id] < preTime + updateInterval){
+                // 推移当前车辆
+                pushCarQueueTimeBack(queueTimeHelper, preTime + updateInterval);
+            }
+        }else{
+            // 反之，若需要更新全部，则依次进行位移直到其后方所有车辆间距均大于updateInterval
+            while(otherId != "" && queueTimeMapById[otherId] < preTime + updateInterval){
+                // 更新第一辆车（第一轮是id，第二轮是id后方，直到otherId为空或者间隔大于updateInterval
+                pushCarQueueTimeBack(queueTimeHelper, preTime + updateInterval);
+                // 更新otherId和preTime
+                otherId = queueTimeHelper.getNextCarId();
+                preTime += updateInterval;
+            }
         }
     }else{
-        // 反之，若需要更新全部，则依次进行位移直到其后方所有车辆间距均大于updateInterval
-        while(otherId != "" && queueTimeMapById[otherId] < preTime + updateInterval){
-            // 更新第一辆车（第一轮是id，第二轮是id后方，直到otherId为空或者间隔大于updateInterval
-            pushCarQueueTimeBack(queueTimeHelper, preTime + updateInterval);
-            // 更新otherId和preTime
-            otherId = queueTimeHelper.getNextCarId();
-            preTime += updateInterval;
-        }
+        // 如果前方没有车，则什么都不用做。
     }
 }
 
@@ -378,6 +394,29 @@ void SMTCarInfoQueue::pushCarQueueTimeBack(TraversalHelper &queueTimeHelper, dou
     for(list<string>::iterator it = stack.begin(); it != stack.end(); it++){
         queueTimeMapById[*it] = time;
     }
+}
+
+double SMTCarInfoQueue::getQueueLength(string fromId, string toId) {
+    // 获取由队列区队列fromId到toId车辆构成的队列的总长度
+    TraversalHelper queueHelper;
+    string id = queueHelper.getFirstCarId(carMapByQueueTime, queueTimeMapById[fromId]);
+    double length = 0;
+    // fromId和toId必须存在于队列区队列中
+    if(queueTimeMapById.find(fromId) != queueTimeMapById.end()){
+        while(id != toId){
+            length += carMapById[id].minGap + carMapById[id].length;
+            id = queueHelper.getNextCarId();
+            if(id == ""){
+                // toId 不存在
+                cout << "Error@getQueueLength:: NO TO CAR NAMED " << toId << endl;
+                return 0;
+            }
+        }
+    }else{
+        // fromId 不存在
+        cout << "Error@getQueueLength:: NO FROM CAR NAMED " << fromId << endl;
+    }
+    return length;
 }
 
 void SMTCarInfoQueue::init() {

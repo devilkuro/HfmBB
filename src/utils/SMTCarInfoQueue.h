@@ -32,10 +32,10 @@ class SMTCarInfoQueue {
 public:
     // 用于遍历的内部类
     class TraversalHelper {
+        // iterator 便利迭代器
     public:
         TraversalHelper();
         virtual ~TraversalHelper();
-        // iterator 便利迭代器
         map<double, list<string> > *carListMap;
         map<double, list<string> >::iterator it;
         list<string>::iterator lit;
@@ -155,6 +155,8 @@ protected:
     void setThePairMapAtBackOfCar(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar,
             string id, string otherId);
     void removeCar(string id);
+
+
     // fix the out time by considering the allowed time
     double getFixedOutTime(double time);
     // 获取对应时间的通行允许时间的起点
@@ -169,6 +171,8 @@ protected:
     double getTheReachTime(SMTCarInfo car, double length, double startTime, bool considerAccel, bool considerDecel);
     // 将时间转换为updateInterval的整数倍
     double getFixedTimeWithUpdateInterval(double time);
+    // 获取由队列区队列fromId到toId车辆构成的队列的总长度(fromId和toId必须存在于队列区队列中)
+    double getQueueLength(string fromId, string toId);
 private:
     void init();
 };
