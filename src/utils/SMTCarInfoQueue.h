@@ -143,6 +143,7 @@ protected:
     void setOutTimeOfCar(string id, double time);
     // 将对应遍历器对应的车辆推后至某一时刻(请务必保证遍历助手对应的map为queueTimeMap)
     void pushCarQueueTimeBack(TraversalHelper &queueTimeHelper, double time);
+    void pushCarQueueTimeBack(string car, double time);
     // get car info by id
     SMTCarInfo getCarInfoById(string id);
 
