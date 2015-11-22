@@ -242,8 +242,10 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     //              允许超车时
     //                  a  后方车辆必须位于当前车辆此时队列区时间后方,因为前方的车辆已经被判定不受影响
     //                      即进入队列区时间应不小于当前车辆
-    //                  b. 在当前车辆后方的车辆中，设最早进入道路车辆为P,P抵达队列区的时间为t
-    //                      则只有早于t进入道路的车辆正才有可能在超车之后成为当前车辆后方的车辆(仅用于缩小判定范围,并不准确)
+    //                  b. 由于当前车辆id的加入，后方车辆用来超车道自由行驶区间只会减少不会增加
+    //                      则，对于更新前id后方的第一辆车，若之前其后方的车辆没有超越它，车辆id加入后也无法超越
+    //                      因此，若id后方第一辆车发生变化，仅可能是更新前后方第一辆车未超越其前方的车辆
+    //                      即，仅需要判定进入时间早于后方第一辆车的车辆即可决定后方紧邻的车辆。
     //                  c. 在a、b条件确定的范围中，以此由进入时间小到大的顺序进行判定
     //                      id[1,2,3,...,n],类似冒泡排序,若1后方m可以超越1，则m为最前方车辆，并继续判定m+1，直到n。
     //              不允许超车时
@@ -268,60 +270,95 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
             // 因为前面updateCarEnterQueueInfo中进行了松弛操作，因此这里理论上不会执行
             cout << "Error@updateCarQueueInfoAt:: the first car should be 'id' HERE" << endl;
         }
-
+        nextId = queueHelper.getNextCarId();
+        // 若后方存在车辆，则进行更新判定，反之无需进行更新
+        if(nextId != ""){
+            // 查找该车进入道路的时间
+            double enterTime = enterTimeMapById[nextId];
+            // 获取车辆进入道路时，队列区最前方的车辆
+            string queueHeadCar = queueHelper.getFirstCarId(carMapByQueueTime, enterTime);
+            // 获得前方队列长度
+            double queueLength = getQueueLength(queueHeadCar, id);
+            double freespace = laneLength - queueLength;
+            // 超车判定(由进入时间的nextId往前)
+            TraversalHelper enterHelper;
+            string preId = enterHelper.getFirstCarId(carMapByEnterTime,enterTime);
+            // 找到nextId(由于TraversalHelper对一个时间点取得的是第一个，因此先要向后遍历找到nextId)
+            while(preId!=""&&preId!=nextId){
+                preId = enterHelper.getNextCarId();
+            }
+            if(preId == ""){
+                // 如果carMap和timeMap同步没有问题，那么这里肯定不会执行
+                cout << "Error@updateCarQueueInfoAt:: CAR MISSING" << endl;
+            }
+            while(nextId != "" && enterTimeMapById[nextId] <= enterTime){
+                if(!isCarACanOvertakeCarB(nextId,preId,enterTimeMapById[nextId],enterTimeMapById[preId],freespace)){
+                    nextId = preId;
+                    preId = enterHelper.getPreviousCarId();
+                }
+            }
+            updateCarQueueInfoAt(nextId,id);
+        }else{
+            // 后面没车就不需要进行更新之类的操作了
+        }
+    }else{
+        // 若不允许超车，则直接更新后方车辆
+        // 获取后方车辆id，
         // TODO
     }
     // todo 需要重写过程
     // FIXME 后面都是旧代码，没有用了几乎
-    if(overtakeAllowed){
-        // 0th. config this function
-        double startTime = queueTimeMapById[id];
-        double timeOffset = 0;
-        list<string> cacheQueueList;
-        // 1st. seek to id
-        bool isFinished = false;
-        map<double, list<string> >::iterator itQTMap = carMapByQueueTime.lower_bound(queueTimeMapById[id]);
-        list<string>::iterator itQTList = itQTMap->second.begin();
-        while(itQTList != itQTMap->second.end()){
-            if(*itQTList != id){
-                itQTList++;
-            }else{
-                break;
-            }
-        }
-        if(itQTList == itQTMap->second.end()){
-            cout << "Error@updateCarQueueInfoAt()::ID_MISSING" << endl;
-        }
-        // 2nd. stack the compacted cars into cache list
-        if(onlyLosseOneCar){
-            // do nothing
-            // 该功能移动至updateCarEnterQueueInfo方法
-        }else{
-            while(!isFinished && itQTMap != carMapByQueueTime.end()){
-                if(itQTMap->first != startTime){
-                    itQTList = itQTMap->second.begin();
-                }
-                while(!isFinished && itQTList != itQTMap->second.end()){
-                    if(itQTMap->first < startTime + timeOffset){
-                        // modify the time offset
-                        timeOffset += updateInterval;
-                        cacheQueueList.push_back(*itQTList);
-                    }else{
-                        isFinished = true;
-                    }
+    if(false){
+        if(overtakeAllowed){
+            // 0th. config this function
+            double startTime = queueTimeMapById[id];
+            double timeOffset = 0;
+            list<string> cacheQueueList;
+            // 1st. seek to id
+            bool isFinished = false;
+            map<double, list<string> >::iterator itQTMap = carMapByQueueTime.lower_bound(queueTimeMapById[id]);
+            list<string>::iterator itQTList = itQTMap->second.begin();
+            while(itQTList != itQTMap->second.end()){
+                if(*itQTList != id){
                     itQTList++;
+                }else{
+                    break;
                 }
-                itQTMap++;
             }
+            if(itQTList == itQTMap->second.end()){
+                cout << "Error@updateCarQueueInfoAt()::ID_MISSING" << endl;
+            }
+            // 2nd. stack the compacted cars into cache list
+            if(onlyLosseOneCar){
+                // do nothing
+                // 该功能移动至updateCarEnterQueueInfo方法
+            }else{
+                while(!isFinished && itQTMap != carMapByQueueTime.end()){
+                    if(itQTMap->first != startTime){
+                        itQTList = itQTMap->second.begin();
+                    }
+                    while(!isFinished && itQTList != itQTMap->second.end()){
+                        if(itQTMap->first < startTime + timeOffset){
+                            // modify the time offset
+                            timeOffset += updateInterval;
+                            cacheQueueList.push_back(*itQTList);
+                        }else{
+                            isFinished = true;
+                        }
+                        itQTList++;
+                    }
+                    itQTMap++;
+                }
+            }
+            // 3rd. insert compacted cars back into the time map.
+            // todo 松弛过于密集的车辆
+            // ↑该功能移动至updateCarEnterQueueInfo方法
+            // 4th. update the next car if necessary
+        }else{
+            // 如果不允许超车行为，则修改当前车辆进入队列区时间，更新离开状态，然后更新下一个车辆信息
+            // 1.st 若当前车辆进入队列的预测时间
+            // todo  不允许超车时队列区时间的更新
         }
-        // 3rd. insert compacted cars back into the time map.
-        // todo 松弛过于密集的车辆
-        // ↑该功能移动至updateCarEnterQueueInfo方法
-        // 4th. update the next car if necessary
-    }else{
-        // 如果不允许超车行为，则修改当前车辆进入队列区时间，更新离开状态，然后更新下一个车辆信息
-        // 1.st 若当前车辆进入队列的预测时间
-        // todo  不允许超车时队列区时间的更新
     }
 }
 
@@ -867,33 +904,37 @@ double SMTCarInfoQueue::getFixedOutTime(double time) {
     return time;
 }
 
-bool SMTCarInfoQueue::isCarACanOvertakeCarB(SMTCarInfo carA, SMTCarInfo carB, double enterTimeA, double enterTimeB,
+bool SMTCarInfoQueue::isCarACanOvertakeCarB(string carA, string carB, double enterTimeA, double enterTimeB,
         double freeSpace) {
+    // 进行车辆超越相关的判定
+    // FIXME 进入时间相等时，需要读取队列进行判定，若B先于A出现则无法超越，反之能够超越
+    SMTCarInfo carInfoA = carMapById[carA];
+    SMTCarInfo carInfoB = carMapById[carB];
     if(overtakeAllowed){
         // 仅当允许超车时,进行超车判定
         if(enterTimeA >= enterTimeB){
             // A晚于B进入道路
-            if(freeSpace - carA.length - carB.minGap < 0){
+            if(freeSpace - carInfoA.length - carInfoB.minGap < 0){
                 // 若空间不够，则A无法超越B
                 return false;
             }
             // caculate the time of the current car reach the queue area if A overtake B successfully
-            double reachTimeForCarA = getTheReachTime(carA, freeSpace, enterTimeA, false, true);
-            double reachTimeForCarB = getTheReachTime(carB, freeSpace - carA.minGap - carA.length - carB.minGap,
-                    enterTimeB, false, true);
+            double reachTimeForCarA = getTheReachTime(carInfoA, freeSpace, enterTimeA, false, true);
+            double reachTimeForCarB = getTheReachTime(carInfoB,
+                    freeSpace - carInfoA.minGap - carInfoA.length - carInfoB.minGap, enterTimeB, false, true);
             // decide A overtake B or not
             bool beOvertake = reachTimeForCarA < reachTimeForCarB;
             return beOvertake;
         }else{
             // A先于B进入道路
-            if(freeSpace - carA.length - carB.minGap < 0){
+            if(freeSpace - carInfoA.length - carInfoB.minGap < 0){
                 // 若空间不够，则A在B的前方
                 return true;
             }
             // caculate the time of the current car reach the queue area if B could overtake A successfully
-            double reachTimeForCarA = getTheReachTime(carA, freeSpace - carB.minGap - carB.length - carA.minGap,
-                    enterTimeA, false, true);
-            double reachTimeForCarB = getTheReachTime(carB, freeSpace, enterTimeB, false, true);
+            double reachTimeForCarA = getTheReachTime(carInfoA,
+                    freeSpace - carInfoB.minGap - carInfoB.length - carInfoA.minGap, enterTimeA, false, true);
+            double reachTimeForCarB = getTheReachTime(carInfoB, freeSpace, enterTimeB, false, true);
             // decide B overtake A or not
             bool beOvertake = reachTimeForCarA > reachTimeForCarB;
             return !beOvertake;

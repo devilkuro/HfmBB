@@ -164,7 +164,7 @@ protected:
     // 反之，则返回下一个通行周期的起点
     double getStartTimeOfAllowedTime(double time);
     // judge whether the car can overtake other car successfully or not
-    bool isCarACanOvertakeCarB(SMTCarInfo carA, SMTCarInfo carB, double enterTimeA, double enterTimeB,
+    bool isCarACanOvertakeCarB(string carA, string carB, double enterTimeA, double enterTimeB,
             double freeSpace);
     // caculate the reach time
     // 计算车辆行驶指定距离需要消耗的时间,考虑或者不考虑前后加减速阶段
