@@ -40,7 +40,9 @@ public:
         map<double, list<string> >::iterator it;
         list<string>::iterator lit;
         // get the car by time
+        string SeekToCar(string car);
         string getFirstCarId(const map<double, list<string> > &carListMapByCertainTime, double time);
+        string getFirstCarIdAfter(const map<double, list<string> > &carListMapByCertainTime, double time);
         string getNextCarId();
         string getPreviousCarId();
         // key 相关方法仅读取，不修改当前遍历状态(两个迭代器修改必须同步)
@@ -147,7 +149,6 @@ protected:
     // get car info by id
     SMTCarInfo getCarInfoById(string id);
 
-
     // set the pair map
     void setThePairMap(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar, string id,
             double time);
@@ -157,7 +158,6 @@ protected:
             string id, string otherId);
     void removeCar(string id);
 
-
     // fix the out time by considering the allowed time
     double getFixedOutTime(double time);
     // 获取对应时间的通行允许时间的起点
@@ -165,8 +165,7 @@ protected:
     // 反之，则返回下一个通行周期的起点
     double getStartTimeOfAllowedTime(double time);
     // judge whether the car can overtake other car successfully or not
-    bool isCarACanOvertakeCarB(string carA, string carB, double enterTimeA, double enterTimeB,
-            double freeSpace);
+    bool isCarACanOvertakeCarB(string carA, string carB, double enterTimeA, double enterTimeB, double freeSpace);
     // caculate the reach time
     // 计算车辆行驶指定距离需要消耗的时间,考虑或者不考虑前后加减速阶段
     double getTheReachTime(SMTCarInfo car, double length, double startTime, bool considerAccel, bool considerDecel);
