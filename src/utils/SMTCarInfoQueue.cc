@@ -83,6 +83,46 @@ string SMTCarInfoQueue::TraversalHelper::getPreviousCarId() {
     return "";
 }
 
+string SMTCarInfoQueue::TraversalHelper::SeekToCar(string car) {
+    // get first time node (include given time)
+    if(*lit != it->second.end()){
+        string curCar = *lit;
+        while(curCar != "" && curCar != car){
+            curCar = getNextCarId();
+        }
+    }
+    return "";
+}
+
+string SMTCarInfoQueue::TraversalHelper::getFirstCarIdAfter(const map<double, list<string> >& carListMapByCertainTime,
+        double time) {
+    // 获取指定时间点之后的第一个车辆id(包含当前时间点)
+    carListMap = &carListMapByCertainTime;
+    // get first time node (include given time)
+    it = carListMap->upper_bound(time);
+    if(it != carListMap->end()){
+        lit = it->second.begin();
+        if(lit != it->second.end()){
+            return *lit;
+        }
+    }
+    return "";
+}
+
+string SMTCarInfoQueue::TraversalHelper::getLastCarCurrent() {
+    // 当前时间点必须有车辆
+    if(it != carListMap->end()){
+        // 若当前队列有车，即end不等于begin则返回最后的车辆
+        lit = it->second.end();
+        if(lit != it->second.begin()){
+            lit--;
+            return *lit;
+        }
+    }
+    // if the list has no more object
+    return "";
+}
+
 SMTCarInfoQueue::SMTCarInfoQueue() {
     init();
 }
@@ -459,7 +499,11 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
 
     // a.1. 判定队列区起点车辆
     TraversalHelper queueHelper;
-    string startCar = queueHelper.getFirstCarId(carMapByQueueTime,time);
+    // 遍历至当前时间前未离开的车辆中的第一辆车
+    string startCar = queueHelper.getFirstCarId(carMapByQueueTime, time);
+    if(startCar != ""){
+        //
+    }
     // todo 整个过程需要重新规划编写
 
 }
@@ -764,32 +808,6 @@ double SMTCarInfoQueue::TraversalHelper::getPreviousKey() {
         it++;
     }
     return key;
-}
-
-string SMTCarInfoQueue::TraversalHelper::SeekToCar(string car) {
-    // get first time node (include given time)
-    if(*lit != it->second.end()){
-        string curCar = *lit;
-        while(curCar != "" && curCar != car){
-            curCar = getNextCarId();
-        }
-    }
-    return "";
-}
-
-string SMTCarInfoQueue::TraversalHelper::getFirstCarIdAfter(const map<double, list<string> >& carListMapByCertainTime,
-        double time) {
-    // 获取指定时间点之后的第一个车辆id(包含当前时间点)
-    carListMap = &carListMapByCertainTime;
-    // get first time node (include given time)
-    it = carListMap->upper_bound(time);
-    if(it != carListMap->end()){
-        lit = it->second.begin();
-        if(lit != it->second.end()){
-            return *lit;
-        }
-    }
-    return "";
 }
 
 list<string> SMTCarInfoQueue::TraversalHelper::pushCurrentCarBack(double time) {

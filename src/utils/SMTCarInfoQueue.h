@@ -45,6 +45,7 @@ public:
         string getFirstCarIdAfter(const map<double, list<string> > &carListMapByCertainTime, double time);
         string getNextCarId();
         string getPreviousCarId();
+        string getLastCarCurrent();
         // key 相关方法仅读取，不修改当前遍历状态(两个迭代器修改必须同步)
         double getCurrentKey();
         double getNextkey();
