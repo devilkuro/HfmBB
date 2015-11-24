@@ -47,36 +47,55 @@ string SMTCarInfoQueue::TraversalHelper::getFirstCarId(const map<double, list<st
 }
 
 string SMTCarInfoQueue::TraversalHelper::getNextCarId() {
-    if(lit != it->second.end()){
-        // if the list has more objects, get next
-        lit++;
-        return *lit;
-    }else if(it != carListMap->end()){
-        // if the list has no object any more get later time list and return the first car
-        it++;
-        if(it != carListMap->end()){
-            lit = it->second.begin();
-            if(lit != it->second.end()){
-                return *lit;
+    // 如果it指向末尾，说明寻找到了末尾没有发现符合条件的车辆，此时lit没有意义，it指向carListMap末尾
+    if(it != carListMap->end()){
+        if(lit != it->second.end()){
+            // if the list has more objects, get next
+            lit++;
+            return *lit;
+        }else if(it != carListMap->end()){
+            // if the list has no object any more get later time list and return the first car
+            it++;
+            if(it != carListMap->end()){
+                lit = it->second.begin();
+                if(lit != it->second.end()){
+                    return *lit;
+                }
             }
         }
+    }else{
+        // 指向末尾时不存在nextCar，故返回空字符串
     }
     // if the list has no more object
     return "";
 }
 
 string SMTCarInfoQueue::TraversalHelper::getPreviousCarId() {
-    if(lit != it->second.begin()){
-        // if the list has more objects before, get previous
-        lit--;
-        return *lit;
-    }else if(it != carListMap->begin()){
-        // if the list has no object any more , get cars in previous time list and return the last car
-        it--;
-        lit = it->second.end();
+    // 如果it指向末尾，说明寻找到了末尾没有发现符合条件的车辆，此时lit没有意义，it指向carListMap末尾
+    if(it != carListMap->end()){
         if(lit != it->second.begin()){
+            // if the list has more objects before, get previous
             lit--;
             return *lit;
+        }else if(it != carListMap->begin()){
+            // if the list has no object any more , get cars in previous time list and return the last car
+            it--;
+            lit = it->second.end();
+            if(lit != it->second.begin()){
+                lit--;
+                return *lit;
+            }
+        }
+    }else{
+        // 如果it指向末尾，说明寻找到了末尾没有发现符合条件的车辆，此时lit没有意义，it指向carListMap末尾
+        if(it != carListMap->begin()){
+            // if the list has no object any more , get cars in previous time list and return the last car
+            it--;
+            lit = it->second.end();
+            if(lit != it->second.begin()){
+                lit--;
+                return *lit;
+            }
         }
     }
     // if the list has no more object
@@ -350,14 +369,14 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
 }
 
 void SMTCarInfoQueue::updateCarEnterQueueInfo(string id, string preId) {
-// 说明：
-//      用于updateCarQueueInfoAt函数中完成修改车辆进入道路的时间
-//  更新当前节点进入队列区的时间
-//      a. 查找前方车辆进入队列的时间
-//      b. 若前方车辆进入队列时间与当前车辆进入队列时间差值小于updateInterval,则推迟当前车辆进入队列时间
-//          b+. 推迟过程中,若有其他车辆存在于该updateInterval时间片内,则依次向后推移
+    // 说明：
+    //      用于updateCarQueueInfoAt函数中完成修改车辆进入道路的时间
+    //  更新当前节点进入队列区的时间
+    //      a. 查找前方车辆进入队列的时间
+    //      b. 若前方车辆进入队列时间与当前车辆进入队列时间差值小于updateInterval,则推迟当前车辆进入队列时间
+    //          b+. 推迟过程中,若有其他车辆存在于该updateInterval时间片内,则依次向后推移
 
-// 获取前方车辆抵达队列区时间
+    // 获取前方车辆抵达队列区时间
     if(preId != ""){
         // 仅在前方有车的情况下才需要更新进入队列的信息
         double preTime = queueTimeMapById[preId];
@@ -406,28 +425,52 @@ void SMTCarInfoQueue::updateCarEnterQueueInfo(string id, string preId) {
 }
 
 void SMTCarInfoQueue::pushCarQueueTimeBack(TraversalHelper &queueTimeHelper, double time) {
-// 说明：
-//      将对应遍历器对应的车辆推后至某一时刻(请务必保证遍历助手对应的map为queueTimeMap)
-//      重设后queueTimeHelper的指针将重新指向已被移动到time时间节点的原车辆
-// 步骤：
-//      a. 推后车辆
-//      b. 重设进入队列的时间
-// a. 推后车辆
+    // 说明：
+    //      将对应遍历器对应的车辆推后至某一时刻(请务必保证遍历助手对应的map为queueTimeMap)
+    //      重设后queueTimeHelper的指针将重新指向已被移动到time时间节点的原车辆
+    // 步骤：
+    //      a. 推后车辆
+    //      b. 重设进入队列的时间
+    // a. 推后车辆
     list<string> stack = queueTimeHelper.pushCurrentCarBack(time);
-// b. 重设进入队列的时间
+    // b. 重设进入队列的时间
     for(list<string>::iterator it = stack.begin(); it != stack.end(); it++){
         queueTimeMapById[*it] = time;
     }
 }
 
 double SMTCarInfoQueue::getQueueLength(string fromId, string toId) {
-// 获取由队列区队列fromId到toId车辆构成的队列的总长度
-    TraversalHelper queueHelper;
-    string id = queueHelper.getFirstCarId(carMapByQueueTime, queueTimeMapById[fromId]);
+    // 获取由队列区队列fromId到toId车辆构成的队列的总长度
     double length = 0;
-// fromId和toId必须存在于队列区队列中
-    if(queueTimeMapById.find(fromId) != queueTimeMapById.end()){
-        while(id != toId){
+    // fromId和toId必须存在于队列区队列中
+    if(queueTimeMapById.find(fromId) != queueTimeMapById.end()
+            && queueTimeMapById.find(toId) != queueTimeMapById.end()){
+        TraversalHelper queueHelper;
+        string id = queueHelper.getFirstCarId(carMapByQueueTime, queueTimeMapById[fromId]);
+        // 如果toId反而在fromId前方，则返回0
+        double fromTime = queueTimeMapById[fromId];
+        double toTime = queueTimeMapById[toId];
+        if(fromTime > toTime){
+            return 0;
+        }else if(fromTime == toTime){
+            // 处理相等的情况
+            while(queueTimeMapById[id] == fromTime){
+                if(id == toId){
+                    if(id != fromId){
+                        return 0;
+                    }else{
+                        // fromId和toId一样，可以进行长度计算。
+                        break;
+                    }
+                }else if(id == fromId){
+                    // fromId在前，可以进行长度计算。
+                    break;
+                }
+            }
+        }
+        id = queueHelper.getFirstCarId(carMapByQueueTime, fromTime);
+        // fromId和toId必须存在于队列区队列中
+        do{
             length += carMapById[id].minGap + carMapById[id].length;
             id = queueHelper.getNextCarId();
             if(id == ""){
@@ -435,7 +478,7 @@ double SMTCarInfoQueue::getQueueLength(string fromId, string toId) {
                 cout << "Error@getQueueLength:: NO TO CAR NAMED " << toId << endl;
                 return 0;
             }
-        }
+        }while(id != toId);
     }else{
         // fromId 不存在
         cout << "Error@getQueueLength:: NO FROM CAR NAMED " << fromId << endl;
@@ -480,30 +523,59 @@ SMTCarInfoQueue::~SMTCarInfoQueue() {
 double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFrozenSpace) {
     // 说明:
     // 1. 插入操作需要完成以下操作:
-    //      0. 将车辆插入进入时间队列
+    //      0. 记录车辆信息和进入道路的时间及顺序
     //      a.  判定进入队列区的顺序和初步预计的时间(即未进行松弛操作的进入队列区时间)
     //      b.  更新队列顺序并写入初步预计进入队列区的时间
     //          b+. 调用updateCarQueueInfoAt更新当前车辆的后续状态时间，并更新其后方的队列
     //      c.  读取上述更新后该车势力路口的时间，并返回该车进入下一跳道路的预测时间(离开路口时间+通过路口时间)
     // 2. 插入操作的具体过程
-    //      a. 由前方进入道路的车辆依次开始判定，是否能够进行超越
+    //      a. 确定车辆进入队列区时间和顺序
     //          a.1. 判定队列区起点车辆
     //              +. 判定超车的超车允许长度由前方队列中车辆累计长度和邻接扯到允许超车范围决定
     //              +.  队列长度的起点为进入道路时间早于当前车辆且未在当前时刻前离开道路的第一辆车
     //          a.2. 计算队列长度
+    //              若允许超车，则进行a.3. 超车判定，判断车辆进入队列区时的位置
+    //              反之将车辆插入前方进入的车辆的队列区后方的位置
     //          a.3. 计算能否完成超车，若能，则继续计算更前方进入的车辆，反之跳出循环，写入预测的抵达时间。
     //      b. 依照上一步得到的信息更新队列区时间与顺序
     //          b+. 调用队列信息更新函数进行后续车辆通过信息的更新
     //      c. 使用outTime计算进入并返回下一条道路的时间
-    // 0. 将车辆插入进入时间队列
 
+    // 首先在车辆信息列表中添加当前车辆
+    carMapById[car.id] = car;
+    // 记录进入道路的时间和进入道路的顺序
+    setEnterTimeOfCar(car.id, time);
     // a.1. 判定队列区起点车辆
-    TraversalHelper queueHelper;
+    TraversalHelper outHelper;
     // 遍历至当前时间前未离开的车辆中的第一辆车
-    string startCar = queueHelper.getFirstCarId(carMapByQueueTime, time);
-    if(startCar != ""){
-        //
+    string startCar = outHelper.getFirstCarId(carMapByOutTime, time);
+    // 判定和修改进入队列顺序和时间阶段
+    if(overtakeAllowed){
+        // 若系统设置为允许超车行为，则进行超车判定
+        // 在超车过程中，若//todo
+        if(startCar != ""){
+            //
+        }
+    }else{
+        // 如果不允许超车，则
+        // 计算第一辆车辆前方车辆的队列长度，然后估算当前车辆进入队列区的时间
+        TraversalHelper enterHelper;
+        string nextId = enterHelper.getFirstCarIdAfter(carMapByEnterTime, time);
+        string preId = enterHelper.getPreviousCarId();
+        // 比较当前车辆进入队列的时间和前方车辆进入队列的时间，得出该车实际进入队列区的时间
+        // 将该车插入前方进入车辆的队列区位置后方
+        double queueLength = 0;
+        if(preId != ""){
+            // 如果前面有车，则将当前车辆插入到前方车辆后面
+            setThePairMapAtBackOfCar(carMapByQueueTime, queueTimeMapById, car.id, preId);
+        }else{
+            // TODO 估算队列时间
+            setQueueTimeOfCar(car.id, 0);
+        }
+        // 将当前车辆向后推延至指定时间
     }
+
+    // 更新车辆状态
     // todo 整个过程需要重新规划编写
 
 }
@@ -627,6 +699,26 @@ void SMTCarInfoQueue::setThePairMap(map<double, list<string> > &carListMapByTime
         carListMapByTime[timeMapByCar[id]].remove(id);
         // 2nd. add this car at new time
         carListMapByTime[time].push_back(id);
+    }
+}
+
+void SMTCarInfoQueue::setCarAtFirstOfCertainTime(map<double, list<string> >& carListMapByTime,
+        map<string, double>& timeMapByCar, string id, double time) {
+    // FIXME (可能）此处为唯一修改timeMapByCar中相关时间的方法，因此将时间修正方法放在此处
+    // 修正时间
+    time = getFixedTimeWithUpdateInterval(time);
+    // set the pair map
+    if(timeMapByCar.find(id) == timeMapByCar.end()){
+        // insert new car
+        timeMapByCar[id] = time;
+        // insert this car to time
+        carListMapByTime[time].push_front(id);
+    }else{
+        // if the car is already here, update the related information
+        // 1st. remove the old information
+        carListMapByTime[timeMapByCar[id]].remove(id);
+        // 2nd. add this car at new time
+        carListMapByTime[time].push_front(id);
     }
 }
 

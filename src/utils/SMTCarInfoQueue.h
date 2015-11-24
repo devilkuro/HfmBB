@@ -157,6 +157,8 @@ protected:
             string id, string otherId);
     void setThePairMapAtBackOfCar(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar,
             string id, string otherId);
+    void setCarAtFirstOfCertainTime(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar,
+            string id, double time);
     void removeCar(string id);
 
     // fix the out time by considering the allowed time
