@@ -17,13 +17,40 @@
 #define SMTMAPSYSTEM_H_
 
 #include "GlobalMapSystem.h"
+#include "SMTCarInfoQueue.h"
 
+using namespace Fanjing;
+
+class SMTLane {
+    string id;
+    string edge;
+    string tl;
+};
+class SMTEdge {
+    string id;
+    vector<string> laneVec;
+    vector<string> queueVec;
+    vector<string> nextVec;
+};
+class SMTTrafficLight {
+    string id;
+    vector<double> allowedInterval;
+    vector<double> cyclePeriod;
+    vector<double> cycleOffset;
+};
 class SMTMapSystem : public GlobalMapSystem {
 public:
     SMTMapSystem();
     virtual ~SMTMapSystem();
-};
+protected:
+    list<string> normalEdgeList;
+    map<string, SMTEdge> edgeMap;
+    map<string, SMTCarInfoQueue> queueMap;
 
+    virtual void initialize(int stage);
+    void ganerateMapTopology();
+
+};
 class SMTMapSystemAccess {
 public:
     SMTMapSystem* get() {

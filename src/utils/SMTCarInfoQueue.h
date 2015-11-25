@@ -18,6 +18,7 @@
 
 #include <map>
 #include <string>
+#include <set>
 #include "SMTCarInfo.h"
 #include "tinyxml2.h"
 using namespace std;
@@ -41,8 +42,8 @@ public:
         list<string>::iterator lit;
         // get the car by time
         string SeekToCar(string car);
-        string getFirstCarId(const map<double, list<string> > &carListMapByCertainTime, double time);
-        string getFirstCarIdAfter(const map<double, list<string> > &carListMapByCertainTime, double time);
+        string getFirstCarId(map<double, list<string> > &carListMapByCertainTime, double time);
+        string getFirstCarIdAfter(map<double, list<string> > &carListMapByCertainTime, double time);
         string getNextCarId();
         string getPreviousCarId();
         string getLastCarCurrent();
@@ -116,6 +117,8 @@ protected:
     // 若前方没有车辆,且控制信号允许则等于该车进入队列区的时间
     // 最后一种情况需要进行额外处理（因为少了加速减速的过程）
     map<string, double> outQueueTimeMapById;
+    // 失效车辆集合
+    set<string> invaildCarMap;
 
     double allowedInterval;
     double cyclePeriod;

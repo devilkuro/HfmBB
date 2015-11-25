@@ -19,5 +19,19 @@ SMTMapSystem::SMTMapSystem() {
 }
 
 SMTMapSystem::~SMTMapSystem() {
+
 }
 
+void SMTMapSystem::initialize(int stage) {
+    GlobalMapSystem::initialize(stage);
+    if(stage == 1){
+        list<string> allEgetList = getAllEdges();
+        // 生成主要道路列表
+        for(list<string>::iterator it = allEgetList.begin();it!=allEgetList.end();it++){
+            if((*it)[0]!=':'){
+                normalEdgeList.push_back(*it);
+            }
+        }
+        // 生成主要道路连接拓扑
+    }
+}

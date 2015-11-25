@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <SMTCarInfoQueue.h>
+#include "SMTCarInfoQueue.h"
 #include <cmath>
 #include <iostream>
 
@@ -31,7 +31,7 @@ SMTCarInfoQueue::TraversalHelper::TraversalHelper() {
 SMTCarInfoQueue::TraversalHelper::~TraversalHelper() {
 }
 
-string SMTCarInfoQueue::TraversalHelper::getFirstCarId(const map<double, list<string> > &carListMapByCertainTime,
+string SMTCarInfoQueue::TraversalHelper::getFirstCarId(map<double, list<string> > &carListMapByCertainTime,
         double time) {
     // 获取指定时间点之后的第一个车辆id(包含当前时间点)
     carListMap = &carListMapByCertainTime;
@@ -104,7 +104,7 @@ string SMTCarInfoQueue::TraversalHelper::getPreviousCarId() {
 
 string SMTCarInfoQueue::TraversalHelper::SeekToCar(string car) {
     // get first time node (include given time)
-    if(*lit != it->second.end()){
+    if(lit != it->second.end()){
         string curCar = *lit;
         while(curCar != "" && curCar != car){
             curCar = getNextCarId();
@@ -113,7 +113,7 @@ string SMTCarInfoQueue::TraversalHelper::SeekToCar(string car) {
     return "";
 }
 
-string SMTCarInfoQueue::TraversalHelper::getFirstCarIdAfter(const map<double, list<string> >& carListMapByCertainTime,
+string SMTCarInfoQueue::TraversalHelper::getFirstCarIdAfter(map<double, list<string> >& carListMapByCertainTime,
         double time) {
     // 获取指定时间点之后的第一个车辆id(包含当前时间点)
     carListMap = &carListMapByCertainTime;
@@ -209,7 +209,6 @@ void SMTCarInfoQueue::updateCarOutInfo(string id, string preId) {
     //          d+. 若受交通信号影响，则需要修改离开队列区时间
     //      e. 设置outQueueTimeMap和outTimeMap
     double outTime = 0;
-    bool isObstructed = false;
     if(preId == ""){
         // 处理前方没有车辆的情况
         // a. 判定启动离开队列区的时间
@@ -620,7 +619,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
     updateCarQueueInfoAt(car.id, preId);
     // 计算进入下一条道路的时间，并返回。
     // FIXME 考虑是否需要引入“自启动离开队列区”的加速阶段的因素
-    return outTimeMapById[id]+laneOutLength/car.maxSpeed;
+    return outTimeMapById[id] + laneOutLength / car.maxSpeed;
 }
 
 double SMTCarInfoQueue::getTheReachTime(SMTCarInfo car, double length, double startTime, bool considerAccel,
@@ -687,8 +686,15 @@ double SMTCarInfoQueue::releaseCar(string id, double time) {
     root->LinkEndChild(element);
     // release the old car and return the predicted out time
     double outTime = outTimeMapById[id];
-    // FIXME 需要判定是否依然存在于队列之中
-    removeCar(id);
+    // 启动车辆离开程序，若车辆离开时间和预测离开时间均早于当前时间则删除车辆
+    invaildCarMap.insert(id);
+    TraversalHelper outHelper;
+    outHelper.getFirstCarIdAfter(carMapByOutTime, time);
+    for(id = outHelper.getPreviousCarId(); id != ""; id = outHelper.getPreviousCarId()){
+        if(invaildCarMap.find(id) != invaildCarMap.end()){
+            removeCar(id);
+        }
+    }
     return outTime;
 }
 
@@ -969,7 +975,7 @@ list<string> SMTCarInfoQueue::TraversalHelper::pushCurrentCarBack(double time) {
             // 移动至下一时间节点(为保证it与lit的一致性，在末尾需要重设lit指针)
             it++;
             // 若前一个节点已被全部移除，则将对应时间节点移除
-            if(carListMap[oldTime].size() == 0){
+            if((*carListMap)[oldTime].size() == 0){
                 carListMap->erase(oldTime);
             }
             // 将时间小于time的所有当前车辆后方的车辆加入stack表
@@ -980,7 +986,7 @@ list<string> SMTCarInfoQueue::TraversalHelper::pushCurrentCarBack(double time) {
                 // 移动至下一时间节点
                 it++;
                 // 若前一个节点已被全部移除，则将对应时间节点移除
-                if(carListMap[oldTime].size() == 0){
+                if((*carListMap)[oldTime].size() == 0){
                     // 实际上如果执行了这个循环上面的移动操作，肯定是全被移除的
                     carListMap->erase(oldTime);
                 }
@@ -992,7 +998,7 @@ list<string> SMTCarInfoQueue::TraversalHelper::pushCurrentCarBack(double time) {
                 it->second.insert(it->second.begin(), stack.begin(), stack.end());
             }else{
                 // 若不存在时间为time的节点，则将stack中的车辆添加到时间为time的节点上
-                carListMap[time] = stack;
+                (*carListMap)[time] = stack;
             }
             // 同步并重设it与lit指针
             it = carListMap->find(time);
