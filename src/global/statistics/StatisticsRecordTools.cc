@@ -31,7 +31,7 @@ void StatisticsRecordTools::eof() {
 
 void StatisticsRecordTools::outputAll(string name, string dir,
         std::fstream::openmode openmode) {
-    output(name, dir, "*", openmode);
+    output(name, dir, "", openmode);
 }
 
 void StatisticsRecordTools::setDefaultDir(string dir) {

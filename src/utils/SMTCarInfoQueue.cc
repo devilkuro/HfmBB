@@ -358,7 +358,7 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
                     tempPreId = enterHelper.getPreviousCarId();
                 }
             }
-            // FIXME 需要同步修改队列顺序，用于更新队列信息
+            // TODO 需要同步修改队列顺序，用于更新队列信息
         }else{
             // 若不允许超车，则直接更新后方车辆
         }
@@ -575,7 +575,8 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
         // 若系统设置为允许超车行为，则进行超车判定
         // 超车判定应由进入队列区时间大于time的第一辆车开始
         // 因为在超车过程中，若遇到第一个可以超越的车辆，则其也可以超越其后方的车辆
-        // 因为后方的车辆是不能超越前方车辆的 todo
+        // 因为后方的车辆是不能超越前方车辆的
+        // todo 需要完成超车判定的过程
         if(startId != ""){
             //
         }
