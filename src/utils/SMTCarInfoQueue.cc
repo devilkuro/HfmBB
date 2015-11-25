@@ -324,6 +324,7 @@ void SMTCarInfoQueue::updateCarQueueInfoAt(string id, string preId) {
     if(nextId != id){
         // 因为前面updateCarEnterQueueInfo中进行了松弛操作，因此这里理论上不会执行
         cout << "Error@updateCarQueueInfoAt:: the first car should be 'id' HERE" << endl;
+        queueHelper.SeekToCar(id);
     }
     nextId = queueHelper.getNextCarId();
     // 若后方存在车辆，则进行更新判定，反之无需进行更新

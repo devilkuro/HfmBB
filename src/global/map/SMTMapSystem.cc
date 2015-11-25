@@ -33,5 +33,14 @@ void SMTMapSystem::initialize(int stage) {
             }
         }
         // 生成主要道路连接拓扑
+        ganerateMapTopology();
+        // todo 改为由xml读入？感觉有点蛋疼啊，先写静态的吧。
+        string xmlname = "matrixlog";
+        queueMap["2/4to2/2_0"] = SMTCarInfoQueue("2/4to2/2_0",xmlname,577.30,5);
+        // todo
     }
+}
+
+void SMTMapSystem::ganerateMapTopology() {
+    // todo 暂时什么都没做，之后需要改为由xml录入
 }

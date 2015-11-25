@@ -22,30 +22,36 @@
 using namespace Fanjing;
 
 class SMTLane {
-    string id;
-    string edge;
-    string tl;
+    string id;  // 车道id
+    string edge;    // 街道id
+    string tl;  // 控制灯id
+    int index;  // 控制灯索引号
 };
 class SMTEdge {
-    string id;
-    vector<string> laneVec;
-    vector<string> queueVec;
-    vector<string> nextVec;
+    // FIXME 一条车道可能对应多个下一条道路
+    // 同时，不同车道也有可能对应同一条下一条道路
+    // 为了试验的方便，这里假设其都是一一对应的
+    string id;  // 街道id
+    vector<string> laneVec; // 车道向量
+    vector<string> queueVec;    // 车道对应的队列管理向量
+    vector<string> nextVec; // 车道对应的下一条街道向量
 };
 class SMTTrafficLight {
-    string id;
-    vector<double> allowedInterval;
-    vector<double> cyclePeriod;
-    vector<double> cycleOffset;
+    string id;  // 交通灯id
+    vector<double> allowedInterval; // 交通灯对应索引号的通行允许时间向量
+    vector<double> cyclePeriod; // 交通灯对应索引号的周期时间向量
+    vector<double> cycleOffset; // 交通灯对应索引号的允许时间起始偏移时间向量
 };
 class SMTMapSystem : public GlobalMapSystem {
 public:
     SMTMapSystem();
     virtual ~SMTMapSystem();
 protected:
-    list<string> normalEdgeList;
-    map<string, SMTEdge> edgeMap;
-    map<string, SMTCarInfoQueue> queueMap;
+    list<string> normalEdgeList;    // 主要街道列表（非":"开头的街道）
+    map<string, SMTEdge> edgeMap;   // 主要街道列表（非":"开头的街道）
+    map<string, SMTLane> laneMap;   // 车道列表
+    map<string, SMTCarInfoQueue> queueMap;  // 车道对应的队列管理列表
+    map<string, SMTTrafficLight> tlMap; // 控制灯列表
 
     virtual void initialize(int stage);
     void ganerateMapTopology();
