@@ -230,7 +230,8 @@ void CarFlowGenerator::save(string path) {
     if(path == ""){
         path = this->carXMLPath;
     }
-    doc->SaveFile(path.c_str());
+    string fileName = "results\\" +path;
+    doc->SaveFile( fileName.c_str());
     notSaved = false;
 }
 

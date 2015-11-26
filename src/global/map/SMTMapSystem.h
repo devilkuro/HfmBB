@@ -56,7 +56,7 @@ protected:
     map<string, SMTCarInfoQueue> queueMap;  // 车道对应的队列管理列表
     map<string, SMTTrafficLight> tlMap; // 控制灯列表
     int releasedCarNum;
-    string xmlname;
+    string xmlName;
     virtual void initialize(int stage);
     virtual void finish();
     void ganerateMapTopology();

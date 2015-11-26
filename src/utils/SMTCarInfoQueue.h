@@ -61,6 +61,7 @@ public:
     SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength);
     virtual ~SMTCarInfoQueue();
 
+    string xmlName;
     string laneName;
     double laneLength;
     double laneOutLength;
@@ -74,7 +75,7 @@ public:
     void setCurrentTime(double time);
     // release the old car and invalid resource
     // then return the predicted out time
-    double releaseCar(string id, double time);
+    double releaseCar(string id, double time, double avgTime);
     static void saveResults(string filename);
     static void releaseXML();
     void setCycleInfo(double period, double allowTime, double offset);

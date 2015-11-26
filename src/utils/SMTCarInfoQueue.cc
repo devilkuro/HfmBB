@@ -59,12 +59,12 @@ string SMTCarInfoQueue::TraversalHelper::getNextCarId() {
             }else if(it != carListMap->end()){
                 // if the list has no object any more get later time list and return the first car
                 it++;
-               if(it != carListMap->end()){
-                   lit = it->second.begin();
-                   if(lit != it->second.end()){
-                       return *lit;
-                   }
-               }
+                if(it != carListMap->end()){
+                    lit = it->second.begin();
+                    if(lit != it->second.end()){
+                        return *lit;
+                    }
+                }
             }else{
                 return "";
             }
@@ -169,6 +169,7 @@ SMTCarInfoQueue::SMTCarInfoQueue() {
 
 SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength) {
     init();
+    xmlName = xmlpath;
     laneName = lane;
     laneLength = length;
     laneOutLength = outLength;
@@ -196,6 +197,7 @@ SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, dou
 }
 
 void SMTCarInfoQueue::saveResults(string filename) {
+    filename = "results\\" + filename + ".xml";
     doc->SaveFile(filename.c_str());
     releaseXML();
 }
@@ -522,7 +524,7 @@ double SMTCarInfoQueue::getQueueLength(string fromId, string toId) {
                 cout << "Error@getQueueLength:: NO TO CAR NAMED " << toId << endl;
                 return 0;
             }
-        }while(id!="");
+        }while(id != "");
     }else{
         // fromId 不存在
         cout << "Error@getQueueLength:: NO FROM CAR NAMED " << fromId << endl;
@@ -729,7 +731,7 @@ void SMTCarInfoQueue::setCurrentTime(double time) {
     // FIXME 用于释放资源
 }
 
-double SMTCarInfoQueue::releaseCar(string id, double time) {
+double SMTCarInfoQueue::releaseCar(string id, double time, double avgTime) {
     // make recording
     element = doc->NewElement("result");
     element->SetAttribute("car", id.c_str());
@@ -739,12 +741,14 @@ double SMTCarInfoQueue::releaseCar(string id, double time) {
     element->SetAttribute("outTime", outTimeMapById[id]);
     element->SetAttribute("actualOutTime", time);
     element->SetAttribute("nextRoadTime", nextRoadTimeMapById[id]);
+    element->SetAttribute("avgTime", avgTime);
+
     root->LinkEndChild(element);
 
     StatisticsRecordTools *srtool = StatisticsRecordTools::request();
-    srtool->changeName("queueTime:id,enter time,queue time,out queue time,out time,actual time,next road time") << id
+    srtool->changeName(":id,enter time,queue time,out queue time,out time,actual time,next road time,avg time") << id
             << enterTimeMapById[id] << queueTimeMapById[id] << outQueueTimeMapById[id] << outTimeMapById[id] << time
-            << nextRoadTimeMapById[id] << srtool->endl;
+            << nextRoadTimeMapById[id] << avgTime << srtool->endl;
     // release the old car and return the predicted out time
     double outTime = outTimeMapById[id];
     // 启动车辆离开程序，若车辆离开时间和预测离开时间均早于当前时间则删除车辆
