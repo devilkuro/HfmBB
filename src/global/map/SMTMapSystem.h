@@ -46,14 +46,19 @@ class SMTMapSystem : public GlobalMapSystem {
 public:
     SMTMapSystem();
     virtual ~SMTMapSystem();
+
+    virtual void uploadRoute(SMTCarInfo car, list<string> route, double time);
+    virtual void enterRoad(SMTCarInfo car, string road, double time);
 protected:
     list<string> normalEdgeList;    // 主要街道列表（非":"开头的街道）
     map<string, SMTEdge> edgeMap;   // 主要街道列表（非":"开头的街道）
     map<string, SMTLane> laneMap;   // 车道列表
     map<string, SMTCarInfoQueue> queueMap;  // 车道对应的队列管理列表
     map<string, SMTTrafficLight> tlMap; // 控制灯列表
-
+    int releasedCarNum;
+    string xmlname;
     virtual void initialize(int stage);
+    virtual void finish();
     void ganerateMapTopology();
 
 };

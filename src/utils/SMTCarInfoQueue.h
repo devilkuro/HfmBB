@@ -41,7 +41,7 @@ public:
         map<double, list<string> >::iterator it;
         list<string>::iterator lit;
         // get the car by time
-        string SeekToCar(string car);
+        string seekToCar(string car);
         string getFirstCarId(map<double, list<string> > &carListMapByCertainTime, double time);
         string getFirstCarIdAfter(map<double, list<string> > &carListMapByCertainTime, double time);
         string getNextCarId();
@@ -57,6 +57,7 @@ public:
 public:
     // xmlpath只能设置一次，之后的设置将不改变xml文件路径
     // 当系统终止时，需要调用saveResults方法保存结果，之后xml文件会被释放。
+    SMTCarInfoQueue();
     SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength);
     virtual ~SMTCarInfoQueue();
 
@@ -86,7 +87,6 @@ public:
         updateInterval = interval;
     }
 protected:
-    SMTCarInfoQueue();
     static bool overtakeAllowed;
     static double updateInterval;
     static bool onlyLosseOneCar;
@@ -117,6 +117,7 @@ protected:
     // 若前方没有车辆,且控制信号允许则等于该车进入队列区的时间
     // 最后一种情况需要进行额外处理（因为少了加速减速的过程）
     map<string, double> outQueueTimeMapById;
+    map<string, double> nextRoadTimeMapById;
     // 失效车辆集合
     set<string> invaildCarMap;
 

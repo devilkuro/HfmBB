@@ -17,7 +17,7 @@
 
 Define_Module(SMTMobility)
 SMTMobility::SMTMobility() {
-
+    beWatched = false;
 }
 
 SMTMobility::~SMTMobility() {
@@ -40,7 +40,7 @@ void SMTMobility::processAtRouting() {
         string to = "to";
         string head = GlobalVehicleManager::getEndPoint(carInfo.origin);
         string tail = GlobalVehicleManager::getStartPoint(carInfo.destination);
-        list<string> route;
+        route.clear();
         route.push_back(carInfo.origin);
         if(head == start){
             // end to end
@@ -60,6 +60,12 @@ void SMTMobility::processAtRouting() {
 }
 
 void SMTMobility::processWhenChangeRoad() {
+    if(road_id== "2/4to2/2"||road_id=="2/2to2/4"){
+        getMapSystem()->uploadRoute(carInfo,route,simTime().dbl());
+        beWatched = true;
+    }else if(beWatched){
+        getMapSystem()->enterRoad(carInfo,road_id,simTime().dbl());
+    }
 }
 
 void SMTMobility::processWhenInitializingRoad() {

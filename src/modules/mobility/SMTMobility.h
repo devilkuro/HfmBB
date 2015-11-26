@@ -27,6 +27,8 @@ public:
 
 protected:
     SMTCarInfo carInfo;
+    list<string> route;
+    bool beWatched;
     // overload these function in different mobility
     // processAfterRouting
     // this function will run every 0.1 second for each car if routed in routing process!!
