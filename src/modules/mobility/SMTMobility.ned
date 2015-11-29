@@ -24,4 +24,5 @@ simple SMTMobility extends TraCIMobility_Fixed
     parameters:
 		@class(SMTMobility);
         @display("i=block/cogwheel");
+        bool disallowOvertake = default(true);
 }

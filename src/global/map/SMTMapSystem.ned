@@ -22,4 +22,5 @@ simple SMTMapSystem extends GlobalMapSystem
 {
     parameters:
         @class(SMTMapSystem);
+        string xmlName = default("out");
 }

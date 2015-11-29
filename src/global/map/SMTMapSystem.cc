@@ -26,14 +26,7 @@ SMTMapSystem::~SMTMapSystem() {
 void SMTMapSystem::initialize(int stage) {
     GlobalMapSystem::initialize(stage);
     if(stage == 1){
-        list<string> allEgetList = getAllEdges();
-        // 生成主要道路列表
-        for(list<string>::iterator it = allEgetList.begin(); it != allEgetList.end(); it++){
-            if((*it)[0] != ':'){
-                normalEdgeList.push_back(*it);
-            }
-        }
-        xmlName = "matrixlog";
+        xmlName = "./results/"+hasPar("xmlName")?par("xmlName"):"smtlog";
         // 生成主要道路连接拓扑
         ganerateMapTopology();
         // todo 改为由xml读入？感觉有点蛋疼啊，先写静态的吧。
@@ -120,6 +113,10 @@ void SMTMapSystem::finish() {
     SMTCarInfoQueue qinfo;
     qinfo.saveResults(xmlName);
     qinfo.releaseXML();
+}
+
+void SMTMapSystem::disableOvertake(string car) {
+    setLaneChangeMode(car,GlobalMobilityLaunchd::GML_DISALLOW_OVERTAKE);
 }
 
 void SMTMapSystem::ganerateMapTopology() {

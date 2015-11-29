@@ -47,7 +47,9 @@ public:
         GML_EXT_TRACI_ONLY_BY_SPEED = 0x10 << 8,
         GML_EXT_TRACI_NATURAL = 0x11 << 8,
         GML_ALLOW_ALL = GML_ALLOW_STRATEGIC | GML_ALLOW_COOPERATIVE | GML_ALLOW_SPEED_GAIN | GML_ALLOW_DRIVE_ON_RIGHT,
-        GML_DISALLOW_ALL = GML_NO_STRATEGIC|GML_NO_COOPERATIVE|GML_NO_SPEED_GAIN|GML_NO_DRIVE_ON_RIGHT
+        GML_DISALLOW_ALL = GML_NO_STRATEGIC | GML_NO_COOPERATIVE | GML_NO_SPEED_GAIN | GML_NO_DRIVE_ON_RIGHT,
+        GML_DISALLOW_OVERTAKE = GML_ALLOW_STRATEGIC | GML_ALLOW_COOPERATIVE | GML_NO_SPEED_GAIN
+                | GML_ALLOW_DRIVE_ON_RIGHT
     };
 public:
     // xml related
@@ -55,7 +57,6 @@ public:
     std::string getRouXML();
     static std::string getRouXMLFromLaunchConfig(std::string launchFilePath);
     static std::string getXXXXMLFromLaunchConfig(std::string launchFilePath, std::string endStr);
-
 
     uint32_t getActiveVehicleCount();
     std::list<std::string> commandGetLaneLinksIds(std::string laneId);

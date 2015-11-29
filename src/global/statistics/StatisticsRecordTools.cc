@@ -29,8 +29,7 @@ void StatisticsRecordTools::eof() {
     get() << this->endl;
 }
 
-void StatisticsRecordTools::outputAll(string name, string dir,
-        std::fstream::openmode openmode) {
+void StatisticsRecordTools::outputAll(string name, string dir, std::fstream::openmode openmode) {
     output(name, dir, "", openmode);
 }
 
@@ -39,7 +38,7 @@ void StatisticsRecordTools::setDefaultDir(string dir) {
 }
 
 StatisticsRecordTools::~StatisticsRecordTools() {
-    outputSeparate("default.txt","results");
+    outputSeparate("default.txt", "./results");
     clean();
 }
 
@@ -50,9 +49,8 @@ void StatisticsRecordTools::finish() {
     time(&rawtime);
     timeinfo = localtime(&rawtime);
     name.width(2);
-    name << "result_" << timeinfo->tm_year << "_" << timeinfo->tm_mon << "_"
-            << timeinfo->tm_mday << "_" << timeinfo->tm_hour << "_"
-            << timeinfo->tm_min << "_" << timeinfo->tm_sec << ".txt";
+    name << "./results/" << "result_" << timeinfo->tm_year << "_" << timeinfo->tm_mon << "_" << timeinfo->tm_mday << "_"
+            << timeinfo->tm_hour << "_" << timeinfo->tm_min << "_" << timeinfo->tm_sec << ".txt";
     output(name.str());
 }
 
@@ -60,8 +58,7 @@ StatisticsRecordTools& StatisticsRecordTools::operator <<(gs_eofType& e) {
     if(unitData.size() > 0){
         StatisticsRecordUnit* unit = new StatisticsRecordUnit(unitData.size());
         int i = 0;
-        for(std::list<StatisticsRecordUnit::DataUnit>::iterator it =
-                unitData.begin(); it != unitData.end(); it++){
+        for(std::list<StatisticsRecordUnit::DataUnit>::iterator it = unitData.begin(); it != unitData.end(); it++){
             switch((*it).type){
                 case StatisticsRecordUnit::UNIT_TYPE_INT:
                     unit->setData((*it).intData, i);
@@ -103,8 +100,7 @@ StatisticsRecordTools& StatisticsRecordTools::operator <<(double num) {
     return *ptr_singleton;
 }
 
-StatisticsRecordTools& StatisticsRecordTools::changeName(string name,
-        string title) {
+StatisticsRecordTools& StatisticsRecordTools::changeName(string name, string title) {
     GlobalStatisticsMap::iterator it;
     m_name = name;
     it = globalStatisticsMap.find(m_name);
@@ -149,15 +145,14 @@ StatisticsRecordTools& StatisticsRecordTools::operator <<(uint64_t num) {
     return *ptr_singleton;
 }
 
-void StatisticsRecordTools::output(string name, string dir, string field,
-        std::fstream::openmode openmode) {
+void StatisticsRecordTools::output(string name, string dir, string field, std::fstream::openmode openmode) {
     std::fstream fs;
     string path;
     if(dir != ""){
-        path = dir + "\\" + name;
+        path = dir + "/" + name;
     }else{
         if(m_default_dir_name != ""){
-            path = m_default_dir_name + "\\" + name;
+            path = m_default_dir_name + "/" + name;
         }else{
             path = name;
         }
@@ -169,15 +164,10 @@ void StatisticsRecordTools::output(string name, string dir, string field,
         std::cout << "fail()\t" << fs.fail() << std::endl;
         std::cout << "bad()\t" << fs.bad() << std::endl;
     }
-    for(GlobalStatisticsMap::iterator it = globalStatisticsMap.begin();
-            it != globalStatisticsMap.end(); it++){
+    for(GlobalStatisticsMap::iterator it = globalStatisticsMap.begin(); it != globalStatisticsMap.end(); it++){
         if(field == "" || it->first == field){
-            for(GlobalStatisticsList::iterator lit = it->second->begin();
-                    lit != it->second->end(); lit++){
-                fs
-                        << it->first
-                                + (titleMap[it->first] == "" ? "" :
-                                        (":" + titleMap[it->first])) << "\t"
+            for(GlobalStatisticsList::iterator lit = it->second->begin(); lit != it->second->end(); lit++){
+                fs << it->first + (titleMap[it->first] == "" ? "" : (":" + titleMap[it->first])) << "\t"
                         << (*lit)->toString() << std::endl;
             }
         }
@@ -185,20 +175,17 @@ void StatisticsRecordTools::output(string name, string dir, string field,
     fs.close();
 }
 
-void StatisticsRecordTools::outputSeparate(string name, string dir,
-        string field, std::fstream::openmode openmode) {
-    for(GlobalStatisticsMap::iterator it = globalStatisticsMap.begin();
-            it != globalStatisticsMap.end(); it++){
+void StatisticsRecordTools::outputSeparate(string name, string dir, string field, std::fstream::openmode openmode) {
+    for(GlobalStatisticsMap::iterator it = globalStatisticsMap.begin(); it != globalStatisticsMap.end(); it++){
         if(field == "" || it->first == field){
             std::fstream fs;
             string path;
-            string sname = getFileName(name) + "-" + getValidFileName(it->first)
-                    + getSuffix(name);
+            string sname = getFileName(name) + "-" + getValidFileName(it->first) + getSuffix(name);
             if(dir != ""){
-                path = dir + "\\" + sname;
+                path = dir + "/" + sname;
             }else{
                 if(m_default_dir_name != ""){
-                    path = m_default_dir_name + "\\" + sname;
+                    path = m_default_dir_name + "/" + sname;
                 }else{
                     path = sname;
                 }
@@ -218,8 +205,7 @@ void StatisticsRecordTools::outputSeparate(string name, string dir,
                 fs << titleMap[it->first] << std::endl;
             }
             // print each entry
-            for(GlobalStatisticsList::iterator lit = it->second->begin();
-                    lit != it->second->end(); lit++){
+            for(GlobalStatisticsList::iterator lit = it->second->begin(); lit != it->second->end(); lit++){
                 fs << (*lit)->toString() << std::endl;
             }
         }
@@ -228,8 +214,7 @@ void StatisticsRecordTools::outputSeparate(string name, string dir,
 string StatisticsRecordTools::getTitleFromName(string name) {
     unsigned int n_first = name.find_first_of(':');
     unsigned int n_last = name.find_last_of(':');
-    if(n_first != name.npos && n_first == n_last
-            && n_first < name.length() - 1){
+    if(n_first != name.npos && n_first == n_last && n_first < name.length() - 1){
         return name.substr(n_first + 1);
     }
     return "";
@@ -288,10 +273,8 @@ void StatisticsRecordTools::release() {
 }
 
 void StatisticsRecordTools::clean() {
-    for(GlobalStatisticsMap::iterator it = globalStatisticsMap.begin();
-            it != globalStatisticsMap.end(); it++){
-        for(GlobalStatisticsList::iterator lit = it->second->begin();
-                lit != it->second->end(); lit++){
+    for(GlobalStatisticsMap::iterator it = globalStatisticsMap.begin(); it != globalStatisticsMap.end(); it++){
+        for(GlobalStatisticsList::iterator lit = it->second->begin(); lit != it->second->end(); lit++){
             delete (*lit);
         }
         delete (it->second);

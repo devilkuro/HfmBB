@@ -16,8 +16,10 @@ StatisticsRecordUnit::StatisticsRecordUnit(int size) {
 
 StatisticsRecordUnit::~StatisticsRecordUnit() {
     size = 0;
-    delete (data);
-    data = NULL;
+    if (data!=NULL) {
+        delete (data);
+        data = NULL;
+    }
 }
 
 void StatisticsRecordUnit::setData(double data, int index) {
@@ -98,7 +100,10 @@ string StatisticsRecordUnit::DataUnit::toString() {
         default:
             break;
     }
-    return ss.str();
+    string str = ss.str();
+    ss.str( std::string() );
+    ss.clear();
+    return str;
 }
 }  // namespace Fanjing
 

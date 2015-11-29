@@ -49,6 +49,7 @@ public:
 
     virtual void uploadRoute(SMTCarInfo car, list<string> route, double time);
     virtual void enterRoad(SMTCarInfo car, string road, double time);
+    virtual void disableOvertake(string car);
 protected:
     list<string> normalEdgeList;    // 主要街道列表（非":"开头的街道）
     map<string, SMTEdge> edgeMap;   // 主要街道列表（非":"开头的街道）

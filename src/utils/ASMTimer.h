@@ -9,16 +9,31 @@
 #define _ASMTIMER_H_
 #define ASMULONG(var) unsigned long var __asm__(""#var"") = 0
 #define ASMULONG2(var0,var1) unsigned long var0 __asm__(""#var0"") = var1
-#include <windows.h>
+// #include <windows.h>
+#include <unistd.h>
 
 //static unsigned long startHigh __asm__("startHigh") = 0;
 //static unsigned long startLow __asm__("startLow") = 0;
 //static unsigned long endHigh __asm__("endHigh") = 0;
 //static unsigned long endLow __asm__("endLow") = 0;
-
+#ifndef UINT64
+    #define UINT64 unsigned long long
+#endif
 class ASMTimer {
 
 private:
+    typedef union _ULARGE_INTEGER {
+        struct {
+            unsigned int LowPart;
+            unsigned int HighPart;
+        } u;
+        struct {
+            unsigned int LowPart;
+            unsigned int HighPart;
+        };
+        UINT64 QuadPart;
+    } ULARGE_INTEGER, *PULARGE_INTEGER;
+
     bool initialized; // if the hardware supports high-resolution performance counter
     bool isTiming;    // if the timer is running currently
     bool gotTime;     // if the timer has stopped and successfully got the time
@@ -141,7 +156,7 @@ inline void ASMTimer::init() {
             :
             : "%eax","%edx"
     );
-    Sleep(1000);
+    usleep(1000000);
     __asm__ __volatile__(
             ".intel_syntax noprefix\n\t"
             "RDTSC\n\t"

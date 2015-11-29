@@ -169,7 +169,7 @@ SMTCarInfoQueue::SMTCarInfoQueue() {
 
 SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength) {
     init();
-    xmlName = xmlpath;
+    xmlName = xmlpath+".xml";
     laneName = lane;
     laneLength = length;
     laneOutLength = outLength;
@@ -197,7 +197,7 @@ SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, dou
 }
 
 void SMTCarInfoQueue::saveResults(string filename) {
-    filename = "results\\" + filename + ".xml";
+    filename = filename + ".xml";
     doc->SaveFile(filename.c_str());
     releaseXML();
 }
@@ -746,7 +746,7 @@ double SMTCarInfoQueue::releaseCar(string id, double time, double avgTime) {
     root->LinkEndChild(element);
 
     StatisticsRecordTools *srtool = StatisticsRecordTools::request();
-    srtool->changeName(":id,enter time,queue time,out queue time,out time,actual time,next road time,avg time") << id
+    srtool->changeName(xmlName+":id,enter time,queue time,out queue time,out time,actual time,next road time,avg time") << id
             << enterTimeMapById[id] << queueTimeMapById[id] << outQueueTimeMapById[id] << outTimeMapById[id] << time
             << nextRoadTimeMapById[id] << avgTime << srtool->endl;
     // release the old car and return the predicted out time

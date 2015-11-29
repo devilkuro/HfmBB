@@ -56,6 +56,9 @@ void SMTMobility::processAtRouting() {
         }
         route.push_back(carInfo.destination);
         changeRoute(route);
+        if (hasPar("disallowOvertake")?par("disallowOvertake").boolValue():true) {
+            getMapSystem()->disableOvertake(external_id);
+        }
     }
 }
 
