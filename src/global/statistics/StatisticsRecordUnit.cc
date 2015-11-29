@@ -17,7 +17,7 @@ StatisticsRecordUnit::StatisticsRecordUnit(int size) {
 StatisticsRecordUnit::~StatisticsRecordUnit() {
     size = 0;
     if (data!=NULL) {
-        delete (data);
+        delete[] data;
         data = NULL;
     }
 }

@@ -170,7 +170,7 @@ SMTCarInfoQueue::SMTCarInfoQueue() {
 SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength) {
     init();
     xmlName = xmlpath;
-    txtName = xmlName.substr(xmlName.find_last_of('/'),xmlName.find_last_of('.')-xmlName.find_last_of('/'));
+    txtName = xmlName.substr(xmlName.find_last_of('/')+1,xmlName.find_last_of('.')-xmlName.find_last_of('/')-1);
     laneName = lane;
     laneLength = length;
     laneOutLength = outLength;
@@ -747,7 +747,7 @@ double SMTCarInfoQueue::releaseCar(string id, double time, double avgTime) {
     root->LinkEndChild(element);
 
     StatisticsRecordTools *srtool = StatisticsRecordTools::request();
-    srtool->changeName(xmlName+":id,enter time,queue time,out queue time,out time,actual time,next road time,avg time") << id
+    srtool->changeName(txtName+":id,enter time,queue time,out queue time,out time,actual time,next road time,avg time") << id
             << enterTimeMapById[id] << queueTimeMapById[id] << outQueueTimeMapById[id] << outTimeMapById[id] << time
             << nextRoadTimeMapById[id] << avgTime << srtool->endl;
     // release the old car and return the predicted out time
