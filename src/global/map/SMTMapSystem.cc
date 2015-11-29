@@ -26,7 +26,7 @@ SMTMapSystem::~SMTMapSystem() {
 void SMTMapSystem::initialize(int stage) {
     GlobalMapSystem::initialize(stage);
     if(stage == 1){
-        xmlName = "./results/"+hasPar("xmlName")?par("xmlName"):"smtlog";
+        xmlName = hasPar("xmlName")?par("xmlName"):"./results/smtlog.qinfo.xml";
         // 生成主要道路连接拓扑
         ganerateMapTopology();
         // todo 改为由xml读入？感觉有点蛋疼啊，先写静态的吧。

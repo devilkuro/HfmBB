@@ -169,7 +169,8 @@ SMTCarInfoQueue::SMTCarInfoQueue() {
 
 SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength) {
     init();
-    xmlName = xmlpath+".xml";
+    xmlName = xmlpath;
+    txtName = xmlName.substr(xmlName.find_last_of('/'),xmlName.find_last_of('.')-xmlName.find_last_of('/'));
     laneName = lane;
     laneLength = length;
     laneOutLength = outLength;

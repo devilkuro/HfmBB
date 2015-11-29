@@ -62,6 +62,7 @@ public:
     virtual ~SMTCarInfoQueue();
 
     string xmlName;
+    string txtName;
     string laneName;
     double laneLength;
     double laneOutLength;
