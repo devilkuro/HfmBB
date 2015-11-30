@@ -162,8 +162,18 @@ void GlobalVehicleManager::addOneVehicle(SMTCarInfo car) {
     //cout << "generate a car at " << car.time << " second" << endl;
     switch(car.type){
         case SMTCarInfo::SMTCARINFO_ROUTETYPE_OD:
+            // 若道路第一次出现，先车讯道路车道数，并开始依次用来生成部署车辆
+            if(curLastUsedLane.find(car.origin) == curLastUsedLane.end()){
+                roadLaneNumber[car.origin] = getMapSystem()->getLaneNumber(car.origin);
+                curLastUsedLane[car.origin] = 0;
+            }
+            // 降序循环使用车道
+            curLastUsedLane[car.origin]--;
+            if(curLastUsedLane[car.origin]<0){
+                curLastUsedLane[car.origin] = roadLaneNumber[car.origin]-1;
+            }
             if(!getMapSystem()->addOneVehicle(car.id, car.vtype, car.origin, car.time, 0, car.maxSpeed,
-                    getMapSystem()->getLaneNumber(car.origin) - 1)){
+                    curLastUsedLane[car.origin])){
                 cout << "car id: " << car.id << ", road: " << car.origin << ", @" << car.time << endl;
             }
             break;
@@ -334,7 +344,8 @@ void GlobalVehicleManager::generateCarFlowFile() {
         }
         // out put the process infomation
         if((i & 1023) == 1023){
-            cout << "process: " << "time:" << time << ", t: " << (int) 100 *  (time-carSpawnStartTime) / carSpawnTimeLimit << "%";
+            cout << "process: " << "time:" << time << ", t: "
+                    << (int) 100 * (time - carSpawnStartTime) / carSpawnTimeLimit << "%";
             if(carNumLimit > 0){
                 cout << " car: " << 100 * carNum / carNumLimit << "%";
             }
@@ -342,12 +353,14 @@ void GlobalVehicleManager::generateCarFlowFile() {
         }
         time += carSpawnJudgeInterval;
     }
-    cout << "process: " << "time:" << time << ", t: " << (int) 100 * (time-carSpawnStartTime) / carSpawnTimeLimit << "%";
+    cout << "process: " << "time:" << time << ", t: " << (int) 100 * (time - carSpawnStartTime) / carSpawnTimeLimit
+            << "%";
     if(carNumLimit > 0){
         cout << " car: " << 100 * carNum / carNumLimit << "%";
     }
     cout << endl;
     cout << "carSpawnTimeLimit: " << carSpawnTimeLimit << ", carNumLimit: " << carNumLimit << endl;
+    cout << " car: " << carNum << endl;
     carFlowHelper.save();
 }
 

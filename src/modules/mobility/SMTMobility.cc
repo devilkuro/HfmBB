@@ -25,12 +25,15 @@ SMTMobility::~SMTMobility() {
 }
 
 void SMTMobility::processAfterRouting() {
+    // 选路之后每个周期都会执行(请确保判定完备,不要执行复杂度过高的操作)
 }
 
 void SMTMobility::statisticAtFinish() {
+    // 结束时的统计方法
 }
 
 void SMTMobility::processAtRouting() {
+    // 选路阶段
     if(external_id == "car00"){
         commandSetSpeed(0);
     }else{
@@ -63,6 +66,7 @@ void SMTMobility::processAtRouting() {
 }
 
 void SMTMobility::processWhenChangeRoad() {
+    // 当车辆首次进入某条道路时执行
     if(road_id== "2/4to2/2"||road_id=="2/2to2/4"){
         getMapSystem()->uploadRoute(carInfo,route,simTime().dbl());
         beWatched = true;
@@ -72,9 +76,11 @@ void SMTMobility::processWhenChangeRoad() {
 }
 
 void SMTMobility::processWhenInitializingRoad() {
+    // 车辆首次出现在地图上时执行
 }
 
 void SMTMobility::processWhenNextPosition() {
+    // 车辆变更位置时出现(请确保判定完备,不要执行复杂度过高的操作)
 }
 
 void SMTMobility::changeRoute(list<string> route) {

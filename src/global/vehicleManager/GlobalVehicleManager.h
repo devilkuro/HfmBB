@@ -64,6 +64,10 @@ protected:
     // used in vehicle generating process
     std::map<int, int> targetVehicleNumPerType;   // the target vehicles number of each vehicle type
     std::map<int, int> vehicleNumPerType;   // the vehicles number of each vehicle type
+    // 记录对应道路上一次生成车辆的车道
+    // 用来避免车辆生成过于密集，导致的车辆消失的bug
+    std::map<string, int> curLastUsedLane;
+    std::map<string, int> roadLaneNumber;
 
     // car map
     std::map<string, SMTCarInfo> carMapByID;  // store car instance
