@@ -48,6 +48,7 @@ public:
     virtual SMTCarInfo getCarInfo(string id);
     static string getStartPoint(string road);
     static string getEndPoint(string road);
+    static bool compare_departTime(string& first, string& second);
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
@@ -70,9 +71,9 @@ protected:
     std::map<string, int> roadLaneNumber;
 
     // car map
-    std::map<string, SMTCarInfo> carMapByID;  // store car instance
-    std::map<double, string> carIdMapByDepartTime; //
-    std::map<double, string>::iterator itCarIdMapByDepartTime;
+    static std::map<string, SMTCarInfo> carMapByID;  // store car instance
+    std::list<string> carIdMapByDepartTime; //
+    std::list<string>::iterator itCarIdMapByDepartTime;
 
     // functions
     GlobalMapSystem* getMapSystem();
@@ -84,7 +85,6 @@ protected:
     // if else that the vehicles will be marked as normal vehicle
     virtual void addOneVehicle(SMTCarInfo car);   // add a car of a certain type
     virtual void addVehicles(VehicleType type, int num); // add several cars of a certain type
-
     // generating car flow and related
     int carNumLimit;
     double carSpawnTimeLimit;

@@ -17,6 +17,8 @@
 
 Define_Module(GlobalVehicleManager);
 
+std::map<string, SMTCarInfo> GlobalVehicleManager::carMapByID;
+
 GlobalVehicleManager::GlobalVehicleManager() :
         srt(NULL) {
     map = NULL;
@@ -107,7 +109,7 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
                 car.origin = "0/0to2/0";
                 car.destination = "0/0to2/0";
                 carMapByID[car.id] = car;
-                carIdMapByDepartTime[car.time] = car.id;
+                carIdMapByDepartTime.push_front(car.id);
                 // load car flow
                 loadCarFlowFile();
             }
@@ -115,11 +117,11 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
             // generate the cars
             if(itCarIdMapByDepartTime != carIdMapByDepartTime.end()){
                 double time = simTime().dbl();
-                string id = itCarIdMapByDepartTime->second;
+                string id = *itCarIdMapByDepartTime;
                 addOneVehicle(carMapByID[id]);
                 itCarIdMapByDepartTime++;
                 if(itCarIdMapByDepartTime != carIdMapByDepartTime.end()){
-                    time = itCarIdMapByDepartTime->first;
+                    time = carMapByID[*itCarIdMapByDepartTime].time;
                 }else{
                     time = simTime().dbl() + 3600;
                 }
@@ -390,6 +392,10 @@ SMTCarInfo GlobalVehicleManager::getCarInfo(string id) {
     return carMapByID[id];
 }
 
+bool GlobalVehicleManager::compare_departTime(string& first, string& second) {
+    return carMapByID[first].time < carMapByID[second].time;
+}
+
 double GlobalVehicleManager::SinFuncFixed(double t, double period, double up, double down) {
     return down + (up - down) / 2 * (1 + sin((t / period) * (2 * M_PI) - M_PI / 2));
 }
@@ -407,9 +413,10 @@ void GlobalVehicleManager::loadCarFlowFile() {
             car.time += carSpawnOffset;
         }
         carMapByID[car.id] = car;
-        carIdMapByDepartTime[car.time] = car.id;
+        carIdMapByDepartTime.push_back(car.id);
         car = carFlowHelper.getNextCar();
     }
+    carIdMapByDepartTime.sort(compare_departTime);
     itCarIdMapByDepartTime = carIdMapByDepartTime.begin();
 }
 
