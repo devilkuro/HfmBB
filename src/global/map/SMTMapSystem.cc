@@ -20,7 +20,9 @@ SMTMapSystem::SMTMapSystem() {
 }
 
 SMTMapSystem::~SMTMapSystem() {
-
+    for(map<string, SMTCarInfoQueue>::iterator it = queueMap.begin();it!=queueMap.end();it++){
+        it->second.releaseXML();
+    }
 }
 
 void SMTMapSystem::initialize(int stage) {

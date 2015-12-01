@@ -200,7 +200,6 @@ SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, dou
 void SMTCarInfoQueue::saveResults(string filename) {
     if(doc != NULL){
         doc->SaveFile(filename.c_str());
-        releaseXML();
     }
 }
 
@@ -565,12 +564,14 @@ void SMTCarInfoQueue::init() {
     allowedInterval = 0;
     cyclePeriod = 0;
     cycleOffset = 0;
+    XMLHasLoaded = false;
+    doc = NULL;
+    root = NULL;
+    element = NULL;
     if(doc == NULL){
         doc = new XMLDocument();
         xml_suffix = StringHelper::int2str(global_xml_index++);
     }
-    root = NULL;
-    element = NULL;
 }
 
 SMTCarInfoQueue::~SMTCarInfoQueue() {
