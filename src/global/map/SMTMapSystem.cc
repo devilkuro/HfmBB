@@ -33,15 +33,15 @@ void SMTMapSystem::initialize(int stage) {
         queueMap["2/4to2/2_0"] = SMTCarInfoQueue("2/4to2/2_0", xmlName, 577.30, 5);    // to="2/2to0/2"
         queueMap["2/4to2/2_0"].setCycleInfo(120,120,0);
         queueMap["2/4to2/2_1"] = SMTCarInfoQueue("2/4to2/2_1", xmlName, 577.30, 23.01);    // to="2/2to2/0"
-        queueMap["2/4to2/2_1"].setCycleInfo(120,30,30);
+        queueMap["2/4to2/2_1"].setCycleInfo(120,29,30);
         queueMap["2/4to2/2_2"] = SMTCarInfoQueue("2/4to2/2_2", xmlName, 577.30, 8.23); // to="2/2to4/2"
-        queueMap["2/4to2/2_2"].setCycleInfo(120,30,30);
+        queueMap["2/4to2/2_2"].setCycleInfo(120,29,30);
         queueMap["2/2to2/4_0"] = SMTCarInfoQueue("2/2to2/4_0", xmlName, 577.30, 7.85); // to="2/4to4/4"
         queueMap["2/2to2/4_0"].setCycleInfo(120,120,0);
         queueMap["2/2to2/4_1"] = SMTCarInfoQueue("2/2to2/4_1", xmlName, 577.30, 23.01); // to="2/4to2/6"
-        queueMap["2/2to2/4_1"].setCycleInfo(120,30,90);
+        queueMap["2/2to2/4_1"].setCycleInfo(120,29,90);
         queueMap["2/2to2/4_2"] = SMTCarInfoQueue("2/2to2/4_2", xmlName, 577.30, 8.23); // to="2/4to0/4"
-        queueMap["2/2to2/4_2"].setCycleInfo(120,30,90);
+        queueMap["2/2to2/4_2"].setCycleInfo(120,29,90);
         // todo
     }
 }
@@ -110,9 +110,9 @@ void SMTMapSystem::enterRoad(SMTCarInfo car, string road, double time) {
 }
 
 void SMTMapSystem::finish() {
-    SMTCarInfoQueue qinfo;
-    qinfo.saveResults(xmlName);
-    qinfo.releaseXML();
+    for(map<string, SMTCarInfoQueue>::iterator it = queueMap.begin();it!=queueMap.end();it++){
+        it->second.saveResults(xmlName);
+    }
 }
 
 void SMTMapSystem::disableOvertake(string car) {

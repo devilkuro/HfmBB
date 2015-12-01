@@ -17,12 +17,12 @@
 #include <cmath>
 #include <iostream>
 #include "StatisticsRecordTools.h"
+#include "StringHelper.h"
 
 namespace Fanjing {
+int SMTCarInfoQueue::global_xml_index = 0;
 bool SMTCarInfoQueue::overtakeAllowed = false;
 double SMTCarInfoQueue::updateInterval = 0.1;
-XMLDocument* SMTCarInfoQueue::doc = NULL;
-bool SMTCarInfoQueue::XMLHasLoaded = false;
 bool SMTCarInfoQueue::onlyLosseOneCar = true;   // 是否每次仅松散一个车辆
 
 SMTCarInfoQueue::TraversalHelper::TraversalHelper() {
@@ -170,7 +170,7 @@ SMTCarInfoQueue::SMTCarInfoQueue() {
 SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength) {
     init();
     xmlName = xmlpath;
-    txtName = xmlName.substr(xmlName.find_last_of('/')+1,xmlName.find_last_of('.')-xmlName.find_last_of('/')-1);
+    txtName = xmlName.substr(xmlName.find_last_of('/') + 1, xmlName.find_last_of('.') - xmlName.find_last_of('/') - 1);
     laneName = lane;
     laneLength = length;
     laneOutLength = outLength;
@@ -198,9 +198,10 @@ SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, dou
 }
 
 void SMTCarInfoQueue::saveResults(string filename) {
-    filename = filename + ".xml";
-    doc->SaveFile(filename.c_str());
-    releaseXML();
+    if(doc != NULL){
+        doc->SaveFile(filename.c_str());
+        releaseXML();
+    }
 }
 
 void SMTCarInfoQueue::releaseXML() {
@@ -566,13 +567,15 @@ void SMTCarInfoQueue::init() {
     cycleOffset = 0;
     if(doc == NULL){
         doc = new XMLDocument();
+        xml_suffix = StringHelper::int2str(global_xml_index++);
     }
     root = NULL;
     element = NULL;
 }
 
 SMTCarInfoQueue::~SMTCarInfoQueue() {
-    // 啥都不用干
+    // 输出记录文件
+    saveResults(xmlName.substr(0,xmlName.find_last_of('.'))+xml_suffix+".xml");
 }
 
 double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFrozenSpace) {
@@ -747,9 +750,10 @@ double SMTCarInfoQueue::releaseCar(string id, double time, double avgTime) {
     root->LinkEndChild(element);
 
     StatisticsRecordTools *srtool = StatisticsRecordTools::request();
-    srtool->changeName(txtName+":id,enter time,queue time,out queue time,out time,actual time,next road time,avg time") << id
-            << enterTimeMapById[id] << queueTimeMapById[id] << outQueueTimeMapById[id] << outTimeMapById[id] << time
-            << nextRoadTimeMapById[id] << avgTime << srtool->endl;
+    srtool->changeName(
+            txtName + ":lan,id,enter time,queue time,out queue time,out time,actual time,next road time,avg time")
+            << laneName << id << enterTimeMapById[id] << queueTimeMapById[id] << outQueueTimeMapById[id]
+            << outTimeMapById[id] << time << nextRoadTimeMapById[id] << avgTime << srtool->endl;
     // release the old car and return the predicted out time
     double outTime = outTimeMapById[id];
     // 启动车辆离开程序，若车辆离开时间和预测离开时间均早于当前时间则删除车辆

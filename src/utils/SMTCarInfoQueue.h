@@ -77,8 +77,8 @@ public:
     // release the old car and invalid resource
     // then return the predicted out time
     double releaseCar(string id, double time, double avgTime);
-    static void saveResults(string filename);
-    static void releaseXML();
+    void saveResults(string filename);
+    void releaseXML();
     void setCycleInfo(double period, double allowTime, double offset);
 
     // allow or disallow the overtake action
@@ -131,8 +131,11 @@ protected:
     string nextRoadName;
 
     // statistic related
-    static XMLDocument* doc;
-    static bool XMLHasLoaded;
+    XMLDocument* doc;
+    bool XMLHasLoaded;
+    static int global_xml_index;
+    string xml_suffix;
+
     XMLElement* root;
     XMLElement* element;
     // utils functions

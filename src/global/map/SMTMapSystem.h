@@ -18,7 +18,6 @@
 
 #include "GlobalMapSystem.h"
 #include "SMTCarInfoQueue.h"
-
 using namespace Fanjing;
 
 class SMTLane {
@@ -56,6 +55,11 @@ protected:
     map<string, SMTLane> laneMap;   // 车道列表
     map<string, SMTCarInfoQueue> queueMap;  // 车道对应的队列管理列表
     map<string, SMTTrafficLight> tlMap; // 控制灯列表
+
+    // 记录车道内包含的车辆，用于绘制轨迹之类的。
+    map<string, list<string> > laneContainer;
+    // 若车辆会经过目标车道，则对其进行记录
+    map<string, string> laneNameByCarId;
     int releasedCarNum;
     string xmlName;
     virtual void initialize(int stage);
