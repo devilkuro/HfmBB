@@ -121,8 +121,13 @@ protected:
     // 最后一种情况需要进行额外处理（因为少了加速减速的过程）
     map<string, double> outQueueTimeMapById;
     map<string, double> nextRoadTimeMapById;
+    map<string, double> lastNcarPassTime;
+    map<string, double> lastNminPassTime;
+    map<string, double> predicOutTime;
+    map<string, double> historialOutTime;
+    map<string, double> historialAccurateTime;
     // 失效车辆集合
-    set<string> invaildCarMap;
+    set<string> invaildCarSet;
 
     double allowedInterval;
     double cyclePeriod;

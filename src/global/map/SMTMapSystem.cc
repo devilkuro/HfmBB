@@ -33,7 +33,7 @@ void SMTMapSystem::initialize(int stage) {
         // 生成主要道路连接拓扑
         ganerateMapTopology();
         // todo 改为由xml读入？感觉有点蛋疼啊，先写静态的吧。
-        double yellowInterval = 2.0;
+        double yellowInterval = 1.5;
         queueMap["2/4to2/2_0"] = SMTCarInfoQueue("2/4to2/2_0", xmlName, 577.30, 5);    // to="2/2to0/2"
         queueMap["2/4to2/2_0"].setCycleInfo(120,120,0);
         queueMap["2/4to2/2_1"] = SMTCarInfoQueue("2/4to2/2_1", xmlName, 577.30, 23.01);    // to="2/2to2/0"

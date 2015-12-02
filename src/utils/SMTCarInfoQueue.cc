@@ -761,7 +761,7 @@ double SMTCarInfoQueue::releaseCar(string id, double time, double avgTime) {
     // release the old car and return the predicted out time
     double outTime = outTimeMapById[id];
     // 启动车辆离开程序，若车辆离开时间和预测离开时间均早于当前时间则删除车辆
-    invaildCarMap.insert(id);
+    invaildCarSet.insert(id);
     TraversalHelper outHelper;
     // 设置完车辆有效性之后，从出口时间末尾开始依次移除车辆
     // 获取最早的出口时间，若队列系统中没有车，那就啥都不需释放（实际并不可能）
@@ -771,13 +771,15 @@ double SMTCarInfoQueue::releaseCar(string id, double time, double avgTime) {
         double lastTime = carMapByOutTime.begin()->first;
         for(id = outHelper.getFirstCarId(carMapByOutTime, lastTime); id != "" && outTimeMapById[id] < time; id =
                 outHelper.getNextCarId()){
-            if(invaildCarMap.find(id) != invaildCarMap.end()){
+            if(invaildCarSet.find(id) != invaildCarSet.end()){
                 invaildCarList.push_back(id);
             }
         }
     }
     for(list<string>::iterator it = invaildCarList.begin(); it != invaildCarList.end(); it++){
         removeCar(*it);
+        // reduce the set
+        invaildCarSet.erase(*it);
     }
     return outTime;
 }
