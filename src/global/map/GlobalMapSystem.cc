@@ -85,7 +85,10 @@ void GlobalMapSystem::handleMessage(cMessage *msg) {
         // vehicle manager has been move into class GlobalvehicleManager.
         // updateVehicleList();
     }else{
-        delete msg;
+        if (msg!=NULL) {
+            delete msg;
+            msg = NULL;
+        }
     }
 }
 

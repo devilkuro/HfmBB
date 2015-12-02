@@ -92,6 +92,7 @@ protected:
     static bool overtakeAllowed;
     static double updateInterval;
     static bool onlyLosseOneCar;
+    static double startDelay; // 在前方车辆启动后，当前车辆相对于前方车的启动延迟
     // car time manage related
     map<string, SMTCarInfo> carMapById;
     // map by time

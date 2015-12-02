@@ -169,13 +169,14 @@ void GlobalVehicleManager::addOneVehicle(SMTCarInfo car) {
                 roadLaneNumber[car.origin] = getMapSystem()->getLaneNumber(car.origin);
                 curLastUsedLane[car.origin] = 0;
             }
-            // 降序循环使用车道
-            curLastUsedLane[car.origin]--;
-            if(curLastUsedLane[car.origin]<0){
-                curLastUsedLane[car.origin] = roadLaneNumber[car.origin]-1;
-            }
+//            // 降序循环使用车道
+//            curLastUsedLane[car.origin] = roadLaneNumber[car.origin] - 1;
+//            if(curLastUsedLane[car.origin]<0){
+//                curLastUsedLane[car.origin] = roadLaneNumber[car.origin]-1;
+//            }
             if(!getMapSystem()->addOneVehicle(car.id, car.vtype, car.origin, car.time, 0, car.maxSpeed,
-                    curLastUsedLane[car.origin])){
+                    roadLaneNumber[car.origin] - 1)){
+//                  curLastUsedLane[car.origin])){
                 cout << "car id: " << car.id << ", road: " << car.origin << ", @" << car.time << endl;
             }
             break;

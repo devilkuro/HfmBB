@@ -23,6 +23,7 @@ namespace Fanjing {
 int SMTCarInfoQueue::global_xml_index = 0;
 bool SMTCarInfoQueue::overtakeAllowed = false;
 double SMTCarInfoQueue::updateInterval = 0.1;
+double SMTCarInfoQueue::startDelay = 0.5;
 bool SMTCarInfoQueue::onlyLosseOneCar = true;   // 是否每次仅松散一个车辆
 
 SMTCarInfoQueue::TraversalHelper::TraversalHelper() {
@@ -169,8 +170,8 @@ SMTCarInfoQueue::SMTCarInfoQueue() {
 
 SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength) {
     init();
-    xmlName = xmlpath;
-    txtName = xmlName.substr(xmlName.find_last_of('/') + 1, xmlName.find_last_of('.') - xmlName.find_last_of('/') - 1);
+    xmlName = xmlpath + "_" + xml_suffix + ".xml";
+    txtName = xmlpath.substr(xmlpath.find_last_of('/') + 1, xmlpath.find_last_of('.') - xmlpath.find_last_of('/') - 1);
     laneName = lane;
     laneLength = length;
     laneOutLength = outLength;
@@ -243,10 +244,10 @@ void SMTCarInfoQueue::updateCarOutInfo(string id, string preId) {
         outTime = getTheReachTime(carMapById[id], laneLength, enterTimeMapById[id], false, false);
     }else{
         // a. 判定启动离开队列区的时间
-        if(queueTimeMapById[id] >= outQueueTimeMapById[preId] + updateInterval){
+        if(queueTimeMapById[id] >= outQueueTimeMapById[preId] + startDelay){
             // 若当前车辆进入队列区时，前方车辆已经启动，则认为前方车辆不会阻碍当前车辆
             // 此时，当前开始驶离队列区时间等于其进入队列区的时间
-            // 注意：实际上在此条件下有小概率会影响，即后方车辆全速，前方车辆在大于updateInterval时间前开始加速
+            // 注意：实际上在此条件下有小概率会影响，即后方车辆全速，前方车辆在大于startDelay时间前开始加速
             // 此时存在前方车辆未完全加速时影响后方车辆，使后方车辆减速的可能性，但概率较低，予以忽略
             outQueueTimeMapById[id] = queueTimeMapById[id];
             // c. 判定车辆离开的时间（不考虑交通信号）
@@ -254,8 +255,8 @@ void SMTCarInfoQueue::updateCarOutInfo(string id, string preId) {
             outTime = getTheReachTime(carMapById[id], laneLength, enterTimeMapById[id], false, false);
         }else{
             // 若当前车辆驶离队列区时受前方车辆影响
-            // 此时当前车辆驶离队列区时间等于前方车辆开始驶离队列区时间+updateInterval
-            outQueueTimeMapById[id] = outQueueTimeMapById[preId] + updateInterval;
+            // 此时当前车辆驶离队列区时间等于前方车辆开始驶离队列区时间+startDelay
+            outQueueTimeMapById[id] = outQueueTimeMapById[preId] + startDelay;
             // c. 判定车辆离开的时间（不考虑交通信号）
             // 由于被阻碍，则需要在队列区末尾重新加速，因此需要计算队列区长度
             // b. 判定驶离队列区时的队列长度。
@@ -304,7 +305,7 @@ void SMTCarInfoQueue::updateCarOutInfo(string id, string preId) {
     double fixedOutTime = getFixedOutTime(outTime);
     if(fixedOutTime > outTime){
         // 若受到交通控制信号影响，则需要修改驶离队列时间为下一个红绿灯允许的时间，并计算新的离开路口时间
-        outQueueTimeMapById[id] = fixedOutTime + updateInterval;
+        outQueueTimeMapById[id] = fixedOutTime + startDelay;
         fixedOutTime = getTheReachTime(carMapById[id], carMapById[id].minGap, fixedOutTime, true, false);
     }
     // 判定完成后修改离开路口时间
@@ -570,13 +571,15 @@ void SMTCarInfoQueue::init() {
     element = NULL;
     if(doc == NULL){
         doc = new XMLDocument();
-        xml_suffix = StringHelper::int2str(global_xml_index++);
+        global_xml_index = global_xml_index + 1;
+        xml_suffix = StringHelper::int2str(global_xml_index);
+        cout<<"xml_index: " << global_xml_index<<endl;
     }
 }
 
 SMTCarInfoQueue::~SMTCarInfoQueue() {
     // 输出记录文件
-    saveResults(xmlName.substr(0,xmlName.find_last_of('.'))+xml_suffix+".xml");
+    saveResults(xmlName);
 }
 
 double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFrozenSpace) {
@@ -752,7 +755,7 @@ double SMTCarInfoQueue::releaseCar(string id, double time, double avgTime) {
 
     StatisticsRecordTools *srtool = StatisticsRecordTools::request();
     srtool->changeName(
-            txtName + ":lan,id,enter time,queue time,out queue time,out time,actual time,next road time,avg time")
+            txtName + ":lane,id,enter time,queue time,out queue time,out time,actual time,next road time,avg time")
             << laneName << id << enterTimeMapById[id] << queueTimeMapById[id] << outQueueTimeMapById[id]
             << outTimeMapById[id] << time << nextRoadTimeMapById[id] << avgTime << srtool->endl;
     // release the old car and return the predicted out time
@@ -766,7 +769,7 @@ double SMTCarInfoQueue::releaseCar(string id, double time, double avgTime) {
     // 构造移除列表（无法直接移除，因为会改变迭代器位置）
     if(carMapByOutTime.begin() != carMapByOutTime.end()){
         double lastTime = carMapByOutTime.begin()->first;
-        for(id = outHelper.getFirstCarId(carMapByOutTime, lastTime); id != "" && outQueueTimeMapById[id] < time; id =
+        for(id = outHelper.getFirstCarId(carMapByOutTime, lastTime); id != "" && outTimeMapById[id] < time; id =
                 outHelper.getNextCarId()){
             if(invaildCarMap.find(id) != invaildCarMap.end()){
                 invaildCarList.push_back(id);
@@ -837,6 +840,9 @@ void SMTCarInfoQueue::setThePairMap(map<double, list<string> > &carListMapByTime
         // if the car is already here, update the related information
         // 1st. remove the old information
         carListMapByTime[timeMapByCar[id]].remove(id);
+        if(carListMapByTime[timeMapByCar[id]].size() == 0){
+            carListMapByTime.erase(timeMapByCar[id]);
+        }
         // 2nd. add this car at new time
         carListMapByTime[time].push_back(id);
     }
@@ -857,6 +863,9 @@ void SMTCarInfoQueue::setCarAtFirstOfCertainTime(map<double, list<string> >& car
         // if the car is already here, update the related information
         // 1st. remove the old information
         carListMapByTime[timeMapByCar[id]].remove(id);
+        if(carListMapByTime[timeMapByCar[id]].size() == 0){
+            carListMapByTime.erase(timeMapByCar[id]);
+        }
         // 2nd. add this car at new time
         carListMapByTime[time].push_front(id);
     }
@@ -888,6 +897,9 @@ void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carL
         // if the car is already here, update the related information
         // 1st. remove the old information
         carListMapByTime[timeMapByCar[id]].remove(id);
+        if(carListMapByTime[timeMapByCar[id]].size() == 0){
+            carListMapByTime.erase(timeMapByCar[id]);
+        }
     }
     // 3rd. insert the id before other id and modify the related time in the id map
     if(litcarMapByTime == itcarMapByTime->second.end()){

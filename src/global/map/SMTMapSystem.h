@@ -62,9 +62,13 @@ protected:
     map<string, string> laneNameByCarId;
     int releasedCarNum;
     string xmlName;
+
+    cMessage* trajectoryMsg;
     virtual void initialize(int stage);
     virtual void finish();
+    virtual void handleMessage(cMessage* msg);
     void ganerateMapTopology();
+    void recordTrajectoryMsg();
 
 };
 class SMTMapSystemAccess {
