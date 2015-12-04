@@ -30,6 +30,7 @@ void SMTMapSystem::initialize(int stage) {
     GlobalMapSystem::initialize(stage);
     if(stage == 1){
         xmlName = hasPar("xmlName")?par("xmlName"):"./results/smtlog.qinfo.xml";
+        SMTCarInfoQueue::useFixFunc = hasPar("useFixFunc")?par("useFixFunc").boolValue():true;
         // 生成主要道路连接拓扑
         ganerateMapTopology();
         // todo 改为由xml读入？感觉有点蛋疼啊，先写静态的吧。
@@ -91,17 +92,17 @@ void SMTMapSystem::uploadRoute(SMTCarInfo car, list<string> route, double time) 
 void SMTMapSystem::enterRoad(SMTCarInfo car, string road, double time) {
     releasedCarNum++;
     if(road == "2/2to0/2"){
-        queueMap["2/4to2/2_0"].releaseCar(car.id, time,getAvgTravelTimeByEdge("2/4to2/2"));
+        queueMap["2/4to2/2_0"].releaseCar(car.id, time);
     }else if(road == "2/2to2/0"){
-        queueMap["2/4to2/2_1"].releaseCar(car.id, time,getAvgTravelTimeByEdge("2/4to2/2"));
+        queueMap["2/4to2/2_1"].releaseCar(car.id, time);
     }else if(road == "2/2to4/2"){
-        queueMap["2/4to2/2_2"].releaseCar(car.id, time,getAvgTravelTimeByEdge("2/4to2/2"));
+        queueMap["2/4to2/2_2"].releaseCar(car.id, time);
     }else if(road == "2/4to4/4"){
-        queueMap["2/2to2/4_0"].releaseCar(car.id, time,getAvgTravelTimeByEdge("2/2to2/4"));
+        queueMap["2/2to2/4_0"].releaseCar(car.id, time);
     }else if(road == "2/4to2/6"){
-        queueMap["2/2to2/4_1"].releaseCar(car.id, time,getAvgTravelTimeByEdge("2/2to2/4"));
+        queueMap["2/2to2/4_1"].releaseCar(car.id, time);
     }else if(road == "2/4to0/4"){
-        queueMap["2/2to2/4_2"].releaseCar(car.id, time,getAvgTravelTimeByEdge("2/2to2/4"));
+        queueMap["2/2to2/4_2"].releaseCar(car.id, time);
     }else{
         // 什么都不做
         releasedCarNum--;

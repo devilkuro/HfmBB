@@ -25,6 +25,7 @@ bool SMTCarInfoQueue::overtakeAllowed = false;
 double SMTCarInfoQueue::updateInterval = 0.1;
 double SMTCarInfoQueue::startDelay = 0.5;
 bool SMTCarInfoQueue::onlyLosseOneCar = true;   // 是否每次仅松散一个车辆
+bool SMTCarInfoQueue::useFixFunc = true;   // 是否使用修正方法
 
 SMTCarInfoQueue::TraversalHelper::TraversalHelper() {
     carListMap = 0;
@@ -521,12 +522,12 @@ double SMTCarInfoQueue::getQueueLength(string fromId, string toId) {
                 break;
             }
             id = queueHelper.getNextCarId();
-            if(id == ""){
-                // toId 不存在
-                cout << "Error@getQueueLength:: NO TO CAR NAMED " << toId << endl;
-                return 0;
-            }
         }while(id != "");
+        if(id == ""){
+            // toId 不存在
+            cout << "Error@getQueueLength:: NO TO CAR NAMED " << toId << endl;
+            return 0;
+        }
     }else{
         // fromId 不存在
         cout << "Error@getQueueLength:: NO FROM CAR NAMED " << fromId << endl;
@@ -573,7 +574,7 @@ void SMTCarInfoQueue::init() {
         doc = new XMLDocument();
         global_xml_index = global_xml_index + 1;
         xml_suffix = StringHelper::int2str(global_xml_index);
-        cout<<"xml_index: " << global_xml_index<<endl;
+        cout << "xml_index: " << global_xml_index << endl;
     }
 }
 
@@ -739,7 +740,7 @@ void SMTCarInfoQueue::setCurrentTime(double time) {
     // FIXME 用于释放资源
 }
 
-double SMTCarInfoQueue::releaseCar(string id, double time, double avgTime) {
+double SMTCarInfoQueue::releaseCar(string id, double time) {
     // make recording
     element = doc->NewElement("result");
     element->SetAttribute("car", id.c_str());
@@ -749,17 +750,24 @@ double SMTCarInfoQueue::releaseCar(string id, double time, double avgTime) {
     element->SetAttribute("outTime", outTimeMapById[id]);
     element->SetAttribute("actualOutTime", time);
     element->SetAttribute("nextRoadTime", nextRoadTimeMapById[id]);
-    element->SetAttribute("avgTime", avgTime);
 
     root->LinkEndChild(element);
 
     StatisticsRecordTools *srtool = StatisticsRecordTools::request();
-    srtool->changeName(
-            txtName + ":lane,id,enter time,queue time,out queue time,out time,actual time,next road time,avg time")
+    srtool->changeName(txtName + ":lane,id,enter time,queue time,out queue time,out time,actual time,next road time")
             << laneName << id << enterTimeMapById[id] << queueTimeMapById[id] << outQueueTimeMapById[id]
-            << outTimeMapById[id] << time << nextRoadTimeMapById[id] << avgTime << srtool->endl;
+            << outTimeMapById[id] << time << nextRoadTimeMapById[id] << srtool->endl;
     // release the old car and return the predicted out time
     double outTime = outTimeMapById[id];
+
+    if(useFixFunc){
+        pushCarQueueTimeBack(id, time);
+        TraversalHelper thelper;
+        thelper.getFirstCarId(carMapByQueueTime, queueTimeMapById[id]);
+        thelper.seekToCar(id);
+        string preid = thelper.getPreviousCarId();
+        updateCarQueueInfoAt(id, preid);
+    }
     // 启动车辆离开程序，若车辆离开时间和预测离开时间均早于当前时间则删除车辆
     invaildCarSet.insert(id);
     TraversalHelper outHelper;
@@ -789,7 +797,21 @@ void SMTCarInfoQueue::setCycleInfo(double period, double allowTime, double offse
     allowedInterval = allowTime;
     cycleOffset = offset;
 }
+void SMTCarInfoQueue::setCarStatInfo(string id, double lastNcar, double lastNmins, double hisOut, double hisAcc) {
+}
 
+void SMTCarInfoQueue::outputMapByTime(map<double, list<string> >& carListMapByTime, map<string, double>& timeMapByCar) {
+    TraversalHelper helper;
+    string id = helper.getFirstCarId(carListMapByTime, 0);
+    if(carListMapByTime.size() == 0){
+        cout<<"NULL";
+    }
+    while(id != ""){
+        cout << "(" << id << ":" << helper.getCurrentKey() << "," << timeMapByCar.find(id)->second<< ")";
+        id = helper.getNextCarId();
+    }
+    cout << endl;
+}
 void SMTCarInfoQueue::removeCar(string id) {
     // 移除车辆的条件，需要同时满足已经离开了当前道路，并且已经经过了预测离开道路的时间
     carMapById.erase(id);
@@ -846,6 +868,7 @@ void SMTCarInfoQueue::setThePairMap(map<double, list<string> > &carListMapByTime
             carListMapByTime.erase(timeMapByCar[id]);
         }
         // 2nd. add this car at new time
+        timeMapByCar[id] = time;
         carListMapByTime[time].push_back(id);
     }
 }
@@ -869,6 +892,7 @@ void SMTCarInfoQueue::setCarAtFirstOfCertainTime(map<double, list<string> >& car
             carListMapByTime.erase(timeMapByCar[id]);
         }
         // 2nd. add this car at new time
+        timeMapByCar[id] = time;
         carListMapByTime[time].push_front(id);
     }
 }
@@ -894,6 +918,11 @@ void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carL
         }
         litcarMapByTime++;
     }
+    if(litcarMapByTime == itcarMapByTime->second.end()){
+        // 判定是否存在other id，理论上肯定存在，若进入此代码，则那里出了问题
+        cout << "Error@setThePairMapAtFrontOfCar()::OTHER_ID_MISSING::2" << endl;
+        return;
+    }
     // 2nd. remove id from current time map
     if(timeMapByCar.find(id) != timeMapByCar.end()){
         // if the car is already here, update the related information
@@ -904,11 +933,6 @@ void SMTCarInfoQueue::setThePairMapAtFrontOfCar(map<double, list<string> >& carL
         }
     }
     // 3rd. insert the id before other id and modify the related time in the id map
-    if(litcarMapByTime == itcarMapByTime->second.end()){
-        // 判定是否存在other id，理论上肯定存在，若进入此代码，则那里出了问题
-        cout << "Error@setThePairMapAtFrontOfCar()::OTHER_ID_MISSING::2" << endl;
-        return;
-    }
     // add this car at front of other id
     carListMapByTime[time].insert(litcarMapByTime, id);
     // modify the related time
@@ -941,6 +965,9 @@ void SMTCarInfoQueue::setThePairMapAtBackOfCar(map<double, list<string> >& carLi
         // if the car is already here, update the related information
         // 1st. remove the old information
         carListMapByTime[timeMapByCar[id]].remove(id);
+        if(carListMapByTime[timeMapByCar[id]].size() == 0){
+            carListMapByTime.erase(timeMapByCar[id]);
+        }
     }
     // 3rd. insert the id before other id and modify the related time in the id map
     // add this car at back of other id
@@ -1117,3 +1144,4 @@ list<string> SMTCarInfoQueue::TraversalHelper::pushCurrentCarBack(double time) {
 }
 
 } /* namespace Fanjing */
+

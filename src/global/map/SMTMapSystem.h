@@ -41,6 +41,10 @@ class SMTTrafficLight {
     vector<double> cyclePeriod; // 交通灯对应索引号的周期时间向量
     vector<double> cycleOffset; // 交通灯对应索引号的允许时间起始偏移时间向量
 };
+class SMTOutInfo{
+    double enterTime;
+    double throughTime;
+};
 class SMTMapSystem : public GlobalMapSystem {
 public:
     SMTMapSystem();
@@ -69,7 +73,6 @@ protected:
     virtual void handleMessage(cMessage* msg);
     void ganerateMapTopology();
     void recordTrajectoryMsg();
-
 };
 class SMTMapSystemAccess {
 public:

@@ -55,6 +55,7 @@ public:
         list<string> pushCurrentCarBack(double time);
     };
 public:
+    static bool useFixFunc;
     // xmlpath只能设置一次，之后的设置将不改变xml文件路径
     // 当系统终止时，需要调用saveResults方法保存结果，之后xml文件会被释放。
     SMTCarInfoQueue();
@@ -76,11 +77,24 @@ public:
     void setCurrentTime(double time);
     // release the old car and invalid resource
     // then return the predicted out time
-    double releaseCar(string id, double time, double avgTime);
+    double releaseCar(string id, double time);
     void saveResults(string filename);
     void releaseXML();
     void setCycleInfo(double period, double allowTime, double offset);
 
+    /*
+     *
+     map<string, double> nextRoadTimeMapById;
+     map<string, double> lastNcarPassTime;   // 最近的N辆车的平均通过时间
+     map<string, double> lastNminPassTime;   // 最近N分钟内的通过时间
+     map<string, double> predicOutTime;  // 进入时刻的预测时间
+     map<string, double> historialOutTime;   // 基于历史平均通过时间的预测时间
+     map<string, double> historialAccurateTime;  // 基于历史时间点的通过时间预测
+     除了进入时刻的预测时间其他都需要由地图系统提交
+     *
+     */
+    void setCarStatInfo(string id, double lastNcar, double lastNmins, double hisOut, double hisAcc);
+    void outputMapByTime(map<double, list<string> > &carListMapByTime, map<string, double>&timeMapByCar);
     // allow or disallow the overtake action
     inline static void setOvertakeMode(bool allow) {
         overtakeAllowed = allow;
@@ -121,11 +135,11 @@ protected:
     // 最后一种情况需要进行额外处理（因为少了加速减速的过程）
     map<string, double> outQueueTimeMapById;
     map<string, double> nextRoadTimeMapById;
-    map<string, double> lastNcarPassTime;
-    map<string, double> lastNminPassTime;
-    map<string, double> predicOutTime;
-    map<string, double> historialOutTime;
-    map<string, double> historialAccurateTime;
+    map<string, double> lastNcarPassTime;   // 最近的N辆车的平均通过时间
+    map<string, double> lastNminPassTime;   // 最近N分钟内的通过时间
+    map<string, double> predicOutTime;  // 进入时刻的预测时间
+    map<string, double> historialOutTime;   // 基于历史平均通过时间的预测时间
+    map<string, double> historialAccurateTime;  // 基于历史时间点的通过时间预测
     // 失效车辆集合
     set<string> invaildCarSet;
 
