@@ -128,7 +128,6 @@ void SMTMapSystem::handleMessage(cMessage* msg) {
         recordTrajectoryMsg();
     }
     GlobalMapSystem::handleMessage(msg);
-
 }
 
 void SMTMapSystem::ganerateMapTopology() {
