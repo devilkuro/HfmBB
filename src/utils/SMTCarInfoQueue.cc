@@ -685,6 +685,9 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
     // FIXME 考虑是否需要引入“自启动离开队列区”的加速阶段的因素
     double nextRoadTime = outTimeMapById[id] + laneOutLength / car.maxSpeed;
     nextRoadTimeMapById[car.id] = nextRoadTime;
+
+    // record predict out time
+    predicOutTime[car.id] = enterTimeMapById[car.id]-outTimeMapById[car.id];
     return nextRoadTime;
 }
 
@@ -761,12 +764,22 @@ double SMTCarInfoQueue::releaseCar(string id, double time) {
     double outTime = outTimeMapById[id];
 
     if(useFixFunc){
-        pushCarQueueTimeBack(id, time);
-        TraversalHelper thelper;
-        thelper.getFirstCarId(carMapByQueueTime, queueTimeMapById[id]);
-        thelper.seekToCar(id);
-        string preid = thelper.getPreviousCarId();
-        updateCarQueueInfoAt(id, preid);
+        // 仅当当前车辆为已失效末尾车辆时才进行调整(防止已失效车辆影响未失效车辆)
+        bool canPush = true;
+        for(set<string>::iterator it = invaildCarSet.begin();it!=invaildCarSet.end();it++){
+            if(enterTimeMapById[*it]>enterTimeMapById[id]){
+                canPush = false;
+                break;
+            }
+        }
+        if (canPush) {
+            pushCarQueueTimeBack(id, time);
+            TraversalHelper thelper;
+            thelper.getFirstCarId(carMapByQueueTime, queueTimeMapById[id]);
+            thelper.seekToCar(id);
+            string preid = thelper.getPreviousCarId();
+            updateCarQueueInfoAt(id, preid);
+        }
     }
     // 启动车辆离开程序，若车辆离开时间和预测离开时间均早于当前时间则删除车辆
     invaildCarSet.insert(id);
@@ -798,6 +811,10 @@ void SMTCarInfoQueue::setCycleInfo(double period, double allowTime, double offse
     cycleOffset = offset;
 }
 void SMTCarInfoQueue::setCarStatInfo(string id, double lastNcar, double lastNmins, double hisOut, double hisAcc) {
+    lastNcarPassTime[id] = lastNcar;
+    lastNminPassTime[id] = lastNmins;
+    historicalOutTime[id] = hisOut;
+    historicalAccurateTime[id] = hisAcc;
 }
 
 void SMTCarInfoQueue::outputMapByTime(map<double, list<string> >& carListMapByTime, map<string, double>& timeMapByCar) {

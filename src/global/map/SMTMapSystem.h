@@ -21,12 +21,14 @@
 using namespace Fanjing;
 
 class SMTLane {
+public:
     string id;  // 车道id
     string edge;    // 街道id
     string tl;  // 控制灯id
     int index;  // 控制灯索引号
 };
 class SMTEdge {
+public:
     // FIXME 一条车道可能对应多个下一条道路
     // 同时，不同车道也有可能对应同一条下一条道路
     // 为了试验的方便，这里假设其都是一一对应的
@@ -36,14 +38,16 @@ class SMTEdge {
     vector<string> nextVec; // 车道对应的下一条街道向量
 };
 class SMTTrafficLight {
+public:
     string id;  // 交通灯id
     vector<double> allowedInterval; // 交通灯对应索引号的通行允许时间向量
     vector<double> cyclePeriod; // 交通灯对应索引号的周期时间向量
     vector<double> cycleOffset; // 交通灯对应索引号的允许时间起始偏移时间向量
 };
-class SMTOutInfo{
-    double enterTime;
-    double throughTime;
+class SMTOutInfo {
+public:
+    double enterTime;   // 进入时间
+    double throughTime; // 通过消耗
 };
 class SMTMapSystem : public GlobalMapSystem {
 public:
@@ -67,12 +71,18 @@ protected:
     int releasedCarNum;
     string xmlName;
 
+    // 用于记录通行历史的map
+    map<string, double> enterTimeMap;
+    map<string, list<SMTOutInfo> > outInfoMap;
+    map<string, list<SMTOutInfo> > historicalInfoMap;
+
     cMessage* trajectoryMsg;
     virtual void initialize(int stage);
     virtual void finish();
     virtual void handleMessage(cMessage* msg);
     void ganerateMapTopology();
     void recordTrajectoryMsg();
+    static bool compare_out_info(SMTOutInfo & first, SMTOutInfo &second);
 };
 class SMTMapSystemAccess {
 public:

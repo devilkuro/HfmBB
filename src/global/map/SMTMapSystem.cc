@@ -137,3 +137,7 @@ void SMTMapSystem::ganerateMapTopology() {
 
 void SMTMapSystem::recordTrajectoryMsg() {
 }
+
+bool SMTMapSystem::compare_out_info(SMTOutInfo& first, SMTOutInfo& second) {
+    return first.enterTime < second.enterTime;
+}
