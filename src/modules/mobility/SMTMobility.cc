@@ -69,38 +69,40 @@ void SMTMobility::processWhenChangeRoad() {
     // 当车辆首次进入某条道路时执行
     int duration = 5000;
     if(road_id== "2/4to2/2"||road_id=="2/2to2/4"){
-        for(list<string>::iterator it = route.begin(); it != route.end(); it++){
-            if(*it == "2/4to2/2"){
-                it++;
-                if(it != route.end()){
-                    if(*it == "2/2to0/2"){
-                        getMapSystem()->getManager()->commandChangeLane(external_id,0,duration);
-                    }else if(*it == "2/2to2/0"){
-                        getMapSystem()->getManager()->commandChangeLane(external_id,1,duration);
-                    }else if(*it == "2/2to4/2"){
-                        getMapSystem()->getManager()->commandChangeLane(external_id,2,duration);
+        if (false) {
+            for(list<string>::iterator it = route.begin(); it != route.end(); it++){
+                if(*it == "2/4to2/2"){
+                    it++;
+                    if(it != route.end()){
+                        if(*it == "2/2to0/2"){
+                            getMapSystem()->getManager()->commandChangeLane(external_id,0,duration);
+                        }else if(*it == "2/2to2/0"){
+                            getMapSystem()->getManager()->commandChangeLane(external_id,1,duration);
+                        }else if(*it == "2/2to4/2"){
+                            getMapSystem()->getManager()->commandChangeLane(external_id,2,duration);
+                        }else{
+                            // 什么都不做
+                        }
+                        break;
                     }else{
-                        // 什么都不做
+                        break;
                     }
-                    break;
-                }else{
-                    break;
-                }
-            }else if(*it == "2/2to2/4"){
-                it++;
-                if(it != route.end()){
-                    if(*it == "2/4to4/4"){
-                        getMapSystem()->getManager()->commandChangeLane(external_id,0,duration);
-                    }else if(*it == "2/4to2/6"){
-                        getMapSystem()->getManager()->commandChangeLane(external_id,1,duration);
-                    }else if(*it == "2/4to0/4"){
-                        getMapSystem()->getManager()->commandChangeLane(external_id,2,duration);
+                }else if(*it == "2/2to2/4"){
+                    it++;
+                    if(it != route.end()){
+                        if(*it == "2/4to4/4"){
+                            getMapSystem()->getManager()->commandChangeLane(external_id,0,duration);
+                        }else if(*it == "2/4to2/6"){
+                            getMapSystem()->getManager()->commandChangeLane(external_id,1,duration);
+                        }else if(*it == "2/4to0/4"){
+                            getMapSystem()->getManager()->commandChangeLane(external_id,2,duration);
+                        }else{
+                            // 什么都不做
+                        }
+                        break;
                     }else{
-                        // 什么都不做
+                        break;
                     }
-                    break;
-                }else{
-                    break;
                 }
             }
         }

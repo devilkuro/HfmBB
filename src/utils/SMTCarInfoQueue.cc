@@ -317,7 +317,7 @@ double SMTCarInfoQueue::insertCar(SMTCarInfo car, double time, double neighborFr
     nextRoadTimeMapById[car.id] = nextRoadTime;
 
     // record predict out time
-    predicOutTime[car.id] = nextRoadTime - car.time;
+    predicOutTime[car.id] = nextRoadTime - time;
     return nextRoadTime;
 }
 
@@ -510,77 +510,83 @@ void SMTCarInfoQueue::updateCarEnterQueueInfo(string id, string preId) {
     //      b. 若前方车辆进入队列时间与当前车辆进入队列时间差值小于updateInterval,则推迟当前车辆进入队列时间
     //          b+. 推迟过程中,若有其他车辆存在于该updateInterval时间片内,则依次向后推移
 
-    SMTCarInfo car = carMapById[id];
-    double time = enterTimeMapById[id];
-    // 获取前方和后方的车辆
-    TraversalHelper enterHelper;
-    string nextId = enterHelper.getFirstCarId(carMapByEnterTime, time);
+    if (useFixFunc&&false) {
+        // start##
+        SMTCarInfo car = carMapById[id];
+        double time = enterTimeMapById[id];
+        // 获取前方和后方的车辆
+        TraversalHelper enterHelper;
+        enterHelper.getFirstCarId(carMapByEnterTime, time);
+        enterHelper.seekToCar(id);
+        string nextId = enterHelper.getNextCarId();
 
-    // a.1. 判定队列区起点车辆
-    TraversalHelper outHelper;
-    // 遍历至当前时间前未离开的车辆中的第一辆车
-    string startId = outHelper.getFirstCarId(carMapByOutTime, time);
-    // 更新在新队列中进入队列时间
-    if(overtakeAllowed){
-        // 若系统设置为允许超车行为，则进行超车判定
-        // 超车判定应由进入队列区时间大于time的第一辆车开始
-        // 因为在超车过程中，若遇到第一个可以超越的车辆，则其也可以超越其后方的车辆
-        // 因为后方的车辆是不能超越前方车辆的
-        // todo 需要完成超车判定的过程
-        if(startId != ""){
-            //
-        }
-    }else{
-        // 如果不允许超车，则
-        // 计算第一辆车辆前方车辆的队列长度，然后估算当前车辆进入队列区的时间
-        // 比较当前车辆进入队列的时间和前方车辆进入队列的时间，得出该车实际进入队列区的时间
-        // 将该车插入前方进入车辆的队列区位置后方
-        double queueLength = 0;
-        double queueTime = -1;
-        // 比较startId与preId，确定队列前方是否有车辆
-        if(startId == ""){
-            // 前方的车都走了
-            preId = startId;
-        }else if(preId == ""){
-            // 前面压根没车，而startId不为空，则startId应该等于nextId
-            if(startId != nextId){
-                cout << "Error@insertCar:: UNKNOWN ERROR " << endl;
+        // a.1. 判定队列区起点车辆
+        TraversalHelper outHelper;
+        // 遍历至当前时间前未离开的车辆中的第一辆车
+        string startId = outHelper.getFirstCarId(carMapByOutTime, time);
+        // 更新在新队列中进入队列时间
+        if(overtakeAllowed){
+            // 若系统设置为允许超车行为，则进行超车判定
+            // 超车判定应由进入队列区时间大于time的第一辆车开始
+            // 因为在超车过程中，若遇到第一个可以超越的车辆，则其也可以超越其后方的车辆
+            // 因为后方的车辆是不能超越前方车辆的
+            // todo 需要完成超车判定的过程
+            if(startId != ""){
+                //
             }
         }else{
-            // 如果startId与preId都不为空,则如果startId的进入队列时间晚于preId，则队列区前方没有车
-            if(queueTimeMapById[startId] > queueTimeMapById[preId]){
-                preId = "";
-            }
-            // 反之前方队列区长度为startId到preId构成的队列长度
-        }
-        if(preId != ""){
-            // 如果前面有车，则将当前车辆插入到前方车辆后面
-            setThePairMapAtBackOfCar(carMapByQueueTime, queueTimeMapById, id, preId);
-            // 计算预计进入队列时间
-            queueLength = getQueueLength(startId, preId) + car.minGap;
-            queueTime = getTheReachTime(car, laneLength - queueLength, time, false, true);
-            // 若早于前方车辆+更新间隔则向后延迟
-            if(queueTime < queueTimeMapById[preId] + updateInterval){
-                queueTime = queueTimeMapById[preId] + updateInterval;
-            }
-        }else if(nextId != ""){
-            // 如果前面没车后面有车
-            // 计算预计进入路口时间作为队列区时间
-            queueTime = getTheReachTime(car, laneLength - car.minGap, time, false, true);
-            if(queueTimeMapById[nextId] > queueTime){
-                // 如果后方车辆晚于当前车来那个预期时间进入队列区，则直接将当前车辆插入队列去
-                setQueueTimeOfCar(id, queueTime);
+            // 如果不允许超车，则
+            // 计算第一辆车辆前方车辆的队列长度，然后估算当前车辆进入队列区的时间
+            // 比较当前车辆进入队列的时间和前方车辆进入队列的时间，得出该车实际进入队列区的时间
+            // 将该车插入前方进入车辆的队列区位置后方
+            double queueLength = 0;
+            double queueTime = -1;
+            // 比较startId与preId，确定队列前方是否有车辆
+            if(startId == ""){
+                // 前方的车都走了
+                preId = startId;
+            }else if(preId == ""){
+                // 前面压根没车，而startId不为空，则startId应该等于nextId
+                if(startId != nextId){
+                    cout << "Error@updateCarEnterQueueInfo:: UNKNOWN ERROR " << endl;
+                }
             }else{
-                // 反之，将其插入后方车辆前方，并用pushback方法推延至预计queueTime
-                setThePairMapAtFrontOfCar(carMapByQueueTime, queueTimeMapById, id, nextId);
+                // 如果startId与preId都不为空,则如果startId的进入队列时间晚于preId，则队列区前方没有车
+                if(queueTimeMapById[startId] > queueTimeMapById[preId]){
+                    preId = "";
+                }
+                // 反之前方队列区长度为startId到preId构成的队列长度
             }
-        }else{
-            // 前后都没车，直接插入
-            queueTime = getTheReachTime(car, laneLength - car.minGap, time, false, true);
-            setQueueTimeOfCar(car.id, queueTime);
+            if(preId != ""){
+                // 如果前面有车，则将当前车辆插入到前方车辆后面
+                setThePairMapAtBackOfCar(carMapByQueueTime, queueTimeMapById, id, preId);
+                // 计算预计进入队列时间
+                queueLength = getQueueLength(startId, preId) + car.minGap;
+                queueTime = getTheReachTime(car, laneLength - queueLength, time, false, true);
+                // 若早于前方车辆+更新间隔则向后延迟
+                if(queueTime < queueTimeMapById[preId] + updateInterval){
+                    queueTime = queueTimeMapById[preId] + updateInterval;
+                }
+            }else if(nextId != ""){
+                // 如果前面没车后面有车
+                // 计算预计进入路口时间作为队列区时间
+                queueTime = getTheReachTime(car, laneLength - car.minGap, time, false, true);
+                if(queueTimeMapById[nextId] > queueTime){
+                    // 如果后方车辆晚于当前车来那个预期时间进入队列区，则直接将当前车辆插入队列去
+                    setQueueTimeOfCar(id, queueTime);
+                }else{
+                    // 反之，将其插入后方车辆前方，并用pushback方法推延至预计queueTime
+                    setThePairMapAtFrontOfCar(carMapByQueueTime, queueTimeMapById, id, nextId);
+                }
+            }else{
+                // 前后都没车，直接插入
+                queueTime = getTheReachTime(car, laneLength - car.minGap, time, false, true);
+                setQueueTimeOfCar(car.id, queueTime);
+            }
+            // 将当前车辆向后推延至指定时间
+            pushCarQueueTimeBack(car.id, queueTime);
         }
-        // 将当前车辆向后推延至指定时间
-        pushCarQueueTimeBack(car.id, queueTime);
+        // end ##
     }
     // 获取前方车辆抵达队列区时间
     if(preId != ""){
@@ -839,29 +845,33 @@ double SMTCarInfoQueue::releaseCar(string id, double time) {
     if(useFixFunc){
         // 仅当当前车辆为已失效末尾车辆时才进行调整(防止已失效车辆影响未失效车辆)
         bool canPush = true;
+        bool canMove = true;
         for(set<string>::iterator it = invaildCarSet.begin(); it != invaildCarSet.end(); it++){
             if(enterTimeMapById[*it] > enterTimeMapById[id]){
                 canPush = false;
                 break;
             }
         }
-        // 仅当前方没有未失效车辆时才进行调整
-        for(string outId = outHelper.getFirstCarId(carMapByOutTime, 0); outId != "" && outId != id;
-                outId = outHelper.getNextCarId()){
-            if(invaildCarSet.find(outId)==invaildCarSet.end()){
-                canPush = false;
-            }
+        // 仅当前方没有车辆时才进行前移调整
+        string outId = outHelper.getFirstCarId(carMapByOutTime, 0);
+        if(outId != id){
+            canMove = false;
         }
         if(canPush){
             // 如果id的队列时间在当前时间点之前，则将其推移到当前时间，并更新队列
             // todo 需要进一步检查
-            if (queueTimeMapById[id]<time) {
+            if (outTimeMapById[id]<time+60) {
                 pushCarQueueTimeBack(id, time);
                 TraversalHelper thelper;
                 thelper.getFirstCarId(carMapByQueueTime, queueTimeMapById[id]);
                 thelper.seekToCar(id);
                 string preid = thelper.getPreviousCarId();
                 updateCarQueueInfoAt(id, preid);
+            }
+        }
+        if(canMove){
+            if(queueTimeMapById[id]>time){
+                // todo
             }
         }
     }
