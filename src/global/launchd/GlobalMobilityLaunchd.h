@@ -48,8 +48,8 @@ public:
         GML_EXT_TRACI_NATURAL = 0x11 << 8,
         GML_ALLOW_ALL = GML_ALLOW_STRATEGIC | GML_ALLOW_COOPERATIVE | GML_ALLOW_SPEED_GAIN | GML_ALLOW_DRIVE_ON_RIGHT,
         GML_DISALLOW_ALL = GML_NO_STRATEGIC | GML_NO_COOPERATIVE | GML_NO_SPEED_GAIN | GML_NO_DRIVE_ON_RIGHT,
-        GML_DISALLOW_OVERTAKE = GML_ALLOW_STRATEGIC | GML_ALLOW_COOPERATIVE | GML_NO_SPEED_GAIN
-                | GML_NO_DRIVE_ON_RIGHT
+        GML_DISALLOW_OVERTAKE = GML_ALLOW_STRATEGIC | GML_NO_COOPERATIVE | GML_NO_SPEED_GAIN | GML_NO_DRIVE_ON_RIGHT
+                | GML_EXT_TRACI_ONLY_BY_SPEED
     };
 public:
     // xml related
@@ -63,6 +63,7 @@ public:
     void commandAddRoute(std::string routeId, std::list<std::string> route);
     void commandSetRouteByEdgeList(std::string nodeId, std::list<std::string> route);
     void commandSetLaneChangeMode(std::string nodeId, uint32_t bitset);
+    void commandChangeLane(std::string nodeId, uint8_t laneIndex, uint32_t duration);
 protected:
     std::list<std::string> laneLinksGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId,
             uint8_t responseId);

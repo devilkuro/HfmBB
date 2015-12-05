@@ -54,14 +54,6 @@ uint32_t GlobalMobilityLaunchd::getActiveVehicleCount() {
     return activeVehicleCount;
 }
 
-void GlobalMobilityLaunchd::commandSetLaneChangeMode(std::string nodeId, uint32_t bitset) {
-    uint8_t variableId = VAR_LANECHANGE_MODE;
-    uint8_t variableType = TYPE_INTEGER;
-    TraCIBuffer buf = queryTraCI(CMD_SET_VEHICLE_VARIABLE,
-            TraCIBuffer() << variableId << nodeId << variableType << bitset);
-    ASSERT(buf.eof());
-}
-
 std::string GlobalMobilityLaunchd::getLaunchConfigXMLPath() {
     return hasPar("launchConfig") ? par("launchConfig").str().substr(14, par("launchConfig").str().find(':') - 14) : "";
 }
@@ -94,6 +86,27 @@ std::string GlobalMobilityLaunchd::getXXXXMLFromLaunchConfig(std::string launchF
     }
     doc->Clear();
     return "";
+}
+
+void GlobalMobilityLaunchd::commandSetLaneChangeMode(std::string nodeId, uint32_t bitset) {
+    uint8_t variableId = VAR_LANECHANGE_MODE;
+    uint8_t variableType = TYPE_INTEGER;
+    TraCIBuffer buf = queryTraCI(CMD_SET_VEHICLE_VARIABLE,
+            TraCIBuffer() << variableId << nodeId << variableType << bitset);
+    ASSERT(buf.eof());
+}
+
+void GlobalMobilityLaunchd::commandChangeLane(std::string nodeId, uint8_t laneIndex, uint32_t duration) {
+    uint8_t variableId = CMD_CHANGELANE;
+    uint8_t variableType = TYPE_COMPOUND;
+    uint8_t ByteType = TYPE_BYTE;
+    uint8_t IntType = TYPE_INTEGER;
+
+    uint32_t num = 2;
+    TraCIBuffer buf = TraCIBuffer();
+    buf << variableId << nodeId << variableType << num << ByteType << laneIndex << IntType << duration;
+    TraCIBuffer buf0 = queryTraCI(CMD_SET_VEHICLE_VARIABLE, buf);
+    ASSERT(buf0.eof());
 }
 
 std::list<std::string> GlobalMobilityLaunchd::laneLinksGetStringList(uint8_t commandId, std::string objectId,
