@@ -292,6 +292,7 @@ void GlobalVehicleManager::generateCarFlowFile() {
                 }
             }
         }
+        // 后半周期主要车流反向
         if((int) (time / carSpawnPeriod) % 2 == 1){
             maxSpawnProbabilityForOneJudge = maxCarFlowRate * carSpawnJudgeInterval;
         }else{
@@ -320,7 +321,7 @@ void GlobalVehicleManager::generateCarFlowFile() {
                 }
             }
         }
-
+        // 自由车流量
         maxSpawnProbabilityForOneJudge = maxFreeCarFlowRate * carSpawnJudgeInterval;
         minSpawnProbabilityForOneJudge = minFreeCarFlowRate * carSpawnJudgeInterval;
         // free flow from anyIn to anyOut

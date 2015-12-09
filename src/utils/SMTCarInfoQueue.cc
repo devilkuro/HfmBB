@@ -171,8 +171,15 @@ SMTCarInfoQueue::SMTCarInfoQueue() {
 
 SMTCarInfoQueue::SMTCarInfoQueue(string lane, string xmlpath, double length, double outLength) {
     init();
+    if(doc == NULL){
+        doc = new XMLDocument();
+        global_xml_index = global_xml_index + 1;
+        xml_suffix = StringHelper::int2str(global_xml_index);
+        cout << "xml_index: " << global_xml_index << endl;
+    }
     xmlName = xmlpath + "_" + xml_suffix + ".xml";
-    txtName = xmlpath.substr(xmlpath.find_last_of('/') + 1, xmlpath.find_last_of('.') - xmlpath.find_last_of('/') - 1);
+    xmlName = "./results/temp.xml";
+    txtName = xmlpath.substr(xmlpath.find_last_of('/') + 1);
     laneName = lane;
     laneLength = length;
     laneOutLength = outLength;
@@ -756,12 +763,6 @@ void SMTCarInfoQueue::init() {
     doc = NULL;
     root = NULL;
     element = NULL;
-    if(doc == NULL){
-        doc = new XMLDocument();
-        global_xml_index = global_xml_index + 1;
-        xml_suffix = StringHelper::int2str(global_xml_index);
-        cout << "xml_index: " << global_xml_index << endl;
-    }
 }
 
 SMTCarInfoQueue::~SMTCarInfoQueue() {
@@ -823,16 +824,16 @@ void SMTCarInfoQueue::setCurrentTime(double time) {
 
 double SMTCarInfoQueue::releaseCar(string id, double time) {
     // make recording
-    element = doc->NewElement("result");
-    element->SetAttribute("car", id.c_str());
-    element->SetAttribute("enterTime", enterTimeMapById[id]);
-    element->SetAttribute("queueTime", queueTimeMapById[id]);
-    element->SetAttribute("startOutQueueTime", outQueueTimeMapById[id]);
-    element->SetAttribute("outTime", predicOutTime[id]);
-    element->SetAttribute("actualOutTime", time);
-    element->SetAttribute("nextRoadTime", nextRoadTimeMapById[id]);
-
-    root->LinkEndChild(element);
+//    element = doc->NewElement("result");
+//    element->SetAttribute("car", id.c_str());
+//    element->SetAttribute("enterTime", enterTimeMapById[id]);
+//    element->SetAttribute("queueTime", queueTimeMapById[id]);
+//    element->SetAttribute("startOutQueueTime", outQueueTimeMapById[id]);
+//    element->SetAttribute("outTime", predicOutTime[id]);
+//    element->SetAttribute("actualOutTime", time);
+//    element->SetAttribute("nextRoadTime", nextRoadTimeMapById[id]);
+//
+//    root->LinkEndChild(element);
 
     StatisticsRecordTools *srtool = StatisticsRecordTools::request();
     srtool->changeName(txtName + ":lane,id,enter time,queue time,out queue time,out time,actual time,next road time")
