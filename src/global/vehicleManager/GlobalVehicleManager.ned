@@ -22,7 +22,9 @@ simple GlobalVehicleManager
 {
     parameters:
         @class(GlobalVehicleManager);
-
+  		bool disableSinFix = default(false);
+  		bool enableBurst= default(false);
+  		int nBurstNum= default(10);
         string carFlowXMLPath = default("");	// the file of the car 
         string carVTypeXMLPath = default("");	// the file includes vehicle types
         bool generateNewXMLFile = default(true);	// if true, will generate new xml file at initializing phase.

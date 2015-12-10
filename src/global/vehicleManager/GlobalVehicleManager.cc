@@ -21,11 +21,15 @@ std::map<string, SMTCarInfo> GlobalVehicleManager::carMapByID;
 
 GlobalVehicleManager::GlobalVehicleManager() :
         srt(NULL) {
+
     map = NULL;
     testMsg = NULL;
     targetNum = 100;
 
     // generating car flow and related
+    disableSinFix = false;
+    enableBurst = false;
+    nBurstNum = 10;
     carSpawnTimeLimit = 7200 * 3;
     carFlowXMLPath = "";
     carVTypeXMLPath = "";
@@ -53,6 +57,9 @@ void GlobalVehicleManager::initialize() {
     targetNum = 500;
 
     // generating car flow and related
+    disableSinFix = hasPar("disableSinFix") ? par("disableSinFix") : false;
+    enableBurst= hasPar("enableBurst") ? par("enableBurst") : false;
+    nBurstNum= hasPar("nBurstNum") ? par("nBurstNum") : 10;
     carNumLimit = hasPar("carNumLimit") ? par("carNumLimit") : 19440;
     carFlowXMLPath = hasPar("carFlowXMLPath") ? par("carFlowXMLPath") : "";
     generateNewXMLFile = hasPar("generateNewXMLFile") ? par("generateNewXMLFile") : true;
@@ -346,6 +353,28 @@ void GlobalVehicleManager::generateCarFlowFile() {
                 }
             }
         }
+        if(enableBurst&&nBurstNum>0){
+            for(unsigned int j = 0; j < vecInEndPoint.size(); j++){
+                if(dblrand()< 0.3){
+                    nBurstNum--;
+                    string carid = prefix + Fanjing::StringHelper::int2str(carNum++);
+                    string origin = vecInEndPoint[j];
+                    int reverseRoad = j + vecOutStartPoint.size();
+                    int rnd = intrand(vecOutPoint.size() - 1);
+                    // remove the possible to choose the reverse road of the origin.
+                    if(rnd == reverseRoad){
+                        rnd = vecOutPoint.size() - 1;
+                    }
+                    string destination = vecOutPoint[rnd];
+                    string vType = vecVType[intrand(vecVType.size())];
+                    carFlowHelper.addODCar(prefix + Fanjing::StringHelper::int2str(carNum), origin, destination, time,
+                            vType);
+                    if(carNumLimit > 0 && carNum > carNumLimit){
+                        i = maxJudgeTimes;
+                    }
+                }
+            }
+        }
         // out put the process infomation
         if((i & 1023) == 1023){
             cout << "process: " << "time:" << time << ", t: "
@@ -399,6 +428,9 @@ bool GlobalVehicleManager::compare_departTime(string& first, string& second) {
 }
 
 double GlobalVehicleManager::SinFuncFixed(double t, double period, double up, double down) {
+    if(disableSinFix){
+        return up;
+    }
     return down + (up - down) / 2 * (1 + sin((t / period) * (2 * M_PI) - M_PI / 2));
 }
 

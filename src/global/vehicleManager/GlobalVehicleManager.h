@@ -86,6 +86,9 @@ protected:
     virtual void addOneVehicle(SMTCarInfo car);   // add a car of a certain type
     virtual void addVehicles(VehicleType type, int num); // add several cars of a certain type
     // generating car flow and related
+    bool disableSinFix;
+    bool enableBurst;
+    int nBurstNum;
     int carNumLimit;
     double carSpawnTimeLimit;
     string carFlowXMLPath;
