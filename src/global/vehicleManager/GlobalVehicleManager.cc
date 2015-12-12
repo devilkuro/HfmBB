@@ -353,28 +353,6 @@ void GlobalVehicleManager::generateCarFlowFile() {
                 }
             }
         }
-        if(enableBurst&&nBurstNum>0){
-            for(unsigned int j = 0; j < vecInEndPoint.size(); j++){
-                if(dblrand()< 0.3){
-                    nBurstNum--;
-                    string carid = prefix + Fanjing::StringHelper::int2str(carNum++);
-                    string origin = vecInEndPoint[j];
-                    int reverseRoad = j + vecOutStartPoint.size();
-                    int rnd = intrand(vecOutPoint.size() - 1);
-                    // remove the possible to choose the reverse road of the origin.
-                    if(rnd == reverseRoad){
-                        rnd = vecOutPoint.size() - 1;
-                    }
-                    string destination = vecOutPoint[rnd];
-                    string vType = vecVType[intrand(vecVType.size())];
-                    carFlowHelper.addODCar(prefix + Fanjing::StringHelper::int2str(carNum), origin, destination, time,
-                            vType);
-                    if(carNumLimit > 0 && carNum > carNumLimit){
-                        i = maxJudgeTimes;
-                    }
-                }
-            }
-        }
         // out put the process infomation
         if((i & 1023) == 1023){
             cout << "process: " << "time:" << time << ", t: "
@@ -450,6 +428,30 @@ void GlobalVehicleManager::loadCarFlowFile() {
         carIdMapByDepartTime.push_back(car.id);
         car = carFlowHelper.getNextCar();
     }
+    // TODO 修复下面添加突发车辆的部分
+
+/*    if(enableBurst&&nBurstNum>0){
+        for(unsigned int j = 0; j < vecInEndPoint.size(); j++){
+            if(dblrand()< 0.3){
+                nBurstNum--;
+                string carid = prefix + Fanjing::StringHelper::int2str(carNum++);
+                string origin = vecInEndPoint[j];
+                int reverseRoad = j + vecOutStartPoint.size();
+                int rnd = intrand(vecOutPoint.size() - 1);
+                // remove the possible to choose the reverse road of the origin.
+                if(rnd == reverseRoad){
+                    rnd = vecOutPoint.size() - 1;
+                }
+                string destination = vecOutPoint[rnd];
+                string vType = vecVType[intrand(vecVType.size())];
+                carFlowHelper.addODCar(prefix + Fanjing::StringHelper::int2str(carNum), origin, destination, time,
+                        vType);
+                if(carNumLimit > 0 && carNum > carNumLimit){
+                    i = maxJudgeTimes;
+                }
+            }
+        }
+    }*/
     carIdMapByDepartTime.sort(compare_departTime);
     itCarIdMapByDepartTime = carIdMapByDepartTime.begin();
 }
