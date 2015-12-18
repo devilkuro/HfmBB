@@ -58,8 +58,8 @@ void GlobalVehicleManager::initialize() {
 
     // generating car flow and related
     disableSinFix = hasPar("disableSinFix") ? par("disableSinFix") : false;
-    enableBurst= hasPar("enableBurst") ? par("enableBurst") : false;
-    nBurstNum= hasPar("nBurstNum") ? par("nBurstNum") : 10;
+    enableBurst = hasPar("enableBurst") ? par("enableBurst") : false;
+    nBurstNum = hasPar("nBurstNum") ? par("nBurstNum") : 10;
     carNumLimit = hasPar("carNumLimit") ? par("carNumLimit") : 19440;
     carFlowXMLPath = hasPar("carFlowXMLPath") ? par("carFlowXMLPath") : "";
     generateNewXMLFile = hasPar("generateNewXMLFile") ? par("generateNewXMLFile") : true;
@@ -430,28 +430,52 @@ void GlobalVehicleManager::loadCarFlowFile() {
     }
     // TODO 修复下面添加突发车辆的部分
 
-/*    if(enableBurst&&nBurstNum>0){
-        for(unsigned int j = 0; j < vecInEndPoint.size(); j++){
-            if(dblrand()< 0.3){
-                nBurstNum--;
-                string carid = prefix + Fanjing::StringHelper::int2str(carNum++);
-                string origin = vecInEndPoint[j];
-                int reverseRoad = j + vecOutStartPoint.size();
-                int rnd = intrand(vecOutPoint.size() - 1);
-                // remove the possible to choose the reverse road of the origin.
-                if(rnd == reverseRoad){
-                    rnd = vecOutPoint.size() - 1;
-                }
-                string destination = vecOutPoint[rnd];
-                string vType = vecVType[intrand(vecVType.size())];
-                carFlowHelper.addODCar(prefix + Fanjing::StringHelper::int2str(carNum), origin, destination, time,
-                        vType);
-                if(carNumLimit > 0 && carNum > carNumLimit){
-                    i = maxJudgeTimes;
+    if(enableBurst && nBurstNum > 0){
+        // 设置路径备选集
+        // generate vtype vector
+        list<string> listVType = SMTCarInfo::getDefaultVeicleTypeList();
+        vector<string> vecVType = vector<string>(listVType.begin(), listVType.end());
+        vector<string> vecInStartPoint;
+        vector<string> vecInEndPoint;
+        vector<string> vecOutEndPoint;
+        vector<string> vecOutStartPoint;
+        list<string> roadList = getMapSystem()->getAllEdges();
+        string road = "";
+        string start = "2/4";
+        string end = "2/2";
+        string AtoB = "2/4to2/2";
+        for(list<string>::iterator it = roadList.begin(); it != roadList.end(); it++){
+            road = *it;
+            // end to start and not start from end
+            string head = getStartPoint(road);
+            string tail = getEndPoint(road);
+            if(head == end){
+                if(tail != start){
+                    vecOutEndPoint.push_back(road);
                 }
             }
         }
-    }*/
+        // 初始化突发车辆信息
+        double burstStart = carSpawnStartTime + carSpawnPeriod;
+        int carNum = 1;
+        for(unsigned int j = 0; j < nBurstNum; j++){
+            string carid = "burst" + Fanjing::StringHelper::int2str(carNum++);
+            string origin = "0/2to2/2";
+            int rnd = intrand(vecOutEndPoint.size());
+            string destination = vecOutEndPoint[rnd];
+            string vType = vecVType[intrand(vecVType.size())];
+            SMTCarInfo car;
+            car.id = carid;
+
+            car.vtype = vType;
+            car.time = burstStart + j * 2;
+            car.type = SMTCarInfo::SMTCARINFO_ROUTETYPE_OD;
+            car.origin = origin;
+            car.destination = destination;
+            carMapByID[car.id] = car;
+            carIdMapByDepartTime.push_back(car.id);
+        }
+    }
     carIdMapByDepartTime.sort(compare_departTime);
     itCarIdMapByDepartTime = carIdMapByDepartTime.begin();
 }
