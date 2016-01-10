@@ -25,6 +25,9 @@ simple GlobalVehicleManager
   		bool disableSinFix = default(false);
   		bool enableBurst= default(false);
   		int nBurstNum= default(10);
+        string strBurstIn = default("0/4to2/4");  // 突发车辆道路入口对应的位置
+        string strBurstOut = default("");  // 突发车辆道路出口对应的位置
+        int nBurstOut = default(-1);
         string carFlowXMLPath = default("");	// the file of the car 
         string carVTypeXMLPath = default("");	// the file includes vehicle types
         bool generateNewXMLFile = default(true);	// if true, will generate new xml file at initializing phase.

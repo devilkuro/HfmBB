@@ -89,6 +89,9 @@ protected:
     bool disableSinFix;
     bool enableBurst;
     int nBurstNum;
+    string strBurstIn;  // 突发车辆道路入口对应的位置
+    string strBurstOut;  // 突发车辆道路出口对应的位置
+    int nBurstOut;
     int carNumLimit;
     double carSpawnTimeLimit;
     string carFlowXMLPath;

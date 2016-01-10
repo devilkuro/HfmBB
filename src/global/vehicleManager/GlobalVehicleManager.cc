@@ -33,6 +33,9 @@ GlobalVehicleManager::GlobalVehicleManager() :
     carSpawnTimeLimit = 7200 * 3;
     carFlowXMLPath = "";
     carVTypeXMLPath = "";
+    strBurstIn = "";
+    strBurstOut = "";
+    nBurstOut = -1;
     generateNewXMLFile = true;
     maxCarFlowRate = 0.6;
     minCarFlowRate = 0;
@@ -59,6 +62,9 @@ void GlobalVehicleManager::initialize() {
     // generating car flow and related
     disableSinFix = hasPar("disableSinFix") ? par("disableSinFix") : false;
     enableBurst = hasPar("enableBurst") ? par("enableBurst") : false;
+    strBurstIn = hasPar("strBurstIn") ? par("strBurstIn") :  "0/4to2/4";
+    strBurstOut = hasPar("strBurstOut") ? par("strBurstOut") : "2/2to0/2";
+    nBurstOut = hasPar("nBurstOut") ? par("nBurstOut") : -1;
     nBurstNum = hasPar("nBurstNum") ? par("nBurstNum") : 10;
     carNumLimit = hasPar("carNumLimit") ? par("carNumLimit") : 19440;
     carFlowXMLPath = hasPar("carFlowXMLPath") ? par("carFlowXMLPath") : "";
@@ -444,6 +450,7 @@ void GlobalVehicleManager::loadCarFlowFile() {
         string start = "2/4";
         string end = "2/2";
         string AtoB = "2/4to2/2";
+        string atoA = strBurstIn;
         for(list<string>::iterator it = roadList.begin(); it != roadList.end(); it++){
             road = *it;
             // end to start and not start from end
@@ -458,13 +465,19 @@ void GlobalVehicleManager::loadCarFlowFile() {
         // 初始化突发车辆信息
         double burstStart = carSpawnStartTime + carSpawnPeriod;
         int carNum = 1;
-        for(unsigned int j = 0; j < nBurstNum; j++){
+        for(int j = 0; j < nBurstNum; j++){
             string carid = "burst" + Fanjing::StringHelper::int2str(carNum++);
-            string origin = "0/2to2/2";
-            int rnd = intrand(vecOutEndPoint.size());
-            string destination = vecOutEndPoint[rnd];
+            string origin = atoA;
+            string destination  = strBurstOut;
+            if(strBurstOut==""){
+                int rnd = nBurstOut;
+                if (nBurstOut == -1) {
+                   rnd = intrand(vecOutEndPoint.size());
+                }
+                destination = vecOutEndPoint[rnd];
+            }
             string vType = vecVType[intrand(vecVType.size())];
-            SMTCarInfo car;
+            SMTCarInfo car = SMTCarInfo().getDefaultVeicleTypeInfo(vType);
             car.id = carid;
 
             car.vtype = vType;
@@ -474,6 +487,7 @@ void GlobalVehicleManager::loadCarFlowFile() {
             car.destination = destination;
             carMapByID[car.id] = car;
             carIdMapByDepartTime.push_back(car.id);
+            cout<<"add car "<<car.id<<endl;
         }
     }
     carIdMapByDepartTime.sort(compare_departTime);
