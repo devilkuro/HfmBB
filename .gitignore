@@ -3,8 +3,10 @@
 #################
 fanjing.con.xml
 fanjing.edg.xml
-*.net.xml
+fanjing.net.xml
 fanjing.nod.xml
+
+erlangen.net.xml
 
 #################
 ## OMNetpp
