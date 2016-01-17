@@ -20,7 +20,7 @@
 
 package smartcity.flowreserved.simulations;
 
-import org.mixim.base.connectionManager.ConnectionManager;
+import smartcity.flowreserved.global.conManager.SMTConManager;
 import org.mixim.base.modules.BaseWorldUtility;
 import smartcity.flowreserved.global.obstacles.ObstacleControl_Switch;
 import smartcity.flowreserved.global.annotations.AnnotationManager_Colorful;
@@ -43,7 +43,7 @@ module Highway
         annotations: AnnotationManager_Colorful {
             @display("p=260,50");
         }
-        connectionManager: ConnectionManager {
+        connectionManager: SMTConManager {
             parameters:
                 @display("p=150,0;i=abstract/multicast");
         }
