@@ -22,13 +22,18 @@
 
 class SMTMobility : public TraCIMobility_Fixed {
 public:
-    SMTMobility();
+    SMTMobility() {
+        beWatched = false;
+        enableLaneChangeControl = false;
+    }
+    ;
     virtual ~SMTMobility();
 
 protected:
     SMTCarInfo carInfo;
     list<string> route;
     bool beWatched;
+    bool enableLaneChangeControl;
     // overload these function in different mobility
     // processAfterRouting
     // this function will run every 0.1 second for each car if routed in routing process!!
@@ -51,7 +56,7 @@ protected:
             map = SMTMapSystemAccess().get();
         }
         ASSERT(map);
-        return (SMTMapSystem*)map;
+        return (SMTMapSystem*) map;
     }
 
     void changeRoute(list<string> route);
