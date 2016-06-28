@@ -59,6 +59,8 @@ protected:
     std::map<string, int> intMap;
     std::map<string, cMessage*> msgMap;
     cMessage* testMsg;
+    bool endAfterGenCFG;
+    cMessage* endMsg;
     StatisticsRecordTools* srt;
     // members
     GlobalMapSystem *map;

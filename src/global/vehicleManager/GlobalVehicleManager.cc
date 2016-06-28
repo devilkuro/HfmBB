@@ -24,6 +24,8 @@ GlobalVehicleManager::GlobalVehicleManager() :
 
     map = NULL;
     testMsg = NULL;
+    endAfterGenCFG = false;
+    endMsg = NULL;
     targetNum = 100;
 
     // generating car flow and related
@@ -69,7 +71,7 @@ void GlobalVehicleManager::initialize() {
     carNumLimit = hasPar("carNumLimit") ? par("carNumLimit") : 19440;
     carFlowXMLPath = hasPar("carFlowXMLPath") ? par("carFlowXMLPath") : "";
     generateNewXMLFile = hasPar("generateNewXMLFile") ? par("generateNewXMLFile") : true;
-
+    endAfterGenCFG = hasPar("endAfterGenCFG") ? par("endAfterGenCFG") : false;
     maxCarFlowRate = hasPar("maxCarFlowRate") ? par("maxCarFlowRate") : 0.6;
     minCarFlowRate = hasPar("minCarFlowRate") ? par("minCarFlowRate") : 0.0;
     maxFreeCarFlowRate = hasPar("maxFreeCarFlowRate") ? par("maxFreeCarFlowRate") : 0.2;
@@ -146,6 +148,9 @@ void GlobalVehicleManager::handleMessage(cMessage *msg) {
         }else{
             scheduleAt(simTime() + 0.1, testMsg);
         }
+    }else if (msg == endMsg){
+        cancelAndDelete(endMsg);
+        endSimulation();
     }
 }
 
@@ -379,6 +384,10 @@ void GlobalVehicleManager::generateCarFlowFile() {
     cout << "carSpawnTimeLimit: " << carSpawnTimeLimit << ", carNumLimit: " << carNumLimit << endl;
     cout << " car: " << carNum << endl;
     carFlowHelper.save();
+    if(endAfterGenCFG){
+        endMsg = new cMessage("end simulation");
+        scheduleAt(simTime(), endMsg);
+    }
 }
 
 string GlobalVehicleManager::getStartPoint(string road) {

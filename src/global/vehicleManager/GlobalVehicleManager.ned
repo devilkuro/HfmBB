@@ -31,6 +31,7 @@ simple GlobalVehicleManager
         string carFlowXMLPath = default("");	// the file of the car 
         string carVTypeXMLPath = default("");	// the file includes vehicle types
         bool generateNewXMLFile = default(true);	// if true, will generate new xml file at initializing phase.
+        bool endAfterGenCFG = default(false);
         double maxCarFlowRate = default(0.5);	// the max car flow rate for each spawn point. the unit is num per second
         // since the traffic light only allow the cars through the road cross in 1/4 time for non-right direction
         // the maxCarFlowRate should not beyond the max throughput too much.
