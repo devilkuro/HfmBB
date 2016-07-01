@@ -115,7 +115,7 @@ void SMTMapSystem::enterRoad(SMTCarInfo car, string road, double time) {
 
 void SMTMapSystem::finish() {
     for(map<string, SMTCarInfoQueue>::iterator it = queueMap.begin();it!=queueMap.end();it++){
-        it->second.saveResults("./results/temp.xml");
+        //it->second.saveResults("./results/temp.xml");
     }
 }
 

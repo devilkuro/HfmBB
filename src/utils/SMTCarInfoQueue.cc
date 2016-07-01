@@ -767,7 +767,7 @@ void SMTCarInfoQueue::init() {
 
 SMTCarInfoQueue::~SMTCarInfoQueue() {
     // 输出记录文件
-    saveResults(xmlName);
+    // saveResults(xmlName);
 }
 
 double SMTCarInfoQueue::getTheReachTime(SMTCarInfo car, double length, double startTime, bool considerAccel,
